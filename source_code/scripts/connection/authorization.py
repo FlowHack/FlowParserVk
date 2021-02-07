@@ -3,7 +3,7 @@ from webbrowser import open as web_open
 import vk_api
 from _tkinter import TclError
 
-from scripts.scripts.base_data import RequestToBD
+from scripts.scripts.base_data import RequestGetToBD, RequestUpdateToBD
 from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('authorization')
@@ -16,9 +16,10 @@ class Authorize:
         :param preview_window: превью окно, которое будет закрыто
         """
         self.preview_window = preview_window
-        self.base_data_requests = RequestToBD()
+        self.base_data_get_requests = RequestGetToBD()
+        self.base_data_update_request = RequestUpdateToBD()
         user_data_table_value = \
-            self.base_data_requests.get_user_data_table_value()
+            self.base_data_get_requests.get_user_data_table_value()
         self.vk_login = user_data_table_value['vk_login']
         self.vk_password = user_data_table_value['vk_password']
         self.vk_session = self.get_vk_session(self.vk_login, self.vk_password)
@@ -76,7 +77,7 @@ class Authorize:
 
         if (elementary_vk_login != vk_login) or \
                 (elementary_vk_password != vk_password):
-            self.base_data_requests.update_data_on_user_table(
+            self.base_data_update_request.update_data_on_user_table(
                 new_vk_login=vk_login, new_vk_password=vk_password
             )
 

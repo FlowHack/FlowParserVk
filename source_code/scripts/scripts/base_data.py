@@ -102,9 +102,13 @@ class MainBD:
         logger.info('Создали базу данных записей get запросов')
 
 
-class RequestToBD(MainBD):
+class RequestGetToBD(MainBD):
 
     def get_settings_table_value(self):
+        """
+        Функция получения данных настроек программы из базы данных
+        :return: словарь со значениями по имени их названия в базе
+        """
         self.remote_control_bd.execute('SELECT * FROM Settings_app')
         settings_app = self.remote_control_bd.fetchone()
 
@@ -117,6 +121,10 @@ class RequestToBD(MainBD):
         }
 
     def get_user_data_table_value(self):
+        """
+        Функция получения данных пользователя программы из базы данных
+        :return: словарь со значениями по имени их названия в базе
+        """
         self.remote_control_bd.execute('SELECT * FROM User_data')
         data_user = self.remote_control_bd.fetchone()
 
@@ -129,6 +137,10 @@ class RequestToBD(MainBD):
         }
 
     def get_get_requests_people_table_value(self):
+        """
+        Функция получения результатов get запросов пользователей в вк
+        :return: список запросов
+        """
         self.remote_control_bd.execute(
             '''
             CREATE TABLE IF NOT EXISTS Get_people(
@@ -146,8 +158,17 @@ class RequestToBD(MainBD):
 
         return get_people_requests
 
+
+class RequestUpdateToBD(MainBD):
+
     def update_data_on_user_table(self,
                                   new_vk_login: str, new_vk_password: str):
+        """
+        Функция обновления данных пользователя
+        :param new_vk_login: логин вконтакте
+        :param new_vk_password: пароль вконтакте
+        :return: ничего
+        """
         self.remote_control_bd.execute(
             f'''
             UPDATE User_data
@@ -157,3 +178,30 @@ class RequestToBD(MainBD):
         )
         self.connect_bd.commit()
         logger.warning('Обновлены данные таблицы User_data')
+
+    def update_settings_app_table(self,
+                                  auto_update=None, first_start=None):
+        """
+        Функция обновления настроек программы. Можно подать один из двух
+        парметров
+        :param auto_update: значение авто обновления (1-да, 0-нет)
+        :param first_start: значение первого запуска (1-да, 0-нет)
+        :return: ничего
+        """
+        if (auto_update is None) or (first_start is None):
+            settings_app_table_values = \
+                RequestGetToBD().get_settings_table_value()
+            if auto_update is None:
+                auto_update: int = settings_app_table_values['auto_update']
+            if first_start is None:
+                first_start: int = settings_app_table_values['first_start']
+
+        self.remote_control_bd.execute(
+            f'''
+            UPDATE Settings_app
+            SET auto_update = {auto_update},
+            first_start = {first_start}
+            '''
+        )
+        self.connect_bd.commit()
+        logger.warning('Обновлены данные таблицы Settings_app')

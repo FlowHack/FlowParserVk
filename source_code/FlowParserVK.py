@@ -4,8 +4,7 @@ from tkinter import Label, Tk
 from _tkinter import TclError
 from PIL import Image, ImageTk
 
-from scripts.connection.authorization import Authorize
-from scripts.scripts.base_data import MainBD, RequestToBD
+from scripts.scripts.base_data import MainBD, RequestGetToBD
 from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('main')
@@ -25,12 +24,12 @@ class BrainForApp:
         time.sleep(2)
         MainBD()
         first_start: int = \
-            RequestToBD().get_settings_table_value()['first_start']
+            RequestGetToBD().get_settings_table_value()['first_start']
         if first_start == 1:
             from scripts.main.app import AdditionalWindows
+            from scripts.scripts.base_data import RequestUpdateToBD
             AdditionalWindows.person_and_agreement_data(window_preview)
-
-        Authorize(window_preview)
+            RequestUpdateToBD().update_settings_app_table(first_start=0)
 
         try:
             window_preview.destroy()
