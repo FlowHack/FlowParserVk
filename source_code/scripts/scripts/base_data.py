@@ -68,7 +68,7 @@ class MainBD:
             '''
             CREATE TABLE IF NOT EXISTS Settings_app(
             auto_update INT NOT NULL,
-            first_start INT NOT NULL
+            person_agreement INT NOT NULL
             )
             '''
         )
@@ -117,7 +117,7 @@ class RequestGetToBD(MainBD):
 
         return {
             'auto_update': auto_update,
-            'first_start': first_start,
+            'person_agreement': first_start,
         }
 
     def get_user_data_table_value(self):
@@ -180,7 +180,7 @@ class RequestUpdateToBD(MainBD):
         logger.warning('Обновлены данные таблицы User_data')
 
     def update_settings_app_table(self,
-                                  auto_update=None, first_start=None):
+                                  auto_update=None, person_agreement=None):
         """
         Функция обновления настроек программы. Можно подать один из двух
         парметров
@@ -188,19 +188,19 @@ class RequestUpdateToBD(MainBD):
         :param first_start: значение первого запуска (1-да, 0-нет)
         :return: ничего
         """
-        if (auto_update is None) or (first_start is None):
+        if (auto_update is None) or (person_agreement is None):
             settings_app_table_values = \
                 RequestGetToBD().get_settings_table_value()
             if auto_update is None:
                 auto_update: int = settings_app_table_values['auto_update']
-            if first_start is None:
-                first_start: int = settings_app_table_values['first_start']
+            if person_agreement is None:
+                first_start: int = settings_app_table_values['person_agreement']
 
         self.remote_control_bd.execute(
             f'''
             UPDATE Settings_app
             SET auto_update = {auto_update},
-            first_start = {first_start}
+            person_agreement = {person_agreement}
             '''
         )
         self.connect_bd.commit()

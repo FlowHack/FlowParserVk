@@ -1,9 +1,12 @@
 from sys import exit as exit_ex
 from time import time
 from tkinter import Text, Tk, messagebox, ttk
+from settings.settings import SettingsFunction
 
 import scripts.main.styles as styles
 from FlowParserVK import BrainForApp
+
+logger = SettingsFunction.get_logger('app')
 
 one_value = None
 two_value = None
@@ -63,7 +66,7 @@ class AdditionalWindows(App):
                 lose_agreement_count = 2
             elif lose_agreement_count == 2:
                 now_time = time() - start_time
-                messagebox.showinfo(
+                messagebox.showwarning(
                     'Прочтите пользовательское соглашение!',
                     f'Я придумал! Буду считать сколько времени вы тратите '
                     f'впустую.\nНа данный момент вы потратили '
@@ -73,7 +76,7 @@ class AdditionalWindows(App):
                 lose_agreement_count = 3
             else:
                 now_time = time() - start_time
-                messagebox.showinfo(
+                messagebox.showwarning(
                     'Прочтите пользовательское соглашение!',
                     f'На данный момент вы потратили {now_time:.0f}сек.\n\nНе '
                     f'тратьте своё время просто так. Прочитайте '

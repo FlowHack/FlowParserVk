@@ -24,12 +24,12 @@ class BrainForApp:
         time.sleep(2)
         MainBD()
         first_start: int = \
-            RequestGetToBD().get_settings_table_value()['first_start']
+            RequestGetToBD().get_settings_table_value()['person_agreement']
         if first_start == 1:
             from scripts.main.app import AdditionalWindows
             from scripts.scripts.base_data import RequestUpdateToBD
             AdditionalWindows.person_and_agreement_data(window_preview)
-            RequestUpdateToBD().update_settings_app_table(first_start=0)
+            RequestUpdateToBD().update_settings_app_table(person_agreement=0)
 
         try:
             window_preview.destroy()
@@ -42,12 +42,6 @@ class BrainForApp:
     def check_ico():
         """
         Проверяет наличие иконок
-        """
-        pass
-
-    def check_vk_data(self):
-        """
-        Проверяет наличие данных пользователя Вконтакте
         """
         pass
 
