@@ -1,6 +1,7 @@
 from settings.settings import SettingsFunction
 from scripts.scripts.base_data import RequestToBD
 from webbrowser import open as web_open
+from _tkinter import TclError
 import vk_api
 
 logger = SettingsFunction.get_logger('authorization')
@@ -8,6 +9,10 @@ logger = SettingsFunction.get_logger('authorization')
 
 class Authorize:
     def __init__(self, preview_window):
+        """
+        Получение объекта сессии VK
+        :param preview_window: превью окно, которое будет закрыто
+        """
         self.preview_window = preview_window
         self.base_data_requests = RequestToBD()
         user_data_table_value = \
@@ -17,9 +22,20 @@ class Authorize:
         self.vk_session = self.get_vk_session(self.vk_login, self.vk_password)
 
     def get_vk_session(self, elementary_vk_login, elementary_vk_password):
+        """
+        Функция получения объекта сесси VK
+        :param elementary_vk_login: логин из базы
+        :param elementary_vk_password: пароль из базы
+        :return: объект сессии VK
+        """
         if (elementary_vk_login == 'none_value') or \
                 (elementary_vk_password == 'none_value'):
-            self.preview_window.destroy()
+            try:
+                self.preview_window.destroy()
+            except TclError as error:
+                if str(error) == 'can\'t invoke "destroy" command: ' \
+                                  'application has been destroyed':
+                    pass
             vk_login, vk_password = self.get_data_for_authorization()
         else:
             vk_login, vk_password = elementary_vk_login, elementary_vk_password
@@ -66,6 +82,10 @@ class Authorize:
 
     @staticmethod
     def auth_handler():
+        """
+        Связующий между человеком и двухфакторной авторизацией
+        :return: код, булево (сохранять ли устройство)
+        """
         from scripts.main.app import DialogWindows
         key = DialogWindows.get_one_or_two_params(
             title='Двухфакторная аутентификация', text_field_one='Код',
@@ -77,6 +97,11 @@ class Authorize:
 
     @staticmethod
     def captcha_handler(captcha):
+        """
+        Связующий между человеком и каптчей
+        :param captcha: объект капчи
+        :return: результат прохождения
+        """
         from scripts.main.app import DialogWindows
         web_open(captcha.get_url())
         key = DialogWindows.get_one_or_two_params(
@@ -89,6 +114,11 @@ class Authorize:
     @staticmethod
     def get_data_for_authorization(
             header='Введите ваши данные от аккаунта VK'):
+        """
+        Получение логина и пароля от аккаунта Вконтакте
+        :param header: Заголовок инпут окна.
+        :return: Возваращает результат получения данных
+        """
         from scripts.main.app import DialogWindows
         response = DialogWindows.get_one_or_two_params(
             title='Введите ваши данные от аккаунта Vk', text_field_one='Логин',

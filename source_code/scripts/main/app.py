@@ -1,14 +1,24 @@
-from FlowParserVK import BrainForApp
-from tkinter import ttk
-from tkinter import Tk, messagebox, Text
-import scripts.main.styles as styles
 from sys import exit as exit_ex
+from time import time
+from tkinter import Tk, messagebox, Text
+from tkinter import ttk
+
+import scripts.main.styles as styles
+from FlowParserVK import BrainForApp
 
 one_value = None
 two_value = None
+lose_agreement_count = 0
 
 
 def set_position_window_on_center(parent, width: int, height: int):
+    """
+    Функция установки окна по середине окна
+    :param parent: объект окна, которое нужно расположить посередине
+    :param width: параметр длины окна
+    :param height: параметр высоты окна
+    :return: ничего
+    """
     sw = parent.winfo_screenwidth()
     sh = parent.winfo_screenheight()
     x = (sw - width) / 2
@@ -23,13 +33,61 @@ class App(BrainForApp):
 class AdditionalWindows(App):
 
     @staticmethod
-    def license_and_agreement_data(window_preview):
+    def person_and_agreement_data(window_preview):
+        """
+        Функция создания окна пользовательского соглашения
+        :param window_preview: объект превью программы
+        :return: Ничего
+        """
+        global lose_agreement_count
+
+        def lose_agreement(start_time):
+            """
+            Функция шуточной обработки неправильного нажатия на кнопку
+            подтверждения
+            :param start_time: время запуска функции person_and_agreement_data
+            :return: ничего
+            """
+            global lose_agreement_count
+            if lose_agreement_count == 0:
+                messagebox.showinfo(
+                    'Прочтите пользовательское соглашение!',
+                    'Вы не прочитали соглашение!'
+                )
+                lose_agreement_count = 1
+            elif lose_agreement_count == 1:
+                messagebox.showinfo(
+                    'Прочтите пользовательское соглашение!',
+                    'Вы не собираетесь читать пользовательское '
+                    'соглашение?!\n\nЯ всё же настаиваю на его прочтении! '
+                )
+                lose_agreement_count = 2
+            elif lose_agreement_count == 2:
+                now_time = time() - start_time
+                messagebox.showinfo(
+                    'Прочтите пользовательское соглашение!',
+                    f'Я придумал! Буду считать сколько времени вы тратите '
+                    f'впустую.\nНа данный момент вы потратили '
+                    f'{now_time:.0f}сек.\n\nПрочитайте пользовательское '
+                    f'соглашение! '
+                )
+                lose_agreement_count = 3
+            else:
+                now_time = time() - start_time
+                messagebox.showinfo(
+                    'Прочтите пользовательское соглашение!',
+                    f'На данный момент вы потратили {now_time:.0f}сек.\n\nНе '
+                    f'тратьте своё время просто так. Прочитайте '
+                    f'пользовательское соглашение! '
+                )
+
         from settings.settings import LICENSE_AGREEMENT
+        start_time = time()
         window_preview.destroy()
         root = Tk()
         styles.style_for_ok_and_close_btn(root)
         styles.style_for_warning_entry()
-        root.title('Лицензионное соглашение!')
+        root.title('Пользовательское соглашение!')
         w = 600
         h = 300
         set_position_window_on_center(root, width=w, height=h)
@@ -44,11 +102,17 @@ class AdditionalWindows(App):
 
         btn_agreement = ttk.Button(main_frame, text='Принять')
         btn_agreement.grid(row=1, column=0, sticky='EW', pady=5)
-        btn_cansel = ttk.Button(main_frame, text='Отмена')
-        btn_cansel.grid(row=1, column=1, sticky='EW')
+        ttk.Button(
+            main_frame, text='Отмена', command=exit_ex
+        ).grid(row=1, column=1, sticky='EW')
 
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
+
+        btn_agreement.bind('<Button-3>', lambda event: root.destroy())
+        btn_agreement.bind(
+            '<Button-1>', lambda event: lose_agreement(start_time)
+        )
 
         root.mainloop()
 
@@ -60,7 +124,8 @@ class DialogWindows:
                        title, text_field_one, text_field_two=None,
                        header='Заполните!', count_field=1):
         """
-        Функция создания диалогового окна с двумя полями для ввода данных
+        Функция создания диалогового окна с двумя полями или одним для ввода
+        данных
         :param count_field: Количество используемых полей (1 или 2)
         :param title: Заголовок окна
         :param text_field_one: Label к первому полю
@@ -72,6 +137,13 @@ class DialogWindows:
         one_value, two_value = None, None
 
         def press_ok_btn(parent, one_entry, two_entry=None):
+            """
+            Обработка нажатия на кнопку ok
+            :param parent: объект инпут окна
+            :param one_entry: объект первого инпута
+            :param two_entry: объект второго инпута
+            :return: данные из полей
+            """
             global one_value, two_value
 
             one_value = one_entry.get()
@@ -94,6 +166,11 @@ class DialogWindows:
                 return one_value
 
         def press_close_btn(parent):
+            """
+            Обработка события нажатия на кнопку отмены ввода данных
+            :param parent: объект инпут окна
+            :return: ничего
+            """
             parent.destroy()
 
         get_window = Tk()
@@ -177,12 +254,30 @@ class DialogWindows:
 
     @staticmethod
     def info_window(title, info_txt):
+        """
+        Функция создания информационного окна
+        :param title: титул окна
+        :param info_txt: информационный текст
+        :return: ничего
+        """
         messagebox.showinfo(title, info_txt)
 
     @staticmethod
     def warning_window(title, warning_txt):
+        """
+        Функция создания предупреждающего окна
+        :param title: титул окна
+        :param warning_txt: предупреждающий текст
+        :return: ничего
+        """
         messagebox.showwarning(title, warning_txt)
 
     @staticmethod
     def error_window(title, error_txt):
+        """
+        Функция создания окна ошибки
+        :param title: титул окна
+        :param error_txt: текст ошибки
+        :return: ничего
+        """
         messagebox.showerror(title, error_txt)

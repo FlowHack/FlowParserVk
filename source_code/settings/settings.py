@@ -12,6 +12,9 @@ class SettingsFunction:
     path_to_db = f'{path_to_dir_settings}/settings.db'
 
     def __init__(self):
+        """
+        Получение путей до важных элементов программы
+        """
         self.path = getcwd()
         self.path_to_settings = f'{self.path}/settings'
         self.path_to_dir_ico = f'{self.path_to_settings}/ico'

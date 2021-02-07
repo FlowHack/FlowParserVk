@@ -28,9 +28,7 @@ class BrainForApp:
             RequestToBD().get_settings_table_value()['first_start']
         if first_start == 1:
             from scripts.main.app import AdditionalWindows
-            AdditionalWindows.license_and_agreement_data(window_preview)
-            print('Первый запуск!')
-            pass
+            AdditionalWindows.person_and_agreement_data(window_preview)
 
         Authorize(window_preview)
 
