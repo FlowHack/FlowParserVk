@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from _tkinter import TclError
 
 from settings.settings import SettingsFunction
-from scripts.scripts.base_data import MainBD
+from scripts.scripts.base_data import MainBD, RequestToBD
 from scripts.connection.authorization import Authorize
 
 logger = SettingsFunction.get_logger('main')
@@ -22,14 +22,24 @@ class BrainForApp:
         self.preview_image_set(png_preview_open, png_preview, window_preview)
         window_preview.update()
 
-        MainBD()
-        Authorize(window_preview)
         time.sleep(2)
+        MainBD()
+        first_start: int = \
+            RequestToBD().get_settings_table_value()['first_start']
+        if first_start == 1:
+            from scripts.main.app import AdditionalWindows
+            AdditionalWindows.license_and_agreement_data(window_preview)
+            print('Первый запуск!')
+            pass
+
+        Authorize(window_preview)
 
         try:
             window_preview.destroy()
         except TclError as error:
-            pass
+            if str(error) == 'can\'t invoke "destroy" command: application ' \
+                             'has been destroyed':
+                pass
 
     @staticmethod
     def check_ico():
@@ -75,7 +85,7 @@ class BrainForApp:
         x = (window_preview.winfo_screenwidth() - x_img) // 2
         y = (window_preview.winfo_screenheight() - y_img) // 2
         window_preview.geometry("%ix%i+%i+%i" % (x_img, y_img, x, y))
-        Label(window_preview, image=png_preview).pack()
+        Label(window_preview, image=png_preview).pack(side='top')
 
 
 if __name__ == '__main__':

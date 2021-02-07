@@ -51,6 +51,13 @@ class MainBD:
         )
         self.connect_bd.commit()
         logger.info('Создали базу данных юзера User_data')
+        default_params = [('none_value', 'none_value')]
+        self.remote_control_bd.executemany(
+            'INSERT INTO User_data VALUES (?,?)',
+            default_params
+        )
+        self.connect_bd.commit()
+        logger.info('Заполнили бд юзера дефолтными значениями')
 
     def create_settings_db(self):
         """
@@ -74,7 +81,6 @@ class MainBD:
         )
         self.connect_bd.commit()
         logger.info('Заполнили бд настроек дефолтными значениями')
-        self.remote_control_bd.execute('SELECT * FROM Settings_app')
 
     def create_get_people_db(self):
         """
@@ -99,12 +105,11 @@ class MainBD:
 class RequestToBD(MainBD):
 
     def get_settings_table_value(self):
-        self.remote_control_bd('SELECT * FROM Settings_app')
+        self.remote_control_bd.execute('SELECT * FROM Settings_app')
         settings_app = self.remote_control_bd.fetchone()
 
         auto_update: int = settings_app[0]
-        language_app: str = settings_app[1]
-        first_start: int = settings_app[2]
+        first_start: int = settings_app[1]
 
         return {
             'auto_update': auto_update,
@@ -115,12 +120,8 @@ class RequestToBD(MainBD):
         self.remote_control_bd.execute('SELECT * FROM User_data')
         data_user = self.remote_control_bd.fetchone()
 
-        if data_user is None:
-            vk_login: None = None
-            vk_password: None = None
-        else:
-            vk_login: int = data_user[0]
-            vk_password: int = data_user[1]
+        vk_login: str = data_user[0]
+        vk_password: str = data_user[1]
 
         return {
             'vk_login': vk_login,
@@ -144,3 +145,15 @@ class RequestToBD(MainBD):
         get_people_requests = self.remote_control_bd.fetchall()
 
         return get_people_requests
+
+    def update_data_on_user_table(self,
+                                  new_vk_login: str, new_vk_password: str):
+        self.remote_control_bd.execute(
+            f'''
+            UPDATE User_data
+            SET vk_login = "{new_vk_login}",
+            vk_password = "{new_vk_password}"
+            '''
+        )
+        self.connect_bd.commit()
+        logger.warning('Обновлены данные таблицы User_data')
