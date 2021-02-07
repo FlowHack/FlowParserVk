@@ -1,5 +1,7 @@
 from tkinter.ttk import Style
+
 from _tkinter import TclError
+
 from settings.settings import SettingsFunction
 
 PATH_TO_STYLE = SettingsFunction.path_to_dir_style

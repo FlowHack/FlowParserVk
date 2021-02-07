@@ -1,8 +1,10 @@
-from settings.settings import SettingsFunction
-from scripts.scripts.base_data import RequestToBD
 from webbrowser import open as web_open
-from _tkinter import TclError
+
 import vk_api
+from _tkinter import TclError
+
+from scripts.scripts.base_data import RequestToBD
+from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('authorization')
 

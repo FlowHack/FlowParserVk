@@ -1,12 +1,12 @@
 import time
 from tkinter import Label, Tk
 
-from PIL import Image, ImageTk
 from _tkinter import TclError
+from PIL import Image, ImageTk
 
-from settings.settings import SettingsFunction
-from scripts.scripts.base_data import MainBD, RequestToBD
 from scripts.connection.authorization import Authorize
+from scripts.scripts.base_data import MainBD, RequestToBD
+from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('main')
 

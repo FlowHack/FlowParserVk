@@ -1,7 +1,6 @@
 from sys import exit as exit_ex
 from time import time
-from tkinter import Tk, messagebox, Text
-from tkinter import ttk
+from tkinter import Text, Tk, messagebox, ttk
 
 import scripts.main.styles as styles
 from FlowParserVK import BrainForApp
