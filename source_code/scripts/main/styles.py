@@ -20,13 +20,12 @@ def set_global_style(parent):
         if str(error) == 'can\'t find package awdark':
             default_style = 'alt'
 
-    return default_style
-
-
-def style_for_ok_and_close_btn(parent):
-    default_style = set_global_style(parent)
     style = Style()
     style.theme_use(default_style)
+
+
+def style_for_ok_and_close_btn():
+    style = Style()
     style.map("OK.TButton",
               foreground=[
                   ('pressed', 'white'), ('active', 'green')

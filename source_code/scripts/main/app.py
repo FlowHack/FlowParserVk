@@ -1,16 +1,19 @@
 from sys import exit as exit_ex
 from time import time
 from tkinter import Text, Tk, messagebox, ttk
-from settings.settings import SettingsFunction
+from webbrowser import open as web_open
+
+from PIL import Image, ImageTk
 
 import scripts.main.styles as styles
-from FlowParserVK import BrainForApp
+from settings.settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
+                               SettingsFunction)
 
 logger = SettingsFunction.get_logger('app')
 
 one_value = None
 two_value = None
-lose_agreement_count = 0
+lose_agreement_count: int = 0
 
 
 def set_position_window_on_center(parent, width: int, height: int):
@@ -28,8 +31,132 @@ def set_position_window_on_center(parent, width: int, height: int):
     parent.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
 
-class App(BrainForApp):
-    pass
+class App(Tk):
+    def __init__(self):
+        """
+        Создание главного окна, вкладок и управление функциями
+        """
+        self.settings_app = SettingsFunction()
+        super().__init__()
+        self.app_ico = self.get_app_ico()
+        self.initialize_ui()
+        notebook = ttk.Notebook(self)
+        self.main_book = ttk.Frame(notebook, padding=15)
+        notebook.add(self.main_book, text='Главная')
+        notebook.pack(expand=True, fill='both')
+        self.update()
+
+        self.build_main_book()
+
+        self.mainloop()
+
+    def initialize_ui(self):
+        """
+        Функция настройки окна пограммы
+        :return: ничего
+        """
+        self.title(self.settings_app.APP_NAME)
+        styles.set_global_style(self)
+        set_position_window_on_center(self, width=1100, height=500)
+        self.protocol("WM_DELETE_WINDOW", exit_ex)
+
+    def get_app_ico(self):
+        """
+        Функция получения всех иконок в случае ошибки запустится проверка
+        иконок
+        :return: Словарь имя: переменная готовой иконки
+        """
+        x48_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/48x48_FPVK.png'
+        ))
+        x72_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/72x72_FPVK.png'
+        ))
+        x96_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/96x96_FPVK.png'
+        ))
+        x144_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/144x144_FPVK.png'
+        ))
+        x192_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/192x192_FPVK.png'
+        ))
+        x348_FPVK = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/348x348_FPVK.png'
+        ))
+        x148x30_FH = ImageTk.PhotoImage(Image.open(
+            f'{self.settings_app.path_to_dir_ico}/148x30_FH.png'
+        ))
+
+        return {
+            '48x48_FPVK': x48_FPVK,
+            '72x72_FPVK': x72_FPVK,
+            '96x96_FPVK': x96_FPVK,
+            '144x144_FPVK': x144_FPVK,
+            '192x192_FPVK': x192_FPVK,
+            '348x348_FPVK': x348_FPVK,
+            '148x30_FH': x148x30_FH
+        }
+
+    def build_main_book(self):
+        """
+        Функция отрисовки главной вкладки программы
+        :return: ничего
+        """
+        label_FPVK = ttk.Label(
+            self.main_book, image=self.app_ico['348x348_FPVK'],
+            cursor='heart'
+        )
+        button_update = ttk.Button(
+            self.main_book, text='Проверить обновления', cursor='exchange'
+        )
+        label_version = ttk.Label(
+            self.main_book, text=f'Version: {self.settings_app.VERSION}'
+        )
+        label_name_app = ttk.Label(
+            self.main_book, text=self.settings_app.APP_NAME, justify='center',
+            font=self.settings_app.H1_FONT, foreground='#A3DAFF'
+        )
+        label_description = ttk.Label(
+            self.main_book, text=LABEL_DESCRIPTION,
+            justify='center', font=self.settings_app.H5_FONT, wraplength=650
+        )
+        label_help_description = ttk.Label(
+            self.main_book, text=LABEL_HELP_DESCRIPTION,
+            justify='center', font=self.settings_app.H6_FONT, wraplength=650
+        )
+        label_FH = ttk.Label(
+            self.main_book, image=self.app_ico['148x30_FH'], cursor='heart',
+            justify='center'
+        )
+        btn_open_page_app = ttk.Button(
+            self.main_book, text='Сайт программы', cursor='star',
+            command=lambda: web_open(self.settings_app.PAGE_APP)
+        )
+        btn_open_bot_tg = ttk.Button(
+            self.main_book, text='Бот Telegram', cursor='star',
+            command=lambda: web_open(self.settings_app.TELEGRAM_BOT_APP)
+        )
+        btn_open_bot_vk = ttk.Button(
+            self.main_book, text='Бот VK', cursor='star',
+            command=lambda: web_open(self.settings_app.VK_BOT_APP)
+        )
+
+        label_FPVK.grid(row=0, column=0, sticky='EW', padx=15, rowspan=3)
+        button_update.grid(row=4, column=0, sticky='S', pady=10)
+        label_version.grid(row=5, column=0, sticky='S')
+        label_name_app.grid(row=0, column=1, sticky='N', columnspan=4)
+        label_description.grid(row=1, column=1, sticky='N', columnspan=4)
+        label_help_description.grid(row=2, column=1, sticky='N', columnspan=4)
+        label_FH.grid(row=5, column=4, sticky='SWE')
+        btn_open_page_app.grid(row=5, column=1, sticky='SWE', padx=10)
+        btn_open_bot_tg.grid(row=5, column=2, sticky='SWE')
+        btn_open_bot_vk.grid(row=5, column=3, sticky='SWE', padx=10)
+
+        self.main_book.columnconfigure(1, weight=1)
+        self.main_book.columnconfigure(2, weight=1)
+        self.main_book.columnconfigure(3, weight=1)
+        self.main_book.columnconfigure(4, weight=1)
 
 
 class AdditionalWindows(App):
@@ -43,11 +170,11 @@ class AdditionalWindows(App):
         """
         global lose_agreement_count
 
-        def lose_agreement(start_time):
+        def lose_agreement(start):
             """
             Функция шуточной обработки неправильного нажатия на кнопку
             подтверждения
-            :param start_time: время запуска функции person_and_agreement_data
+            :param start: время запуска функции person_and_agreement_data
             :return: ничего
             """
             global lose_agreement_count
@@ -65,7 +192,7 @@ class AdditionalWindows(App):
                 )
                 lose_agreement_count = 2
             elif lose_agreement_count == 2:
-                now_time = time() - start_time
+                now_time = time() - start
                 messagebox.showwarning(
                     'Прочтите пользовательское соглашение!',
                     f'Я придумал! Буду считать сколько времени вы тратите '
@@ -75,7 +202,7 @@ class AdditionalWindows(App):
                 )
                 lose_agreement_count = 3
             else:
-                now_time = time() - start_time
+                now_time = time() - start
                 messagebox.showwarning(
                     'Прочтите пользовательское соглашение!',
                     f'На данный момент вы потратили {now_time:.0f}сек.\n\nНе '
@@ -84,23 +211,24 @@ class AdditionalWindows(App):
                 )
 
         from settings.settings import LICENSE_AGREEMENT
-        start_time = time()
+        start_function_time = time()
         window_preview.destroy()
-        root = Tk()
-        styles.style_for_ok_and_close_btn(root)
+        agreement_window = Tk()
+        styles.set_global_style(agreement_window)
+        styles.style_for_ok_and_close_btn()
         styles.style_for_warning_entry()
-        root.title('Пользовательское соглашение!')
+        agreement_window.title('Пользовательское соглашение!')
         w = 600
         h = 300
-        set_position_window_on_center(root, width=w, height=h)
-        root.protocol("WM_DELETE_WINDOW", exit_ex)
+        set_position_window_on_center(agreement_window, width=w, height=h)
+        agreement_window.protocol("WM_DELETE_WINDOW", exit_ex)
 
-        main_frame = ttk.Frame(root, padding=10)
+        main_frame = ttk.Frame(agreement_window, padding=10)
         main_frame.pack(side='top', fill='both', expand=True)
 
         text = Text(main_frame, wrap='word', width=71, height=14)
         text.insert(1.0, LICENSE_AGREEMENT)
-        text.grid(row=0, column=0, sticky='NSWE', columnspan=2)
+        text.grid(row=0, column=0, sticky='NSEW', columnspan=2)
 
         btn_agreement = ttk.Button(main_frame, text='Принять')
         btn_agreement.grid(row=1, column=0, sticky='EW', pady=5)
@@ -111,20 +239,22 @@ class AdditionalWindows(App):
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
 
-        btn_agreement.bind('<Button-3>', lambda event: root.destroy())
         btn_agreement.bind(
-            '<Button-1>', lambda event: lose_agreement(start_time)
+            '<Button-3>', lambda event: agreement_window.destroy()
+        )
+        btn_agreement.bind(
+            '<Button-1>', lambda event: lose_agreement(start_function_time)
         )
 
-        root.mainloop()
+        agreement_window.mainloop()
 
 
 class DialogWindows:
 
     @staticmethod
     def get_one_or_two_params(
-                       title, text_field_one, text_field_two=None,
-                       header='Заполните!', count_field=1):
+            title, text_field_one, text_field_two=None,
+            header='Заполните!', count_field=1):
         """
         Функция создания диалогового окна с двумя полями или одним для ввода
         данных
@@ -177,7 +307,8 @@ class DialogWindows:
 
         get_window = Tk()
         get_window.resizable(0, 0)
-        styles.style_for_ok_and_close_btn(get_window)
+        styles.set_global_style(get_window)
+        styles.style_for_ok_and_close_btn()
         styles.style_for_warning_entry()
         get_window.title(title)
         w = 450
@@ -193,7 +324,7 @@ class DialogWindows:
             top_frame,
             text=header,
             justify='center',
-            font=('Times New Roman', 13, 'italic bold')
+            font=SettingsFunction.H6_FONT
         ).pack(side='top')
 
         bottom_frame = ttk.Frame(get_window, padding=10)
@@ -203,7 +334,7 @@ class DialogWindows:
             row=0, column=0, sticky='NW', pady=5, padx=10
         )
         entry_one = ttk.Entry(
-            bottom_frame, font=('Times New Roman', 10, 'italic bold')
+            bottom_frame, font=SettingsFunction.INPUT_FONT
         )
         entry_one.grid(row=0, column=1, sticky='WE', columnspan=2)
 
@@ -212,7 +343,7 @@ class DialogWindows:
                 row=1, column=0, sticky='NW', pady=5, padx=2
             )
             entry_two = ttk.Entry(
-                bottom_frame, font=('Times New Roman', 10, 'italic bold')
+                bottom_frame, font=SettingsFunction.INPUT_FONT
             )
             entry_two.grid(row=1, column=1, sticky='WE', columnspan=2)
             btn_ok = ttk.Button(

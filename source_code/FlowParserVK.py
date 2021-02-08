@@ -4,11 +4,12 @@ from tkinter import Label, Tk
 from _tkinter import TclError
 from PIL import Image, ImageTk
 
+from scripts.connection.authorization import Authorize
+from scripts.main.app import App
 from scripts.scripts.base_data import MainBD, RequestGetToBD
 from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('main')
-
 
 class BrainForApp:
 
@@ -37,6 +38,8 @@ class BrainForApp:
             if str(error) == 'can\'t invoke "destroy" command: application ' \
                              'has been destroyed':
                 pass
+
+        app = App()
 
     @staticmethod
     def check_ico():

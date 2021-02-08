@@ -1,7 +1,6 @@
 from webbrowser import open as web_open
 
 import vk_api
-from _tkinter import TclError
 
 from scripts.scripts.base_data import RequestGetToBD, RequestUpdateToBD
 from settings.settings import SettingsFunction
@@ -10,12 +9,10 @@ logger = SettingsFunction.get_logger('authorization')
 
 
 class Authorize:
-    def __init__(self, preview_window):
+    def __init__(self):
         """
         Получение объекта сессии VK
-        :param preview_window: превью окно, которое будет закрыто
         """
-        self.preview_window = preview_window
         self.base_data_get_requests = RequestGetToBD()
         self.base_data_update_request = RequestUpdateToBD()
         user_data_table_value = \
@@ -33,12 +30,6 @@ class Authorize:
         """
         if (elementary_vk_login == 'none_value') or \
                 (elementary_vk_password == 'none_value'):
-            try:
-                self.preview_window.destroy()
-            except TclError as error:
-                if str(error) == 'can\'t invoke "destroy" command: ' \
-                                  'application has been destroyed':
-                    pass
             vk_login, vk_password = self.get_data_for_authorization()
         else:
             vk_login, vk_password = elementary_vk_login, elementary_vk_password

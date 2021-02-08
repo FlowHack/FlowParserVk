@@ -185,7 +185,7 @@ class RequestUpdateToBD(MainBD):
         Функция обновления настроек программы. Можно подать один из двух
         парметров
         :param auto_update: значение авто обновления (1-да, 0-нет)
-        :param first_start: значение первого запуска (1-да, 0-нет)
+        :param person_agreement: значение первого запуска (1-да, 0-нет)
         :return: ничего
         """
         if (auto_update is None) or (person_agreement is None):
@@ -194,7 +194,8 @@ class RequestUpdateToBD(MainBD):
             if auto_update is None:
                 auto_update: int = settings_app_table_values['auto_update']
             if person_agreement is None:
-                first_start: int = settings_app_table_values['person_agreement']
+                person_agreement: int = \
+                    settings_app_table_values['person_agreement']
 
         self.remote_control_bd.execute(
             f'''
