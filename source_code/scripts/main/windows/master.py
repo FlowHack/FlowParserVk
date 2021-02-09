@@ -6,7 +6,6 @@ from sys import exit as exit_ex
 from PIL import Image, ImageTk
 from webbrowser import open as web_open
 
-
 logger = SettingsFunction.get_logger('master_windows')
 
 
@@ -34,13 +33,17 @@ class App(Tk):
         super().__init__()
         self.app_ico = self.get_app_ico()
         self.initialize_ui()
+
         notebook = ttk.Notebook(self)
         self.main_book = ttk.Frame(notebook, padding=15)
-        notebook.add(self.main_book, text='Главная')
-        notebook.pack(expand=True, fill='both')
-        self.update()
+        self.donat_book = ttk.Frame(notebook, padding=20)
 
-        self.build_main_book()
+        notebook.add(self.main_book, text='Главная')
+        notebook.add(self.donat_book, text='Донаты')
+        notebook.pack(expand=True, fill='both')
+
+        self.update()
+        self.build_app()
 
         self.mainloop()
 
@@ -53,6 +56,10 @@ class App(Tk):
         styles.set_global_style(self)
         set_position_window_on_center(self, width=1100, height=500)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
+
+    def build_app(self):
+        self.build_main_book()
+        self.build_donat_book()
 
     def get_app_ico(self):
         """
@@ -157,4 +164,67 @@ class App(Tk):
         )
         label_FH.bind(
             '<Button-1>', lambda event: web_open(self.settings_app.AUTHOR_PAGE)
+        )
+
+    def build_donat_book(self):
+        caption = 'Бесплатность программы зависит от ваших пожертвований!'
+        bank_details = (
+            'Номер счёта: '
+            f'{self.settings_app.BANK_DETAILS["sberbank"]} (Сбербанк)\n'
+            f'ЮMoney: {self.settings_app.BANK_DETAILS["ymoney"]} '
+            '(Яндекс деньги)'
+        )
+        label_main = ttk.Label(
+            self.donat_book, text='Донаты', font=self.settings_app.H1_FONT,
+            justify='center', foreground='#A3DAFF'
+        )
+        label_bank_details_caption = ttk.Label(
+            self.donat_book, text=caption, font=self.settings_app.H5_FONT,
+            justify='center', foreground='#FFC8A3'
+        )
+        label_bank_details = ttk.Label(
+            self.donat_book, text=bank_details, font=self.settings_app.H6_FONT,
+            justify='center'
+        )
+        label_FPVK_1 = ttk.Label(
+            self.donat_book, cursor='heart', image=self.app_ico['96x96_FPVK']
+        )
+        label_FPVK_2 = ttk.Label(
+            self.donat_book, cursor='heart', image=self.app_ico['96x96_FPVK']
+        )
+        btn_copy_sber = ttk.Button(
+            self.donat_book, text='Копировать счёт Сбербанка',
+            command=lambda: self.settings_app.copy_in_clipboard(
+                btn_copy_sber, self.settings_app.BANK_DETAILS['sberbank']
+            )
+        )
+        btn_copy_ymoney = ttk.Button(
+            self.donat_book, text='Копировать счёт ЮMoney',
+            command=lambda: self.settings_app.copy_in_clipboard(
+                btn_copy_ymoney, self.settings_app.BANK_DETAILS['ymoney']
+            )
+        )
+
+        label_main.grid(row=0, column=0, sticky='S', columnspan=4)
+        label_bank_details_caption.grid(
+            row=1, column=0, sticky='S', columnspan=4, pady=20
+        )
+        label_bank_details.grid(row=2, column=0, sticky='N', columnspan=4)
+        label_FPVK_1.grid(row=2, column=0, sticky='NW')
+        label_FPVK_2.grid(row=2, column=3, sticky='NE')
+        btn_copy_sber.grid(row=3, column=1, sticky='WES')
+        btn_copy_ymoney.grid(row=3, column=2, sticky='SWE')
+
+        self.donat_book.columnconfigure(0, weight=1)
+        self.donat_book.columnconfigure(1, weight=1)
+        self.donat_book.columnconfigure(2, weight=1)
+        self.donat_book.columnconfigure(3, weight=1)
+        self.donat_book.rowconfigure(1, weight=1)
+        self.donat_book.rowconfigure(2, weight=2)
+
+        label_FPVK_1.bind(
+            '<Button-1>', lambda: web_open(self.settings_app.PAGE_APP)
+        )
+        label_FPVK_2.bind(
+            '<Button-1>', lambda: web_open(self.settings_app.PAGE_APP)
         )

@@ -40,7 +40,6 @@ class BrainForApp:
                              'has been destroyed':
                 pass
 
-        Authorize()
         App()
 
     @staticmethod

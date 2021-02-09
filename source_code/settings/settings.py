@@ -11,6 +11,10 @@ class SettingsFunction:
     PAGE_APP = ''
     TELEGRAM_BOT_APP = ''
     VK_BOT_APP = ''
+    BANK_DETAILS = {
+        'sberbank': '5469560018109591',
+        'ymoney': '410017514569348'
+    }
 
     path = getcwd()
     path_to_dir_settings = f'{path}/settings'
@@ -50,6 +54,11 @@ class SettingsFunction:
         logger.addHandler(handler)
 
         return logger
+
+    @staticmethod
+    def copy_in_clipboard(widget, value):
+        widget.clipboard_clear()
+        widget.clipboard_append(value)
 
 
 LICENSE_AGREEMENT = f"""
