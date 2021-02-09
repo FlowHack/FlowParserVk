@@ -37,8 +37,12 @@ class App(Tk):
         notebook = ttk.Notebook(self)
         self.main_book = ttk.Frame(notebook, padding=15)
         self.donat_book = ttk.Frame(notebook, padding=20)
+        self.report_book = ttk.Frame(notebook, padding=15)
+        self.do_book = ttk.Frame(notebook, padding=15)
 
         notebook.add(self.main_book, text='Главная')
+        notebook.add(self.do_book, text='Действия')
+        notebook.add(self.report_book, text='Сообщить об ошибке')
         notebook.add(self.donat_book, text='Донаты')
         notebook.pack(expand=True, fill='both')
 
@@ -167,12 +171,13 @@ class App(Tk):
         )
 
     def build_donat_book(self):
-        caption = 'Бесплатность программы зависит от ваших пожертвований!'
+        caption = 'Бесплатность проекта зависит от ваших пожертвований!'
         bank_details = (
             'Номер счёта: '
             f'{self.settings_app.BANK_DETAILS["sberbank"]} (Сбербанк)\n'
             f'ЮMoney: {self.settings_app.BANK_DETAILS["ymoney"]} '
-            '(Яндекс деньги)'
+            '(Яндекс деньги)\n'
+            f'VISA: {self.settings_app.BANK_DETAILS["qiwi_visa"]} (QIWI VISA)'
         )
         label_main = ttk.Label(
             self.donat_book, text='Донаты', font=self.settings_app.H1_FONT,
@@ -204,21 +209,29 @@ class App(Tk):
                 btn_copy_ymoney, self.settings_app.BANK_DETAILS['ymoney']
             )
         )
-
-        label_main.grid(row=0, column=0, sticky='S', columnspan=4)
-        label_bank_details_caption.grid(
-            row=1, column=0, sticky='S', columnspan=4, pady=20
+        btn_copy_qiwi_visa = ttk.Button(
+            self.donat_book, text='Копировать счёт VISA',
+            command=lambda: self.settings_app.copy_in_clipboard(
+                btn_copy_qiwi_visa, self.settings_app.BANK_DETAILS['qiwi_visa']
+            )
         )
-        label_bank_details.grid(row=2, column=0, sticky='N', columnspan=4)
+
+        label_main.grid(row=0, column=0, sticky='S', columnspan=5)
+        label_bank_details_caption.grid(
+            row=1, column=0, sticky='S', columnspan=5, pady=20
+        )
+        label_bank_details.grid(row=2, column=0, sticky='N', columnspan=5)
         label_FPVK_1.grid(row=2, column=0, sticky='NW')
-        label_FPVK_2.grid(row=2, column=3, sticky='NE')
+        label_FPVK_2.grid(row=2, column=4, sticky='NE')
         btn_copy_sber.grid(row=3, column=1, sticky='WES')
         btn_copy_ymoney.grid(row=3, column=2, sticky='SWE')
+        btn_copy_qiwi_visa.grid(row=3, column=3, sticky='SWE')
 
         self.donat_book.columnconfigure(0, weight=1)
         self.donat_book.columnconfigure(1, weight=1)
         self.donat_book.columnconfigure(2, weight=1)
         self.donat_book.columnconfigure(3, weight=1)
+        self.donat_book.columnconfigure(4, weight=1)
         self.donat_book.rowconfigure(1, weight=1)
         self.donat_book.rowconfigure(2, weight=2)
 
