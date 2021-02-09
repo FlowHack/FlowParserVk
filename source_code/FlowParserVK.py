@@ -5,11 +5,12 @@ from _tkinter import TclError
 from PIL import Image, ImageTk
 
 from scripts.connection.authorization import Authorize
-from scripts.main.app import App
+from scripts.main.windows.master import App
 from scripts.scripts.base_data import MainBD, RequestGetToBD
 from settings.settings import SettingsFunction
 
 logger = SettingsFunction.get_logger('main')
+
 
 class BrainForApp:
 
@@ -27,7 +28,7 @@ class BrainForApp:
         first_start: int = \
             RequestGetToBD().get_settings_table_value()['person_agreement']
         if first_start == 1:
-            from scripts.main.app import AdditionalWindows
+            from scripts.main.windows.additional import AdditionalWindows
             from scripts.scripts.base_data import RequestUpdateToBD
             AdditionalWindows.person_and_agreement_data(window_preview)
             RequestUpdateToBD().update_settings_app_table(person_agreement=0)
@@ -39,7 +40,8 @@ class BrainForApp:
                              'has been destroyed':
                 pass
 
-        app = App()
+        Authorize()
+        App()
 
     @staticmethod
     def check_ico():

@@ -1,4 +1,5 @@
 from webbrowser import open as web_open
+from requests import exceptions as requests_except
 
 import vk_api
 
@@ -51,7 +52,7 @@ class Authorize:
             self.get_vk_session(vk_login, vk_password)
 
         except vk_api.exceptions.LoginRequired:
-            from scripts.main.app import DialogWindows
+            from scripts.main.windows.dialog import DialogWindows
             DialogWindows.warning_window(
                 title='Вы не авторизовались',
                 warning_txt='Вы не авторизовались!\n\nВы можете '
@@ -63,16 +64,31 @@ class Authorize:
 
             return None
 
-        except BaseException as error:
-            logger.error(f'Неизвестная ошибка! {error}')
-
-        if (elementary_vk_login != vk_login) or \
-                (elementary_vk_password != vk_password):
-            self.base_data_update_request.update_data_on_user_table(
-                new_vk_login=vk_login, new_vk_password=vk_password
+        except requests_except.ConnectionError as error:
+            from scripts.main.windows.dialog import DialogWindows
+            logger.warning(f'Отсутствует подключение! {error}')
+            DialogWindows.warning_window(
+                title='Нет сети',
+                warning_txt='У вас отсутствует интернет подключение!'
             )
 
-        return vk_session
+        except BaseException as error:
+            from scripts.main.windows.dialog import DialogWindows
+            logger.error(f'Неизвестная ошибка! {error}')
+            DialogWindows.error_window(
+                title='Непредвиденная ошибка',
+                error_txt=f'Мы не предвидели эту ошибку, обратитесь с ней к '
+                          f'автору программы\n\nОшибка: {error} '
+            )
+
+        else:
+            if (elementary_vk_login != vk_login) or \
+                    (elementary_vk_password != vk_password):
+                self.base_data_update_request.update_data_on_user_table(
+                    new_vk_login=vk_login, new_vk_password=vk_password
+                )
+
+            return vk_session
 
     @staticmethod
     def auth_handler():
@@ -80,7 +96,7 @@ class Authorize:
         Связующий между человеком и двухфакторной авторизацией
         :return: код, булево (сохранять ли устройство)
         """
-        from scripts.main.app import DialogWindows
+        from scripts.main.windows.dialog import DialogWindows
         key = DialogWindows.get_one_or_two_params(
             title='Двухфакторная аутентификация', text_field_one='Код',
             header='Введите код из смс/vk'
@@ -96,7 +112,7 @@ class Authorize:
         :param captcha: объект капчи
         :return: результат прохождения
         """
-        from scripts.main.app import DialogWindows
+        from scripts.main.windows.dialog import DialogWindows
         web_open(captcha.get_url())
         key = DialogWindows.get_one_or_two_params(
             title='Капча', text_field_one='Капча',
@@ -113,7 +129,7 @@ class Authorize:
         :param header: Заголовок инпут окна.
         :return: Возваращает результат получения данных
         """
-        from scripts.main.app import DialogWindows
+        from scripts.main.windows.dialog import DialogWindows
         response = DialogWindows.get_one_or_two_params(
             title='Введите ваши данные от аккаунта Vk', text_field_one='Логин',
             text_field_two='Пароль', header=header, count_field=2

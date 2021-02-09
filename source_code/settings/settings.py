@@ -1,11 +1,13 @@
 from logging import INFO, getLogger
 from logging.handlers import RotatingFileHandler
+import logging
 from os import getcwd
 
 
 class SettingsFunction:
     VERSION = '0.1.0'
     APP_NAME = 'FlowParserVK'
+    AUTHOR_PAGE = 'https://vk.com/flow_hack'
     PAGE_APP = ''
     TELEGRAM_BOT_APP = ''
     VK_BOT_APP = ''
@@ -29,13 +31,22 @@ class SettingsFunction:
         :param name: имя файла логгера
         :return: объект логгера
         """
-        logger = getLogger('__name__')
+        logger = getLogger(name)
         logger.setLevel(INFO)
+
+        logger_format = (
+            '[%(asctime)s] [%(name)s] [%(levelname)s] > %(message)s'
+        )
+        date_format = '%Y-%m-%d %H:%M:%S'
+        formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
+
         handler = RotatingFileHandler(
             fr'settings/log/{name}.log',
             maxBytes=50000000,
             backupCount=5,
         )
+
+        handler.setFormatter(formatter)
         logger.addHandler(handler)
 
         return logger
@@ -50,4 +61,4 @@ LICENSE_AGREEMENT = f"""
 """
 
 LABEL_DESCRIPTION = 'Эта программа создана для парсинга целевой аудитории из Vk. Основные инструменты для сбора ЦА находятся во вкладке "Действия"'
-LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить на сайте программы (для перехода нажмите на иконку программы слева). Либо в боте Vk, Telgram.\n\nВ случае ошибки, вы можете сообщить о ней в соответствующей вкладке программы, либо также в боте программы.'
+LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить на сайте программы (для перехода нажмите на иконку программы слева, либо на соответствующую кнопку). Либо в боте Vk, Telgram.\n\nВ случае ошибки, вы можете сообщить о ней в соответствующей вкладке программы, либо также в боте программы.'
