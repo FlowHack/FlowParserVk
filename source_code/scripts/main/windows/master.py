@@ -27,20 +27,45 @@ def set_position_window_on_center(parent, width: int, height: int):
     parent.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
 
+class AdditionalFunctionsForAPI(RequestsAPI):
+    def __init__(self):
+        super().__init__()
+        self.settings_app = SettingsFunction()
+
+    def get_cities_or_regions_combobox(
+            self, variable, cmb_country, btn_settings, combobox, progressbar):
+        var = variable.get()
+        country_name: str = cmb_country.get()
+        country_id: int = self.settings_app.LIST_COUNTRIES[country_name]
+        if var == 'city':
+            objects_cities_or_regions = \
+                self.get_all_city_in_country(country_id, progressbar)
+        elif var == 'region':
+            objects_cities_or_regions = \
+                self.get_all_regions_in_country(country_id, progressbar)
+
+        combobox['values'] = list(objects_cities_or_regions.keys())
+        btn_settings.configure(text='Парсить', command=self.main_parsing())
+
+    def main_parsing(self):
+        pass
+
+
 class AdditionalFunctions:
     @staticmethod
-    def set_label_and_var_city_or_region(var, label):
+    def set_label_and_var_city_or_region(var, label, cmb, btn_settings):
         if var.get() == 'city':
             var.set('region')
             label.configure(text='Регион')
+            cmb['values'] = []
+            cmb.set('Нажмите "Настроить"')
+            btn_settings.configure(text='Настроить')
         elif var.get() == 'region':
             var.set('city')
             label.configure(text='Город')
-
-    @staticmethod
-    def get_city_or_region_list(
-            btn, var_city_or_region, combo_region_or_city, combo_country):
-        pass
+            cmb['values'] = []
+            cmb.set('Нажмите "Настроить"')
+            btn_settings.configure(text='Настроить')
 
 
 class App(Tk, AdditionalFunctions):
@@ -75,6 +100,7 @@ class App(Tk, AdditionalFunctions):
 
         self.update()
         self.build_app()
+        self.function_api = AdditionalFunctionsForAPI()
 
         self.mainloop()
 
@@ -96,6 +122,7 @@ class App(Tk, AdditionalFunctions):
         self.build_main_book()
         self.build_donat_book()
         self.build_do_book_main()
+        self.update()
 
     def get_app_ico(self):
         """
@@ -149,9 +176,7 @@ class App(Tk, AdditionalFunctions):
             row=0, column=1, sticky='NW'
         )
 
-        btn_set_setting = ttk.Button(
-            right_frame, text='Настроить'
-        )
+        btn_set_setting = ttk.Button(right_frame, text='Настроить')
         btn_see_old_requests = ttk.Button(
             right_frame, text='Все запросы'
         )
@@ -163,7 +188,7 @@ class App(Tk, AdditionalFunctions):
         cmb_country = ttk.Combobox(
             left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
         )
-        cmb_country['values'] = list(self.settings_app.LIST_COUNTRIES.values())
+        cmb_country['values'] = list(self.settings_app.LIST_COUNTRIES.keys())
         cmb_country.set('Россия')
         #  row 1
         city_or_region_var = StringVar()
@@ -256,6 +281,11 @@ class App(Tk, AdditionalFunctions):
             left_frame, value=0, variable=var_photo, text='Нет фото'
         )
 
+        progressbar = ttk.Progressbar(
+            self.do_book_main, orient='horizontal', length=1000,
+            maximum=self.settings_app.PROGRESSBAR_MAXIMUM
+        )
+
         #  row 0
         label_country.grid(row=0, column=0, sticky='E', padx=10)
         cmb_country.grid(row=0, column=1, sticky='SWE', columnspan=4)
@@ -290,6 +320,8 @@ class App(Tk, AdditionalFunctions):
             row=7, column=2, sticky='SW', padx=10, pady=15
         )
 
+        progressbar.grid(row=1, column=0, columnspan=2, pady=35)
+
         btn_set_setting.grid(row=0, column=0)
         btn_see_old_requests.grid(row=1, column=0)
 
@@ -299,12 +331,22 @@ class App(Tk, AdditionalFunctions):
 
         radio_region.bind(
             '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
-                label=label_var_city_or_country, var=city_or_region_var
+                label=label_var_city_or_country, var=city_or_region_var,
+                cmb=cmb_city_or_region, btn_settings=btn_set_setting
             )
         )
         radio_city.bind(
             '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
-                label=label_var_city_or_country, var=city_or_region_var
+                label=label_var_city_or_country, var=city_or_region_var,
+                cmb=cmb_city_or_region, btn_settings=btn_set_setting
+            )
+        )
+        btn_set_setting.bind(
+            '<Button-1>',
+            lambda event: self.function_api.get_cities_or_regions_combobox(
+                variable=city_or_region_var, cmb_country=cmb_country,
+                btn_settings=btn_set_setting, combobox=cmb_city_or_region,
+                progressbar=progressbar
             )
         )
 

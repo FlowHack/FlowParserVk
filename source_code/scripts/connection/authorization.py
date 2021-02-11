@@ -31,6 +31,7 @@ class Authorize:
         if (elementary_vk_login == 'none_value') or \
                 (elementary_vk_password == 'none_value'):
             vk_login, vk_password = self.get_data_for_authorization()
+            print(vk_login)
         else:
             vk_login, vk_password = elementary_vk_login, elementary_vk_password
 
@@ -79,7 +80,6 @@ class Authorize:
                 error_txt=f'Мы не предвидели эту ошибку, обратитесь с ней к '
                           f'автору программы\n\nОшибка: {error} '
             )
-
         else:
             if (elementary_vk_login != vk_login) or \
                     (elementary_vk_password != vk_password):
@@ -129,7 +129,7 @@ class Authorize:
         :return: Возваращает результат получения данных
         """
         from scripts.main.windows.dialog import DialogWindows
-        response = DialogWindows.get_one_or_two_params(
+        response = DialogWindows().get_one_or_two_params(
             title='Введите ваши данные от аккаунта Vk', text_field_one='Логин',
             text_field_two='Пароль', header=header, count_field=2
         )

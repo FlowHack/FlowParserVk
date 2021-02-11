@@ -37,6 +37,7 @@ logger = get_logger('settings')
 
 class SettingsFunction:
     VERSION = '0.1.0'
+    VERSION_API = '5.130'
     APP_NAME = 'FlowParserVK'
     AUTHOR_PAGE = 'https://vk.com/flow_hack'
     PAGE_APP = ''
@@ -63,6 +64,8 @@ class SettingsFunction:
     COMBOBOX_FONT = (MAIN_FONT, 11, 'bold italic')
     SPINBOX_FONT = (MAIN_FONT, 11, 'bold')
 
+    PROGRESSBAR_MAXIMUM = 1000
+
     try:
         with open(f'{path_to_dir_dicts}/countries.json', 'r') as file:
             file_str = json.load(file)
@@ -70,9 +73,9 @@ class SettingsFunction:
     except FileNotFoundError as error:
         logger.warning('Не найден файл "countries.json", парсинг невозможен!')
         LIST_COUNTRIES = {
-            '1': 'Россия',
-            '2': 'Украина',
-            '3': 'Беларусь'
+            'Россия': 1,
+            'Украина': 2,
+            'Беларусь': 3
         }
 
     @staticmethod

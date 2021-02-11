@@ -45,7 +45,11 @@ def style_for_ok_and_close_btn():
 
 def style_for_warning_entry():
     style = Style()
-    style.element_create('plain.field', 'from', 'clam')
+    try:
+        style.element_create('plain.field', 'from', 'clam')
+    except TclError as error:
+        if str(error) == 'Duplicate element plain.field':
+            pass
     style.layout('Warning.TEntry',
                  [('Entry.plain.field', {'children': [(
                      'Entry.background', {'children': [(

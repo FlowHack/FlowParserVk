@@ -1,5 +1,4 @@
-from sys import exit as exit_ex
-from tkinter import Tk, messagebox, ttk, Toplevel
+from tkinter import messagebox, ttk, Toplevel
 
 from settings.settings import get_logger
 
@@ -9,12 +8,9 @@ one_value = None
 two_value = None
 
 
-class DialogWindows:
-
-    @staticmethod
-    def get_one_or_two_params(
-            title, text_field_one, text_field_two=None,
-            header='Заполните!', count_field=1):
+class GetWindow:
+    def __init__(self, title, text_field_one, text_field_two=None,
+                 header='Заполните!', count_field=1):
         """
         Функция создания диалогового окна с двумя полями или одним для ввода
         данных
@@ -23,13 +19,11 @@ class DialogWindows:
         :param text_field_one: Label к первому полю
         :param text_field_two: Label ко второму полю
         :param header: Необязательно поле. Label-заголовок
-        :return: информацию из двух полей в виде списка
+        :return: ничего
         """
         from scripts.main.windows.master import set_position_window_on_center
         import scripts.main.styles as styles
         from settings.settings import SettingsFunction
-        global one_value, two_value
-        one_value, two_value = None, None
 
         def press_ok_btn(parent, one_entry, two_entry=None):
             """
@@ -39,26 +33,32 @@ class DialogWindows:
             :param two_entry: объект второго инпута
             :return: данные из полей
             """
-            global one_value, two_value
+            empty = False
 
-            one_value = one_entry.get()
+            value_one = one_entry.get()
+            if value_one == '':
+                one_entry.configure(
+                    style='Warning.TEntry', foreground='black'
+                )
+                empty = True
+
             if count_field == 2:
-                two_value = two_entry.get()
+                value_two = two_entry.get()
 
-            if (one_value == '') or (two_value == ''):
-                one_entry.configure(style='Warning.TEntry', foreground='black')
-                if count_field == 2:
+                if value_two == '':
                     two_entry.configure(
                         style='Warning.TEntry', foreground='black'
                     )
+                    empty = True
+            else:
+                value_two = None
+
+            if empty is True:
                 parent.update()
             else:
+                self.one_value = value_one
+                self.two_value = value_two
                 parent.destroy()
-
-                if count_field == 2:
-                    return one_value, two_value
-
-                return one_value
 
         def press_close_btn(parent):
             """
@@ -68,19 +68,21 @@ class DialogWindows:
             """
             parent.destroy()
 
-        get_window = Toplevel()
-        get_window.resizable(0, 0)
-        styles.set_global_style(get_window)
+        self.one_value = None
+        self.two_value = None
+
+        self.get_window = Toplevel()
+        self.get_window.resizable(0, 0)
+        styles.set_global_style(self.get_window)
         styles.style_for_ok_and_close_btn()
         styles.style_for_warning_entry()
-        get_window.title(title)
+        self.get_window.title(title)
         w = 450
         h = (125, 150)[count_field == 2]
-        set_position_window_on_center(get_window, width=w, height=h)
-        get_window.protocol("WM_DELETE_WINDOW", exit_ex)
+        set_position_window_on_center(self.get_window, width=w, height=h)
 
         top_frame = ttk.Frame(
-            get_window, padding=5, borderwidth=2, relief='groove'
+            self.get_window, padding=5, borderwidth=2, relief='groove'
         )
         top_frame.pack(side='top', fill='x')
         ttk.Label(
@@ -90,7 +92,7 @@ class DialogWindows:
             font=SettingsFunction.H6_FONT
         ).pack(side='top')
 
-        bottom_frame = ttk.Frame(get_window, padding=10)
+        bottom_frame = ttk.Frame(self.get_window, padding=10)
         bottom_frame.pack(side='top', fill='both', expand=True)
 
         ttk.Label(bottom_frame, text=text_field_one).grid(
@@ -111,17 +113,18 @@ class DialogWindows:
             entry_two.grid(row=1, column=1, sticky='WE', columnspan=2)
             btn_ok = ttk.Button(
                 bottom_frame, text='OK', style='OK.TButton',
-                command=lambda: press_ok_btn(get_window, entry_one, entry_two)
+                command=lambda: press_ok_btn(self.get_window, entry_one,
+                                             entry_two)
             )
         else:
             btn_ok = ttk.Button(
                 bottom_frame, text='OK', style='OK.TButton',
-                command=lambda: press_ok_btn(get_window, entry_one)
+                command=lambda: press_ok_btn(self.get_window, entry_one)
             )
         btn_ok.grid(row=3, column=1, padx=5, sticky='WE', pady=5)
         btn_close = ttk.Button(
             bottom_frame, text='Отмена', style='Close.TButton',
-            cursor='X_cursor', command=lambda: press_close_btn(get_window)
+            cursor='X_cursor', command=lambda: press_close_btn(self.get_window)
         )
         btn_close.grid(row=3, column=2, sticky='WE')
 
@@ -129,24 +132,35 @@ class DialogWindows:
         bottom_frame.columnconfigure(2, weight=1)
 
         if count_field == 2:
-            get_window.bind(
+            self.get_window.bind(
                 '<Return>', lambda event: press_ok_btn(
-                    get_window, entry_one, entry_two
+                    self.get_window, entry_one, entry_two
                 )
             )
         else:
-            get_window.bind(
+            self.get_window.bind(
                 '<Return>', lambda event: press_ok_btn(
-                    get_window, entry_one
+                    self.get_window, entry_one
                 )
             )
-        get_window.bind(
-            '<Escape>', lambda event: press_close_btn(get_window)
+        self.get_window.bind(
+            '<Escape>', lambda event: press_close_btn(self.get_window)
         )
 
-        get_window.mainloop()
 
-        return one_value, two_value
+class DialogWindows:
+    @staticmethod
+    def get_one_or_two_params(
+                              title, text_field_one, text_field_two=None,
+                              header='Заполните!', count_field=1
+                              ):
+
+        get_window = GetWindow(title, text_field_one, text_field_two,
+                               header, count_field)
+
+        get_window.get_window.wait_window()
+
+        return get_window.one_value, get_window.two_value
 
     @staticmethod
     def info_window(title, info_txt):

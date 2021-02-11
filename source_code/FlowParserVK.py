@@ -39,6 +39,7 @@ class BrainForApp:
                              'has been destroyed':
                 pass
 
+
         App()
 
     @staticmethod
