@@ -1,12 +1,15 @@
-from settings.settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
-                               SettingsFunction)
-from tkinter import Tk, ttk
-import scripts.main.styles as styles
 from sys import exit as exit_ex
-from PIL import Image, ImageTk
+from tkinter import Tk, ttk, StringVar, IntVar
 from webbrowser import open as web_open
 
-logger = SettingsFunction.get_logger('master_windows')
+from PIL import Image, ImageTk
+
+import scripts.main.styles as styles
+from settings.settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
+                               SettingsFunction, get_logger, STATUS_VK_PERSON)
+from scripts.connection.requests_to_api import RequestsAPI
+
+logger = get_logger('master_windows')
 
 
 def set_position_window_on_center(parent, width: int, height: int):
@@ -24,7 +27,23 @@ def set_position_window_on_center(parent, width: int, height: int):
     parent.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
 
-class App(Tk):
+class AdditionalFunctions:
+    @staticmethod
+    def set_label_and_var_city_or_region(var, label):
+        if var.get() == 'city':
+            var.set('region')
+            label.configure(text='Регион')
+        elif var.get() == 'region':
+            var.set('city')
+            label.configure(text='Город')
+
+    @staticmethod
+    def get_city_or_region_list(
+            btn, var_city_or_region, combo_region_or_city, combo_country):
+        pass
+
+
+class App(Tk, AdditionalFunctions):
     def __init__(self):
         """
         Создание главного окна, вкладок и управление функциями
@@ -34,17 +53,25 @@ class App(Tk):
         self.app_ico = self.get_app_ico()
         self.initialize_ui()
 
+        #  Панель вкладок в окне
         notebook = ttk.Notebook(self)
         self.main_book = ttk.Frame(notebook, padding=15)
         self.donat_book = ttk.Frame(notebook, padding=20)
-        self.report_book = ttk.Frame(notebook, padding=15)
-        self.do_book = ttk.Frame(notebook, padding=15)
+        self.do_book = ttk.Frame(notebook)
 
         notebook.add(self.main_book, text='Главная')
         notebook.add(self.do_book, text='Действия')
-        notebook.add(self.report_book, text='Сообщить об ошибке')
         notebook.add(self.donat_book, text='Донаты')
+
         notebook.pack(expand=True, fill='both')
+
+        # Панель вкладок во вкладке действий
+        notebook_do = ttk.Notebook(self.do_book)
+
+        self.do_book_main = ttk.Frame(notebook_do, padding=15)
+
+        notebook_do.add(self.do_book_main, text='Общий парсинг')
+        notebook_do.pack(expand=True, fill='both', side='top')
 
         self.update()
         self.build_app()
@@ -58,12 +85,17 @@ class App(Tk):
         """
         self.title(self.settings_app.APP_NAME)
         styles.set_global_style(self)
-        set_position_window_on_center(self, width=1100, height=500)
+        set_position_window_on_center(self, width=1200, height=500)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
 
     def build_app(self):
+        """
+        Функция отвечающая за наполнение вкладок программы
+        :return:
+        """
         self.build_main_book()
         self.build_donat_book()
+        self.build_do_book_main()
 
     def get_app_ico(self):
         """
@@ -102,6 +134,179 @@ class App(Tk):
             '348x348_FPVK': x348_FPVK,
             '148x30_FH': x148x30_FH
         }
+
+    def build_do_book_main(self):
+        left_frame = ttk.Frame(
+            self.do_book_main, padding=10, borderwidth=2, relief='groove'
+        )
+        left_frame.grid(
+            row=0, column=0, sticky='SWE', padx=10
+        )
+        right_frame = ttk.Frame(
+            self.do_book_main, padding=10, borderwidth=2, relief='groove'
+        )
+        right_frame.grid(
+            row=0, column=1, sticky='NW'
+        )
+
+        btn_set_setting = ttk.Button(
+            right_frame, text='Настроить'
+        )
+        btn_see_old_requests = ttk.Button(
+            right_frame, text='Все запросы'
+        )
+
+        #  row 0
+        label_country = ttk.Label(
+            left_frame, text='Страна*', font=self.settings_app.H6_FONT
+        )
+        cmb_country = ttk.Combobox(
+            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+        )
+        cmb_country['values'] = list(self.settings_app.LIST_COUNTRIES.values())
+        cmb_country.set('Россия')
+        #  row 1
+        city_or_region_var = StringVar()
+        city_or_region_var.set('city')
+        label_city_or_country = ttk.Label(
+            left_frame, text='Парсинг по городу или региону?',
+            font=self.settings_app.H6_FONT
+        )
+        radio_city = ttk.Radiobutton(left_frame,
+                                     variable=city_or_region_var, value='city',
+                                     text='Городу'
+                                     )
+        radio_region = ttk.Radiobutton(left_frame,
+                                       variable=city_or_region_var,
+                                       value='region', text='Региону'
+                                       )
+        #  row 2
+        label_var_city_or_country = ttk.Label(
+            left_frame, text='Город', font=self.settings_app.H6_FONT
+        )
+        cmb_city_or_region = ttk.Combobox(
+            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+        )
+        cmb_city_or_region.set('Нажмите "Настроить"')
+        #  row 3
+        var_sex = StringVar()
+        var_sex.set('')
+        label_sex = ttk.Label(
+            left_frame, text='Пол', font=self.settings_app.H6_FONT
+        )
+        radio_male = ttk.Radiobutton(
+            left_frame, variable=var_sex, value='male', text='Мужской'
+        )
+        radio_female = ttk.Radiobutton(
+            left_frame, variable=var_sex, value='female', text='Женский'
+        )
+        radio_none_sex = ttk.Radiobutton(
+            left_frame, variable=var_sex, value='', text='Не выбрано'
+        )
+        #  row 4
+        label_status = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT,
+            text='Семейное положение'
+        )
+        cmb_status = ttk.Combobox(
+            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+        )
+        cmb_status['value'] = list(STATUS_VK_PERSON.values())
+        cmb_status.set('Не выбрано')
+        #  row 5
+        var_old_from = StringVar()
+        var_old_from.set(20)
+        var_old_to = StringVar()
+        var_old_to.set(40)
+        label_old = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT, text='Возраст'
+        )
+        spin_old_from = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=14, to=90, textvariable=var_old_from, state='readonly',
+            width=5
+        )
+        spin_old_to = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=14, to=90, textvariable=var_old_to, state='readonly',
+            width=5
+        )
+        #  row 6
+        var_only = IntVar()
+        var_only.set(1)
+        label_only = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT, text='Онлайн'
+        )
+        radio_only = ttk.Radiobutton(
+            left_frame, value=1, variable=var_only, text='Онлайн'
+        )
+        radio_offline = ttk.Radiobutton(
+            left_frame, value=0, variable=var_only, text='Офлайн'
+        )
+        #  row 7
+        var_photo = IntVar()
+        var_photo.set(1)
+        label_photo = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT, text='Наличие фото'
+        )
+        radio_has_photo = ttk.Radiobutton(
+            left_frame, value=1, variable=var_photo, text='Есть фото'
+        )
+        radio_has_not_photo = ttk.Radiobutton(
+            left_frame, value=0, variable=var_photo, text='Нет фото'
+        )
+
+        #  row 0
+        label_country.grid(row=0, column=0, sticky='E', padx=10)
+        cmb_country.grid(row=0, column=1, sticky='SWE', columnspan=4)
+        #  row 1
+        label_city_or_country.grid(row=1, column=0, sticky='W', pady=15,
+                                   padx=10)
+        radio_city.grid(row=1, column=1, sticky='SW', pady=15)
+        radio_region.grid(row=1, column=2, sticky='SW', pady=15)
+        #  row 2
+        label_var_city_or_country.grid(row=2, column=0, sticky='E', padx=20)
+        cmb_city_or_region.grid(row=2, column=1, sticky='SWE', columnspan=4)
+        #  row 3
+        label_sex.grid(row=3, column=0, sticky='E', padx=25, pady=15)
+        radio_none_sex.grid(row=3, column=1, sticky='SW', pady=15)
+        radio_male.grid(row=3, column=2, sticky='SW', pady=15, padx=10)
+        radio_female.grid(row=3, column=3, sticky='SW', pady=15)
+        #  row 4
+        label_status.grid(row=4, column=0, sticky='E', padx=25)
+        cmb_status.grid(row=4, column=1, sticky='SWE', columnspan=4)
+        #  row 5
+        label_old.grid(row=5, column=0, sticky='E', padx=25, pady=15)
+        spin_old_from.grid(row=5, column=1, sticky='SW', pady=15)
+        spin_old_to.grid(row=5, column=2, sticky='SW', pady=15)
+        #  row 6
+        label_only.grid(row=6, column=0, sticky='E', padx=25)
+        radio_only.grid(row=6, column=1, sticky='SW')
+        radio_offline.grid(row=6, column=2, sticky='SW', padx=10)
+        #  row 7
+        label_photo.grid(row=7, column=0, sticky='E', padx=25, pady=15)
+        radio_has_photo.grid(row=7, column=1, sticky='SW', pady=15)
+        radio_has_not_photo.grid(
+            row=7, column=2, sticky='SW', padx=10, pady=15
+        )
+
+        btn_set_setting.grid(row=0, column=0)
+        btn_see_old_requests.grid(row=1, column=0)
+
+        left_frame.columnconfigure(4, weight=1)
+
+        self.do_book_main.columnconfigure(0, weight=1)
+
+        radio_region.bind(
+            '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
+                label=label_var_city_or_country, var=city_or_region_var
+            )
+        )
+        radio_city.bind(
+            '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
+                label=label_var_city_or_country, var=city_or_region_var
+            )
+        )
 
     def build_main_book(self):
         """
@@ -171,6 +376,10 @@ class App(Tk):
         )
 
     def build_donat_book(self):
+        """
+        Функция постройки вкладки донатов
+        :return: ничего
+        """
         caption = 'Бесплатность проекта зависит от ваших пожертвований!'
         bank_details = (
             'Номер счёта: '

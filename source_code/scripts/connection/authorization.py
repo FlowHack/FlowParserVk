@@ -1,12 +1,12 @@
 from webbrowser import open as web_open
-from requests import exceptions as requests_except
 
 import vk_api
+from requests import exceptions as requests_except
 
 from scripts.scripts.base_data import RequestGetToBD, RequestUpdateToBD
-from settings.settings import SettingsFunction
+from settings.settings import get_logger
 
-logger = SettingsFunction.get_logger('authorization')
+logger = get_logger('authorization')
 
 
 class Authorize:
@@ -14,13 +14,12 @@ class Authorize:
         """
         Получение объекта сессии VK
         """
-        self.base_data_get_requests = RequestGetToBD()
-        self.base_data_update_request = RequestUpdateToBD()
+        base_data_get_requests = RequestGetToBD()
         user_data_table_value = \
-            self.base_data_get_requests.get_user_data_table_value()
-        self.vk_login = user_data_table_value['vk_login']
-        self.vk_password = user_data_table_value['vk_password']
-        self.vk_session = self.get_vk_session(self.vk_login, self.vk_password)
+            base_data_get_requests.get_user_data_table_value()
+        vk_login = user_data_table_value['vk_login']
+        vk_password = user_data_table_value['vk_password']
+        self.vk_session = self.get_vk_session(vk_login, vk_password)
 
     def get_vk_session(self, elementary_vk_login, elementary_vk_password):
         """
@@ -84,7 +83,7 @@ class Authorize:
         else:
             if (elementary_vk_login != vk_login) or \
                     (elementary_vk_password != vk_password):
-                self.base_data_update_request.update_data_on_user_table(
+                RequestUpdateToBD().update_data_on_user_table(
                     new_vk_login=vk_login, new_vk_password=vk_password
                 )
 

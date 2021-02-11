@@ -1,12 +1,13 @@
-from tkinter import Tk, ttk, messagebox, Text
-from time import time
-import scripts.main.styles as styles
 from sys import exit as exit_ex
+from time import time
+from tkinter import Text, Tk, messagebox, ttk
+
+import scripts.main.styles as styles
 from scripts.main.windows.master import set_position_window_on_center
-from settings.settings import SettingsFunction
+from settings.settings import get_logger
 
 lose_agreement_count: int = 0
-logger = SettingsFunction.get_logger('additional_windows')
+logger = get_logger('additional_windows')
 
 
 class AdditionalWindows:

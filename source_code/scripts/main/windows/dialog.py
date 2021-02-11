@@ -1,10 +1,9 @@
-from tkinter import ttk, Tk, messagebox
-from settings.settings import SettingsFunction
-import scripts.main.styles as styles
 from sys import exit as exit_ex
-from scripts.main.windows.master import set_position_window_on_center
+from tkinter import Tk, messagebox, ttk, Toplevel
 
-logger = SettingsFunction.get_logger('dialog_windows')
+from settings.settings import get_logger
+
+logger = get_logger('dialog_windows')
 
 one_value = None
 two_value = None
@@ -26,6 +25,9 @@ class DialogWindows:
         :param header: Необязательно поле. Label-заголовок
         :return: информацию из двух полей в виде списка
         """
+        from scripts.main.windows.master import set_position_window_on_center
+        import scripts.main.styles as styles
+        from settings.settings import SettingsFunction
         global one_value, two_value
         one_value, two_value = None, None
 
@@ -66,7 +68,7 @@ class DialogWindows:
             """
             parent.destroy()
 
-        get_window = Tk()
+        get_window = Toplevel()
         get_window.resizable(0, 0)
         styles.set_global_style(get_window)
         styles.style_for_ok_and_close_btn()

@@ -1,7 +1,38 @@
+import logging
 from logging import INFO, getLogger
 from logging.handlers import RotatingFileHandler
-import logging
 from os import getcwd
+import json
+
+
+def get_logger(name: str) -> object:
+    """
+    Функция создания логгера
+    :param name: имя файла логгера
+    :return: объект логгера
+    """
+    logger = getLogger(name)
+    logger.setLevel(INFO)
+
+    logger_format = (
+        '[%(asctime)s] [%(name)s] [%(levelname)s] > %(message)s'
+    )
+    date_format = '%Y-%m-%d %H:%M:%S'
+    formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
+
+    handler = RotatingFileHandler(
+        fr'settings/log/{name}.log',
+        maxBytes=50000000,
+        backupCount=5,
+    )
+
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    return logger
+
+
+logger = get_logger('settings')
 
 
 class SettingsFunction:
@@ -19,6 +50,7 @@ class SettingsFunction:
 
     path = getcwd()
     path_to_dir_settings = f'{path}/settings'
+    path_to_dir_dicts = f'{path_to_dir_settings}/dicts'
     path_to_dir_ico = f'{path_to_dir_settings}/ico'
     path_to_dir_style = f'{path_to_dir_settings}/style/awthemes-10.2.0'
     path_to_db = f'{path_to_dir_settings}/settings.db'
@@ -28,36 +60,29 @@ class SettingsFunction:
     H5_FONT = (MAIN_FONT, 14, 'bold italic')
     H6_FONT = (MAIN_FONT, 12, 'bold italic')
     INPUT_FONT = (MAIN_FONT, 10, 'bold italic')
+    COMBOBOX_FONT = (MAIN_FONT, 11, 'bold italic')
+    SPINBOX_FONT = (MAIN_FONT, 11, 'bold')
 
-    @staticmethod
-    def get_logger(name: str) -> object:
-        """
-        Функция создания логгера
-        :param name: имя файла логгера
-        :return: объект логгера
-        """
-        logger = getLogger(name)
-        logger.setLevel(INFO)
-
-        logger_format = (
-            '[%(asctime)s] [%(name)s] [%(levelname)s] > %(message)s'
-        )
-        date_format = '%Y-%m-%d %H:%M:%S'
-        formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
-
-        handler = RotatingFileHandler(
-            fr'settings/log/{name}.log',
-            maxBytes=50000000,
-            backupCount=5,
-        )
-
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
-        return logger
+    try:
+        with open(f'{path_to_dir_dicts}/countries.json', 'r') as file:
+            file_str = json.load(file)
+            LIST_COUNTRIES = json.loads(file_str)
+    except FileNotFoundError as error:
+        logger.warning('Не найден файл "countries.json", парсинг невозможен!')
+        LIST_COUNTRIES = {
+            '1': 'Россия',
+            '2': 'Украина',
+            '3': 'Беларусь'
+        }
 
     @staticmethod
     def copy_in_clipboard(widget, value):
+        """
+        Функция управляющая наполнением буфера обмена
+        :param widget: виджет от лица которого будет происходить копирование
+        :param value: строковое значение, которое надо скопировать
+        :return: ничего
+        """
         widget.clipboard_clear()
         widget.clipboard_append(value)
 
@@ -72,3 +97,14 @@ LICENSE_AGREEMENT = f"""
 
 LABEL_DESCRIPTION = 'Эта программа создана для парсинга целевой аудитории из Vk. Основные инструменты для сбора ЦА находятся во вкладке "Действия"'
 LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить на сайте программы (для перехода нажмите на иконку программы слева, либо на соответствующую кнопку). Либо в боте Vk, Telgram.\n\nВ случае ошибки, вы можете сообщить о ней в соответствующей вкладке программы, либо также в боте программы.\n\n\nПоддержать проект вы можете во вкладке "Донаты"'
+STATUS_VK_PERSON = {
+    '': 'Не выбрано',
+    1: 'не женат (не замужем)',
+    2: 'встречается',
+    3: 'помолвлен(-а)',
+    4: 'женат (замужем)',
+    5: 'всё сложно',
+    6: 'в активном поиске',
+    7: 'влюблен(-а)',
+    8: 'в гражданском браке'
+}

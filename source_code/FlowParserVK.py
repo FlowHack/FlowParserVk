@@ -4,12 +4,11 @@ from tkinter import Label, Tk
 from _tkinter import TclError
 from PIL import Image, ImageTk
 
-from scripts.connection.authorization import Authorize
 from scripts.main.windows.master import App
 from scripts.scripts.base_data import MainBD, RequestGetToBD
-from settings.settings import SettingsFunction
+from settings.settings import SettingsFunction, get_logger
 
-logger = SettingsFunction.get_logger('main')
+logger = get_logger('main')
 
 
 class BrainForApp:

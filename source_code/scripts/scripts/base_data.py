@@ -1,8 +1,8 @@
 from sqlite3 import connect
 
-from settings.settings import SettingsFunction
+from settings.settings import SettingsFunction, get_logger
 
-logger = SettingsFunction.get_logger('base_data')
+logger = get_logger('base_data')
 
 
 class MainBD:
@@ -44,8 +44,8 @@ class MainBD:
         self.remote_control_bd.execute(
             '''
             CREATE TABLE IF NOT EXISTS User_data(
-            vk_login TEXT, 
-            vk_password TEXT
+            vk_login TEXT NOT NULL, 
+            vk_password TEXT NOT NULL
             )
             '''
         )
@@ -90,11 +90,11 @@ class MainBD:
         self.remote_control_bd.execute(
             '''
             CREATE TABLE IF NOT EXISTS Get_people(
-            type_request TEXT,
-            date_request TEXT, 
-            count_people INT,
-            response TEXT,
-            params_request TEXT
+            type_request TEXT NOT NULL,
+            datetime_request TEXT NOT NULL, 
+            count_people INT NOT NULL,
+            response TEXT NOT NULL,
+            params_request TEXT NOT NULL
             )
             '''
         )
@@ -141,18 +141,7 @@ class RequestGetToBD(MainBD):
         Функция получения результатов get запросов пользователей в вк
         :return: список запросов
         """
-        self.remote_control_bd.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS Get_people(
-            type_request TEXT,
-            date_request TEXT,
-            count_people INT,
-            response TEXT,
-            params_request TEXT
-            )
-            '''
-        )
-        self.remote_control_bd.execute('SELECT * FROM User_data')
+        self.remote_control_bd.execute('SELECT * FROM Get_people')
 
         get_people_requests = self.remote_control_bd.fetchall()
 
