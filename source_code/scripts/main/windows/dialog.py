@@ -1,4 +1,4 @@
-from tkinter import messagebox, ttk, Toplevel
+from tkinter import Toplevel, messagebox, ttk, YES
 
 from settings.settings import get_logger
 
@@ -21,8 +21,8 @@ class GetWindow:
         :param header: Необязательно поле. Label-заголовок
         :return: ничего
         """
-        from scripts.main.windows.master import set_position_window_on_center
         import scripts.main.styles as styles
+        from scripts.main.windows.master import set_position_window_on_center
         from settings.settings import SettingsFunction
 
         def press_ok_btn(parent, one_entry, two_entry=None):
@@ -146,6 +146,35 @@ class GetWindow:
         self.get_window.bind(
             '<Escape>', lambda event: press_close_btn(self.get_window)
         )
+
+
+class RequestTreeView:
+    def __init__(self):
+        import scripts.main.styles as styles
+        from scripts.main.windows.master import set_position_window_on_center
+        self.window = Toplevel()
+        styles.set_global_style(self.window)
+        self.window.title('Все запросы')
+        w = 700
+        h = 500
+        set_position_window_on_center(self.window, width=w, height=h)
+
+        self.main_frame = ttk.Frame(self.window)
+        self.main_frame.pack(side='top', fill='both', expand=True)
+
+        self.tree_view = ttk.Treeview(
+            self.main_frame, columns=('Количество id', 'Параметры')
+        )
+
+        self.tree_view.heading('#0', text='Дата')
+        self.tree_view.heading('#1', text='Количество id')
+        self.tree_view.heading('#2', text='Параметры')
+
+        self.tree_view.column('#1', stretch=YES)
+        self.tree_view.column('#2', stretch=YES)
+        self.tree_view.column('#0', stretch=YES)
+
+        self.tree_view.grid(row=0, column=0, columnspan=3, sticky='NSEW')
 
 
 class DialogWindows:

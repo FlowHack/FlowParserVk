@@ -3,7 +3,7 @@ from webbrowser import open as web_open
 import vk_api
 from requests import exceptions as requests_except
 
-from scripts.scripts.base_data import RequestGetToBD, RequestUpdateToBD
+from scripts.scripts.request_to_bd import RequestGetToBD, RequestUpdateToBD
 from settings.settings import get_logger
 
 logger = get_logger('authorization')

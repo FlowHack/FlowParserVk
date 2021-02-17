@@ -1,13 +1,14 @@
 from sys import exit as exit_ex
-from tkinter import Tk, ttk, StringVar, IntVar
+from tkinter import IntVar, StringVar, Tk, ttk
 from webbrowser import open as web_open
 
 from PIL import Image, ImageTk
 
 import scripts.main.styles as styles
+from scripts.main.additional_functions import (AdditionalFunctions,
+                                               AdditionalFunctionsForAPI)
 from settings.settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
-                               SettingsFunction, get_logger, STATUS_VK_PERSON)
-from scripts.connection.requests_to_api import RequestsAPI
+                               SettingsFunction, get_logger)
 
 logger = get_logger('master_windows')
 
@@ -25,47 +26,6 @@ def set_position_window_on_center(parent, width: int, height: int):
     x = (sw - width) / 2
     y = (sh - height) / 2
     parent.geometry('%dx%d+%d+%d' % (width, height, x, y))
-
-
-class AdditionalFunctionsForAPI(RequestsAPI):
-    def __init__(self):
-        super().__init__()
-        self.settings_app = SettingsFunction()
-
-    def get_cities_or_regions_combobox(
-            self, variable, cmb_country, btn_settings, combobox, progressbar):
-        var = variable.get()
-        country_name: str = cmb_country.get()
-        country_id: int = self.settings_app.LIST_COUNTRIES[country_name]
-        if var == 'city':
-            objects_cities_or_regions = \
-                self.get_all_city_in_country(country_id, progressbar)
-        elif var == 'region':
-            objects_cities_or_regions = \
-                self.get_all_regions_in_country(country_id, progressbar)
-
-        combobox['values'] = list(objects_cities_or_regions.keys())
-        btn_settings.configure(text='Парсить', command=self.main_parsing())
-
-    def main_parsing(self):
-        pass
-
-
-class AdditionalFunctions:
-    @staticmethod
-    def set_label_and_var_city_or_region(var, label, cmb, btn_settings):
-        if var.get() == 'city':
-            var.set('region')
-            label.configure(text='Регион')
-            cmb['values'] = []
-            cmb.set('Нажмите "Настроить"')
-            btn_settings.configure(text='Настроить')
-        elif var.get() == 'region':
-            var.set('city')
-            label.configure(text='Город')
-            cmb['values'] = []
-            cmb.set('Нажмите "Настроить"')
-            btn_settings.configure(text='Настроить')
 
 
 class App(Tk, AdditionalFunctions):
@@ -112,6 +72,7 @@ class App(Tk, AdditionalFunctions):
         self.title(self.settings_app.APP_NAME)
         styles.set_global_style(self)
         set_position_window_on_center(self, width=1200, height=500)
+        self.minsize(1200, 500)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
 
     def build_app(self):
@@ -178,7 +139,8 @@ class App(Tk, AdditionalFunctions):
 
         btn_set_setting = ttk.Button(right_frame, text='Настроить')
         btn_see_old_requests = ttk.Button(
-            right_frame, text='Все запросы'
+            right_frame, text='Все запросы',
+            command=AdditionalFunctions.open_request_tree_view
         )
 
         #  row 0
@@ -191,18 +153,18 @@ class App(Tk, AdditionalFunctions):
         cmb_country['values'] = list(self.settings_app.LIST_COUNTRIES.keys())
         cmb_country.set('Россия')
         #  row 1
-        city_or_region_var = StringVar()
-        city_or_region_var.set('city')
+        var_city_or_region = StringVar()
+        var_city_or_region.set('city')
         label_city_or_country = ttk.Label(
             left_frame, text='Парсинг по городу или региону?',
             font=self.settings_app.H6_FONT
         )
         radio_city = ttk.Radiobutton(left_frame,
-                                     variable=city_or_region_var, value='city',
+                                     variable=var_city_or_region, value='city',
                                      text='Городу'
                                      )
         radio_region = ttk.Radiobutton(left_frame,
-                                       variable=city_or_region_var,
+                                       variable=var_city_or_region,
                                        value='region', text='Региону'
                                        )
         #  row 2
@@ -214,19 +176,19 @@ class App(Tk, AdditionalFunctions):
         )
         cmb_city_or_region.set('Нажмите "Настроить"')
         #  row 3
-        var_sex = StringVar()
-        var_sex.set('')
+        var_sex = IntVar()
+        var_sex.set(0)
         label_sex = ttk.Label(
             left_frame, text='Пол', font=self.settings_app.H6_FONT
         )
         radio_male = ttk.Radiobutton(
-            left_frame, variable=var_sex, value='male', text='Мужской'
+            left_frame, variable=var_sex, value=2, text='Мужской'
         )
         radio_female = ttk.Radiobutton(
-            left_frame, variable=var_sex, value='female', text='Женский'
+            left_frame, variable=var_sex, value=1, text='Женский'
         )
         radio_none_sex = ttk.Radiobutton(
-            left_frame, variable=var_sex, value='', text='Не выбрано'
+            left_frame, variable=var_sex, value=0, text='Не выбрано'
         )
         #  row 4
         label_status = ttk.Label(
@@ -236,7 +198,7 @@ class App(Tk, AdditionalFunctions):
         cmb_status = ttk.Combobox(
             left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
         )
-        cmb_status['value'] = list(STATUS_VK_PERSON.values())
+        cmb_status['value'] = list(SettingsFunction.STATUS_VK_PERSON.keys())
         cmb_status.set('Не выбрано')
         #  row 5
         var_old_from = StringVar()
@@ -266,7 +228,7 @@ class App(Tk, AdditionalFunctions):
             left_frame, value=1, variable=var_only, text='Онлайн'
         )
         radio_offline = ttk.Radiobutton(
-            left_frame, value=0, variable=var_only, text='Офлайн'
+            left_frame, value=0, variable=var_only, text='Неважно'
         )
         #  row 7
         var_photo = IntVar()
@@ -278,7 +240,7 @@ class App(Tk, AdditionalFunctions):
             left_frame, value=1, variable=var_photo, text='Есть фото'
         )
         radio_has_not_photo = ttk.Radiobutton(
-            left_frame, value=0, variable=var_photo, text='Нет фото'
+            left_frame, value=0, variable=var_photo, text='Неважно'
         )
 
         progressbar = ttk.Progressbar(
@@ -323,30 +285,44 @@ class App(Tk, AdditionalFunctions):
         progressbar.grid(row=1, column=0, columnspan=2, pady=35)
 
         btn_set_setting.grid(row=0, column=0)
-        btn_see_old_requests.grid(row=1, column=0)
+        btn_see_old_requests.grid(row=2, column=0)
 
         left_frame.columnconfigure(4, weight=1)
 
         self.do_book_main.columnconfigure(0, weight=1)
 
+        all_widgets = {
+            'window': self.main_book,
+            'left_frame': left_frame,
+            'right_frame': right_frame,
+            'btn_set_setting': btn_set_setting,
+            'label_var_city_or_country': label_var_city_or_country,
+            'cmb_country': cmb_country,
+            'var_city_or_region': var_city_or_region,
+            'cmb_city_or_region': cmb_city_or_region,
+            'var_sex': var_sex,
+            'cmb_status': cmb_status,
+            'var_old_from': var_old_from,
+            'var_old_to': var_old_to,
+            'var_only': var_only,
+            'var_photo': var_photo,
+            'progressbar': progressbar
+        }
+
         radio_region.bind(
             '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
-                label=label_var_city_or_country, var=city_or_region_var,
-                cmb=cmb_city_or_region, btn_settings=btn_set_setting
+                widgets=all_widgets
             )
         )
         radio_city.bind(
             '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
-                label=label_var_city_or_country, var=city_or_region_var,
-                cmb=cmb_city_or_region, btn_settings=btn_set_setting
+                widgets=all_widgets
             )
         )
         btn_set_setting.bind(
             '<Button-1>',
             lambda event: self.function_api.get_cities_or_regions_combobox(
-                variable=city_or_region_var, cmb_country=cmb_country,
-                btn_settings=btn_set_setting, combobox=cmb_city_or_region,
-                progressbar=progressbar
+                widgets=all_widgets
             )
         )
 

@@ -5,7 +5,8 @@ from _tkinter import TclError
 from PIL import Image, ImageTk
 
 from scripts.main.windows.master import App
-from scripts.scripts.base_data import MainBD, RequestGetToBD
+from scripts.scripts.base_data import MainBD
+from scripts.scripts.request_to_bd import RequestGetToBD
 from settings.settings import SettingsFunction, get_logger
 
 logger = get_logger('main')
@@ -28,7 +29,7 @@ class BrainForApp:
             RequestGetToBD().get_settings_table_value()['person_agreement']
         if first_start == 1:
             from scripts.main.windows.additional import AdditionalWindows
-            from scripts.scripts.base_data import RequestUpdateToBD
+            from scripts.scripts.request_to_bd import RequestUpdateToBD
             AdditionalWindows.person_and_agreement_data(window_preview)
             RequestUpdateToBD().update_settings_app_table(person_agreement=0)
 
@@ -38,7 +39,6 @@ class BrainForApp:
             if str(error) == 'can\'t invoke "destroy" command: application ' \
                              'has been destroyed':
                 pass
-
 
         App()
 
