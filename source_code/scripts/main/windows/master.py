@@ -72,7 +72,7 @@ class App(Tk, AdditionalFunctions):
         self.title(self.settings_app.APP_NAME)
         styles.set_global_style(self)
         set_position_window_on_center(self, width=1200, height=500)
-        self.minsize(1200, 500)
+        self.minsize(1200, 600)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
 
     def build_app(self):
@@ -137,6 +137,9 @@ class App(Tk, AdditionalFunctions):
             row=0, column=1, sticky='NW'
         )
 
+        btn_parse = ttk.Button(
+            right_frame, text='Парсить'
+        )
         btn_set_setting = ttk.Button(right_frame, text='Настроить')
         btn_see_old_requests = ttk.Button(
             right_frame, text='Все запросы',
@@ -167,15 +170,11 @@ class App(Tk, AdditionalFunctions):
                                        variable=var_city_or_region,
                                        value='region', text='Региону'
                                        )
-        #  row 2
-        label_var_city_or_country = ttk.Label(
-            left_frame, text='Город', font=self.settings_app.H6_FONT
-        )
         cmb_city_or_region = ttk.Combobox(
             left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
         )
         cmb_city_or_region.set('Нажмите "Настроить"')
-        #  row 3
+        #  row 2
         var_sex = IntVar()
         var_sex.set(0)
         label_sex = ttk.Label(
@@ -190,7 +189,7 @@ class App(Tk, AdditionalFunctions):
         radio_none_sex = ttk.Radiobutton(
             left_frame, variable=var_sex, value=0, text='Не выбрано'
         )
-        #  row 4
+        #  row 3
         label_status = ttk.Label(
             left_frame, font=self.settings_app.H6_FONT,
             text='Семейное положение'
@@ -200,27 +199,72 @@ class App(Tk, AdditionalFunctions):
         )
         cmb_status['value'] = list(SettingsFunction.STATUS_VK_PERSON.keys())
         cmb_status.set('Не выбрано')
-        #  row 5
-        var_old_from = StringVar()
+        #  row 4
+        var_old_from = IntVar()
+        var_old_to = IntVar()
         var_old_from.set(20)
-        var_old_to = StringVar()
         var_old_to.set(40)
+
         label_old = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT, text='Возраст'
+            left_frame, font=self.settings_app.H6_FONT, text='Возраст (От|До)'
         )
         spin_old_from = ttk.Spinbox(
             left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=14, to=90, textvariable=var_old_from, state='readonly',
+            from_=18, to=90, textvariable=var_old_from, state='readonly',
             width=5
         )
         spin_old_to = ttk.Spinbox(
             left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=14, to=90, textvariable=var_old_to, state='readonly',
+            from_=18, to=90, textvariable=var_old_to, state='readonly',
             width=5
         )
+        #  row 5
+        var_friends_to = IntVar()
+        var_friends_from = IntVar()
+        var_friends_from.set(0)
+        var_friends_from.set(1000)
+
+        label_friends = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT,
+            text='Количество друзей (От|До)'
+        )
+        spin_friends_from = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=0, to=self.settings_app.FRIENDS_MAXIMUM,
+            textvariable=var_friends_from, width=7
+        )
+        spin_friends_to = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=50, to=self.settings_app.FRIENDS_MAXIMUM,
+            textvariable=var_friends_to, width=7
+        )
         #  row 6
+        var_follower_to = IntVar()
+        var_follower_from = IntVar()
+        var_follower_from.set(0)
+        var_follower_to.set(400)
+
+        label_follower = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT,
+            text='Количество подписчиков (От|До)'
+        )
+        spin_follower_from = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=0, to=self.settings_app.FOLLOWER_MAXIMUM,
+            textvariable=var_follower_from, width=6
+        )
+        spin_follower_to = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=50, to=self.settings_app.FOLLOWER_MAXIMUM,
+            textvariable=var_follower_to, width=6
+        )
+        #  row 7
         var_only = IntVar()
-        var_only.set(1)
+        var_only.set(0)
+
+        var_old_only = IntVar()
+        var_old_only.set(5)
+
         label_only = ttk.Label(
             left_frame, font=self.settings_app.H6_FONT, text='Онлайн'
         )
@@ -230,9 +274,23 @@ class App(Tk, AdditionalFunctions):
         radio_offline = ttk.Radiobutton(
             left_frame, value=0, variable=var_only, text='Неважно'
         )
-        #  row 7
+
+        label_old_only = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT,
+            text='Последний раз был в сети'
+        )
+        spin_old_only = ttk.Spinbox(
+            left_frame, font=self.settings_app.SPINBOX_FONT,
+            from_=1, to=999, textvariable=var_old_only, state='readonly',
+            width=5
+        )
+        label_old_only_day = ttk.Label(
+            left_frame, font=self.settings_app.H6_FONT,
+            text='д. назад'
+        )
+        #  row 8
         var_photo = IntVar()
-        var_photo.set(1)
+        var_photo.set(0)
         label_photo = ttk.Label(
             left_frame, font=self.settings_app.H6_FONT, text='Наличие фото'
         )
@@ -247,56 +305,82 @@ class App(Tk, AdditionalFunctions):
             self.do_book_main, orient='horizontal', length=1000,
             maximum=self.settings_app.PROGRESSBAR_MAXIMUM
         )
+        #  row 9
+        var_send_message = IntVar()
+        var_send_message.set(0)
 
-        #  row 0
-        label_country.grid(row=0, column=0, sticky='E', padx=10)
-        cmb_country.grid(row=0, column=1, sticky='SWE', columnspan=4)
-        #  row 1
-        label_city_or_country.grid(row=1, column=0, sticky='W', pady=15,
-                                   padx=10)
-        radio_city.grid(row=1, column=1, sticky='SW', pady=15)
-        radio_region.grid(row=1, column=2, sticky='SW', pady=15)
-        #  row 2
-        label_var_city_or_country.grid(row=2, column=0, sticky='E', padx=20)
-        cmb_city_or_region.grid(row=2, column=1, sticky='SWE', columnspan=4)
-        #  row 3
-        label_sex.grid(row=3, column=0, sticky='E', padx=25, pady=15)
-        radio_none_sex.grid(row=3, column=1, sticky='SW', pady=15)
-        radio_male.grid(row=3, column=2, sticky='SW', pady=15, padx=10)
-        radio_female.grid(row=3, column=3, sticky='SW', pady=15)
-        #  row 4
-        label_status.grid(row=4, column=0, sticky='E', padx=25)
-        cmb_status.grid(row=4, column=1, sticky='SWE', columnspan=4)
-        #  row 5
-        label_old.grid(row=5, column=0, sticky='E', padx=25, pady=15)
-        spin_old_from.grid(row=5, column=1, sticky='SW', pady=15)
-        spin_old_to.grid(row=5, column=2, sticky='SW', pady=15)
-        #  row 6
-        label_only.grid(row=6, column=0, sticky='E', padx=25)
-        radio_only.grid(row=6, column=1, sticky='SW')
-        radio_offline.grid(row=6, column=2, sticky='SW', padx=10)
-        #  row 7
-        label_photo.grid(row=7, column=0, sticky='E', padx=25, pady=15)
-        radio_has_photo.grid(row=7, column=1, sticky='SW', pady=15)
-        radio_has_not_photo.grid(
-            row=7, column=2, sticky='SW', padx=10, pady=15
+        label_sed_message = ttk.Label(
+            left_frame,
+            font=self.settings_app.H6_FONT, text='Отправка собщений'
+        )
+        radio_can_send_message = ttk.Radiobutton(
+            left_frame, value=1, variable=var_send_message, text='Возможна'
+        )
+        radio_cannot_send_message = ttk.Radiobutton(
+            left_frame, value=0, variable=var_send_message, text='Неважно'
         )
 
-        progressbar.grid(row=1, column=0, columnspan=2, pady=35)
+        #  row 0
+        label_country.grid(row=0, column=0, sticky='E', padx=10, pady=15)
+        cmb_country.grid(row=0, column=1, sticky='SWE', columnspan=8, pady=15)
+        #  row 1
+        label_city_or_country.grid(row=1, column=0, sticky='E', padx=10)
+        radio_city.grid(row=1, column=1, sticky='SW')
+        radio_region.grid(row=1, column=2, sticky='SW')
+        cmb_city_or_region.grid(row=1, column=3, sticky='SWE', columnspan=6)
+        #  row 2
+        label_status.grid(row=3, column=0, sticky='E', padx=20, pady=15)
+        cmb_status.grid(row=3, column=1, sticky='SWE', columnspan=8, pady=15)
+        #  row 3
+        label_old.grid(row=4, column=0, sticky='E', padx=20)
+        spin_old_from.grid(row=4, column=1, sticky='SW')
+        spin_old_to.grid(row=4, column=2, sticky='SW')
+        #  row 4
+        label_friends.grid(row=5, column=0, sticky='E', padx=20, pady=15)
+        spin_friends_from.grid(row=5, column=1, sticky='SW', pady=15)
+        spin_friends_to.grid(row=5, column=2, sticky='SW', pady=15)
+        #  row 5
+        label_follower.grid(row=6, column=0, sticky='E', padx=20)
+        spin_follower_from.grid(row=6, column=1, sticky='SW')
+        spin_follower_to.grid(row=6, column=2, sticky='SW')
+        #  row 6
+        label_sex.grid(row=7, column=0, sticky='E', padx=20, pady=15)
+        radio_none_sex.grid(row=7, column=1, sticky='SW', pady=15)
+        radio_male.grid(row=7, column=2, sticky='SW', pady=15)
+        radio_female.grid(row=7, column=3, sticky='SW', pady=15)
+        #  row 7
+        label_only.grid(row=8, column=0, sticky='E', padx=25)
+        radio_offline.grid(row=8, column=1, sticky='SW')
+        radio_only.grid(row=8, column=2, sticky='SW')
+        label_old_only.grid(row=8, column=3, sticky='SE')
+        spin_old_only.grid(row=8, column=4, sticky='SW', padx=15)
+        label_old_only_day.grid(row=8, column=5, sticky='SW')
+        #  row 8
+        label_photo.grid(row=9, column=0, sticky='E', padx=20, pady=15)
+        radio_has_not_photo.grid(row=9, column=1, sticky='SW', pady=15)
+        radio_has_photo.grid(row=9, column=2, sticky='SW', pady=15)
+        #  row 9
+        label_sed_message.grid(row=10, column=0, sticky='E', padx=20)
+        radio_cannot_send_message.grid(row=10, column=1, sticky='SW')
+        radio_can_send_message.grid(row=10, column=2, sticky='SW')
 
-        btn_set_setting.grid(row=0, column=0)
+        progressbar.grid(row=1, column=0, columnspan=2, rowspan=2)
+
+        btn_set_setting.grid(row=1, column=0, pady=2)
         btn_see_old_requests.grid(row=2, column=0)
 
-        left_frame.columnconfigure(4, weight=1)
+        left_frame.columnconfigure(6, weight=1)
 
         self.do_book_main.columnconfigure(0, weight=1)
+
+        self.do_book_main.rowconfigure(1, weight=1)
+        self.do_book_main.rowconfigure(2, weight=1)
 
         all_widgets = {
             'window': self.main_book,
             'left_frame': left_frame,
             'right_frame': right_frame,
             'btn_set_setting': btn_set_setting,
-            'label_var_city_or_country': label_var_city_or_country,
             'cmb_country': cmb_country,
             'var_city_or_region': var_city_or_region,
             'cmb_city_or_region': cmb_city_or_region,
@@ -306,9 +390,23 @@ class App(Tk, AdditionalFunctions):
             'var_old_to': var_old_to,
             'var_only': var_only,
             'var_photo': var_photo,
-            'progressbar': progressbar
-        }
+            'progressbar': progressbar,
+            'btn_parse': btn_parse,
+            'label_old_only': label_old_only,
+            'spin_old_only': spin_old_only,
+            'label_old_only_day': label_old_only_day
 
+        }
+        radio_only.bind(
+            '<Button-1>', lambda event: self.set_widget_old_only(
+                widgets=all_widgets
+            )
+        )
+        radio_offline.bind(
+            '<Button-1>', lambda event: self.set_widget_old_only(
+                widgets=all_widgets
+            )
+        )
         radio_region.bind(
             '<Button-1>', lambda event: self.set_label_and_var_city_or_region(
                 widgets=all_widgets
@@ -371,20 +469,29 @@ class App(Tk, AdditionalFunctions):
         )
 
         label_FPVK.grid(row=0, column=0, sticky='EW', padx=15, rowspan=3)
-        button_update.grid(row=4, column=0, sticky='S', pady=10)
-        label_version.grid(row=5, column=0, sticky='S')
-        label_name_app.grid(row=0, column=1, sticky='N', columnspan=4)
-        label_description.grid(row=1, column=1, sticky='N', columnspan=4)
-        label_help_description.grid(row=2, column=1, sticky='N', columnspan=4)
-        label_FH.grid(row=5, column=4, sticky='SWE')
-        btn_open_page_app.grid(row=5, column=1, sticky='SWE', padx=10)
-        btn_open_bot_tg.grid(row=5, column=2, sticky='SWE')
-        btn_open_bot_vk.grid(row=5, column=3, sticky='SWE', padx=10)
+        label_name_app.grid(row=0, column=1, sticky='N', columnspan=6)
+        label_description.grid(row=1, column=1, sticky='N', columnspan=6)
+        label_help_description.grid(row=2, column=1, sticky='N', columnspan=6)
+        button_update.grid(row=3, column=0, sticky='S', pady=10)
+        label_version.grid(row=4, column=0, sticky='S')
+        btn_open_page_app.grid(
+            row=4, column=1, sticky='SWE', padx=10, columnspan=2
+        )
+        btn_open_bot_tg.grid(row=4, column=3, sticky='SWE', columnspan=2)
+        btn_open_bot_vk.grid(
+            row=4, column=5, sticky='SWE', padx=10, columnspan=2
+        )
+        label_FH.grid(row=5, column=0, columnspan=7, rowspan=2)
 
         self.main_book.columnconfigure(1, weight=1)
         self.main_book.columnconfigure(2, weight=1)
         self.main_book.columnconfigure(3, weight=1)
         self.main_book.columnconfigure(4, weight=1)
+        self.main_book.columnconfigure(5, weight=1)
+        self.main_book.columnconfigure(6, weight=1)
+
+        self.main_book.rowconfigure(5, weight=1)
+        self.main_book.rowconfigure(6, weight=1)
 
         label_FPVK.bind(
             '<Button-1>', lambda event: web_open(self.settings_app.PAGE_APP)

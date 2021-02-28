@@ -62,9 +62,11 @@ class SettingsFunction:
     H6_FONT = (MAIN_FONT, 12, 'bold italic')
     INPUT_FONT = (MAIN_FONT, 10, 'bold italic')
     COMBOBOX_FONT = (MAIN_FONT, 11, 'bold italic')
-    SPINBOX_FONT = (MAIN_FONT, 11, 'bold')
+    SPINBOX_FONT = (MAIN_FONT, 10, 'bold')
 
     PROGRESSBAR_MAXIMUM = 1000
+    FRIENDS_MAXIMUM = 100000
+    FOLLOWER_MAXIMUM = 100000
 
     try:
         with open(f'{path_to_dir_dicts}/countries.json', 'r') as file:

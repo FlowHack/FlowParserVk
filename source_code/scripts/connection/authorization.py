@@ -31,7 +31,6 @@ class Authorize:
         if (elementary_vk_login == 'none_value') or \
                 (elementary_vk_password == 'none_value'):
             vk_login, vk_password = self.get_data_for_authorization()
-            print(vk_login)
         else:
             vk_login, vk_password = elementary_vk_login, elementary_vk_password
 

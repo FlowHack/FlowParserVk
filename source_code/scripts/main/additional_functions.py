@@ -2,6 +2,7 @@ from scripts.connection.requests_to_api import RequestsAPI
 from settings.settings import SettingsFunction, get_logger
 from scripts.main.windows.dialog import RequestTreeView
 from tkinter import ttk
+from pprint import pprint
 
 logger = get_logger('additional_functions_master')
 
@@ -14,46 +15,41 @@ class AdditionalFunctionsForAPI(RequestsAPI):
         self.list_region = None
 
     def get_cities_or_regions_combobox(self, widgets):
-        right_frame = widgets['right_frame']
         variable = widgets['var_city_or_region']
         cmb_country = widgets['cmb_country']
         combobox = widgets['cmb_city_or_region']
         progressbar = widgets['progressbar']
+        btn_parse = widgets['btn_parse']
         var = variable.get()
+
         country_name: str = cmb_country.get()
         country_id: int = self.settings_app.LIST_COUNTRIES[country_name]
+
         if var == 'city':
             if self.list_city is None:
-                objects_cities_or_regions = self.get_response(
-                    api_method='database.getCities',
-                    progressbar=progressbar,
-                    country_id=country_id
+                objects_cities_or_regions = self.get_cities(
+                    country_id=country_id,
+                    progressbar=progressbar
                 )
+
                 self.list_city = objects_cities_or_regions
             else:
                 objects_cities_or_regions = self.list_city
 
-            action = self.main_parsing_city
         else:
             if self.list_region is None:
-                objects_cities_or_regions = self.get_response(
-                    api_method='database.getRegions',
-                    progressbar=progressbar,
-                    country_id=country_id
+                objects_cities_or_regions = self.get_regions(
+                    country_id=country_id,
+                    progressbar=progressbar
                 )
                 self.list_region = objects_cities_or_regions
             else:
                 objects_cities_or_regions = self.list_region
 
-            action = self.main_parsing_region
-
         values = list(objects_cities_or_regions.keys())
         combobox['values'] = values
         combobox.set(values[0])
-        btn_parse = ttk.Button(
-            right_frame, text='Парсить', command=lambda: action(widgets)
-        )
-        btn_parse.grid(row=1, column=0)
+        btn_parse.grid(row=0, column=0)
 
     def main_parsing(self, widgets):
         var = widgets['var_city_or_region']
@@ -88,7 +84,7 @@ class AdditionalFunctionsForAPI(RequestsAPI):
         result = RequestsAPI().get_response(
             api_method='users.search', progressbar=progressbar, **arguments
         )
-        print(result)
+        pprint(result)
 
     def main_parsing_region(self, widgets):
         pass
@@ -98,22 +94,40 @@ class AdditionalFunctions:
     @staticmethod
     def set_label_and_var_city_or_region(widgets):
         var = widgets['var_city_or_region']
-        label = widgets['label_var_city_or_country']
         cmb = widgets['cmb_city_or_region']
+        btn_parse = widgets['btn_parse']
         btn_settings = widgets['btn_set_setting']
         if var.get() == 'city':
             var.set('region')
-            label.configure(text='Регион')
+            btn_parse.grid_remove()
             cmb['values'] = []
             cmb.set('Нажмите "Настроить"')
             btn_settings.configure(text='Настроить')
 
         elif var.get() == 'region':
             var.set('city')
-            label.configure(text='Город')
+            btn_parse.grid_remove()
             cmb['values'] = []
             cmb.set('Нажмите "Настроить"')
             btn_settings.configure(text='Настроить')
+
+    @staticmethod
+    def set_widget_old_only(widgets):
+        var = widgets['var_only']
+        label_old_only = widgets['label_old_only']
+        spin_old_only = widgets['spin_old_only']
+        label_old_only_day = widgets['label_old_only_day']
+
+        if var.get() == 1:
+            var.set(0)
+            label_old_only.grid(row=8, column=3, sticky='SE')
+            spin_old_only.grid(row=8, column=4, sticky='SW', padx=15)
+            label_old_only_day.grid(row=8, column=5, sticky='SW')
+        elif var.get() == 0:
+            var.set(1)
+            label_old_only.grid_remove()
+            spin_old_only.grid_remove()
+            label_old_only_day.grid_remove()
 
     @staticmethod
     def open_request_tree_view():
