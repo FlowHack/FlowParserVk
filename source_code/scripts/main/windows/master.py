@@ -5,10 +5,13 @@ from webbrowser import open as web_open
 from PIL import Image, ImageTk
 
 import scripts.main.styles as styles
+from settings.style import font
 from scripts.main.additional_functions import (AdditionalFunctions,
                                                AdditionalFunctionsForAPI)
 from settings.settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
                                SettingsFunction, get_logger)
+from settings import value_constraints
+from settings.dicts import additional_dicts
 
 logger = get_logger('master_windows')
 
@@ -71,8 +74,10 @@ class App(Tk, AdditionalFunctions):
         """
         self.title(self.settings_app.APP_NAME)
         styles.set_global_style(self)
-        set_position_window_on_center(self, width=1200, height=500)
-        self.minsize(1200, 600)
+        w = 1200
+        h = 630
+        set_position_window_on_center(self, width=w, height=h)
+        self.minsize(w, h)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
 
     def build_app(self):
@@ -148,19 +153,19 @@ class App(Tk, AdditionalFunctions):
 
         #  row 0
         label_country = ttk.Label(
-            left_frame, text='Страна*', font=self.settings_app.H6_FONT
+            left_frame, text='Страна*', font=font.H6_FONT
         )
         cmb_country = ttk.Combobox(
-            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+            left_frame, font=font.COMBOBOX_FONT, state='readonly'
         )
-        cmb_country['values'] = list(self.settings_app.LIST_COUNTRIES.keys())
+        cmb_country['values'] = list(additional_dicts.LIST_COUNTRIES.keys())
         cmb_country.set('Россия')
         #  row 1
         var_city_or_region = StringVar()
         var_city_or_region.set('city')
         label_city_or_country = ttk.Label(
             left_frame, text='Парсинг по городу или региону?',
-            font=self.settings_app.H6_FONT
+            font=font.H6_FONT
         )
         radio_city = ttk.Radiobutton(left_frame,
                                      variable=var_city_or_region, value='city',
@@ -171,14 +176,14 @@ class App(Tk, AdditionalFunctions):
                                        value='region', text='Региону'
                                        )
         cmb_city_or_region = ttk.Combobox(
-            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+            left_frame, font=font.COMBOBOX_FONT, state='readonly'
         )
         cmb_city_or_region.set('Нажмите "Настроить"')
         #  row 2
         var_sex = IntVar()
         var_sex.set(0)
         label_sex = ttk.Label(
-            left_frame, text='Пол', font=self.settings_app.H6_FONT
+            left_frame, text='Пол', font=font.H6_FONT
         )
         radio_male = ttk.Radiobutton(
             left_frame, variable=var_sex, value=2, text='Мужской'
@@ -191,13 +196,13 @@ class App(Tk, AdditionalFunctions):
         )
         #  row 3
         label_status = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT,
+            left_frame, font=font.H6_FONT,
             text='Семейное положение'
         )
         cmb_status = ttk.Combobox(
-            left_frame, font=self.settings_app.COMBOBOX_FONT, state='readonly'
+            left_frame, font=font.COMBOBOX_FONT, state='readonly'
         )
-        cmb_status['value'] = list(SettingsFunction.STATUS_VK_PERSON.keys())
+        cmb_status['value'] = list(additional_dicts.STATUS_VK_PERSON.keys())
         cmb_status.set('Не выбрано')
         #  row 4
         var_old_from = IntVar()
@@ -206,36 +211,40 @@ class App(Tk, AdditionalFunctions):
         var_old_to.set(40)
 
         label_old = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT, text='Возраст (От|До)'
+            left_frame, font=font.H6_FONT, text='Возраст (От|До)'
         )
         spin_old_from = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=18, to=90, textvariable=var_old_from, state='readonly',
+            left_frame, font=font.SPINBOX_FONT,
+            from_=value_constraints.OLD_YEAR_MIN,
+            to=value_constraints.OLD_YEAR_MAX,
+            textvariable=var_old_from, state='readonly',
             width=5
         )
         spin_old_to = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=18, to=90, textvariable=var_old_to, state='readonly',
+            left_frame, font=font.SPINBOX_FONT,
+            from_=value_constraints.OLD_YEAR_MIN,
+            to=value_constraints.OLD_YEAR_MAX,
+            textvariable=var_old_to, state='readonly',
             width=5
         )
         #  row 5
         var_friends_to = IntVar()
         var_friends_from = IntVar()
         var_friends_from.set(0)
-        var_friends_from.set(1000)
+        var_friends_to.set(1000)
 
         label_friends = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT,
+            left_frame, font=font.H6_FONT,
             text='Количество друзей (От|До)'
         )
         spin_friends_from = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=0, to=self.settings_app.FRIENDS_MAXIMUM,
+            left_frame, font=font.SPINBOX_FONT,
+            from_=0, to=value_constraints.FRIENDS_MAX,
             textvariable=var_friends_from, width=7
         )
         spin_friends_to = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=50, to=self.settings_app.FRIENDS_MAXIMUM,
+            left_frame, font=font.SPINBOX_FONT,
+            from_=50, to=value_constraints.FRIENDS_MAX,
             textvariable=var_friends_to, width=7
         )
         #  row 6
@@ -245,17 +254,17 @@ class App(Tk, AdditionalFunctions):
         var_follower_to.set(400)
 
         label_follower = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT,
+            left_frame, font=font.H6_FONT,
             text='Количество подписчиков (От|До)'
         )
         spin_follower_from = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=0, to=self.settings_app.FOLLOWER_MAXIMUM,
+            left_frame, font=font.SPINBOX_FONT,
+            from_=0, to=value_constraints.FOLLOWERS_MAX,
             textvariable=var_follower_from, width=6
         )
         spin_follower_to = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
-            from_=50, to=self.settings_app.FOLLOWER_MAXIMUM,
+            left_frame, font=font.SPINBOX_FONT,
+            from_=50, to=value_constraints.FOLLOWERS_MAX,
             textvariable=var_follower_to, width=6
         )
         #  row 7
@@ -266,7 +275,7 @@ class App(Tk, AdditionalFunctions):
         var_old_only.set(5)
 
         label_only = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT, text='Онлайн'
+            left_frame, font=font.H6_FONT, text='Онлайн'
         )
         radio_only = ttk.Radiobutton(
             left_frame, value=1, variable=var_only, text='Онлайн'
@@ -276,23 +285,23 @@ class App(Tk, AdditionalFunctions):
         )
 
         label_old_only = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT,
+            left_frame, font=font.H6_FONT,
             text='Последний раз был в сети'
         )
         spin_old_only = ttk.Spinbox(
-            left_frame, font=self.settings_app.SPINBOX_FONT,
+            left_frame, font=font.SPINBOX_FONT,
             from_=1, to=999, textvariable=var_old_only, state='readonly',
             width=5
         )
         label_old_only_day = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT,
+            left_frame, font=font.H6_FONT,
             text='д. назад'
         )
         #  row 8
         var_photo = IntVar()
         var_photo.set(0)
         label_photo = ttk.Label(
-            left_frame, font=self.settings_app.H6_FONT, text='Наличие фото'
+            left_frame, font=font.H6_FONT, text='Наличие фото'
         )
         radio_has_photo = ttk.Radiobutton(
             left_frame, value=1, variable=var_photo, text='Есть фото'
@@ -303,7 +312,7 @@ class App(Tk, AdditionalFunctions):
 
         progressbar = ttk.Progressbar(
             self.do_book_main, orient='horizontal', length=1000,
-            maximum=self.settings_app.PROGRESSBAR_MAXIMUM
+            maximum=value_constraints.PROGRESSBAR_MAX
         )
         #  row 9
         var_send_message = IntVar()
@@ -311,13 +320,30 @@ class App(Tk, AdditionalFunctions):
 
         label_sed_message = ttk.Label(
             left_frame,
-            font=self.settings_app.H6_FONT, text='Отправка собщений'
+            font=font.H6_FONT, text='Отправка собщений'
         )
         radio_can_send_message = ttk.Radiobutton(
             left_frame, value=1, variable=var_send_message, text='Возможна'
         )
         radio_cannot_send_message = ttk.Radiobutton(
             left_frame, value=0, variable=var_send_message, text='Неважно'
+        )
+        #  row 10
+        var_group_search = IntVar()
+        var_group_search.set(0)
+
+        label_group_search = ttk.Label(
+            left_frame,
+            font=font.H6_FONT, text='Поиск по группе'
+        )
+        radio_on_group_search = ttk.Radiobutton(
+            left_frame, value=1, variable=var_group_search, text='Включить'
+        )
+        radio_off_group_search = ttk.Radiobutton(
+            left_frame, value=0, variable=var_group_search, text='Отключено'
+        )
+        entry_group_id = ttk.Entry(
+            left_frame, font=font.INPUT_FONT
         )
 
         #  row 0
@@ -363,6 +389,10 @@ class App(Tk, AdditionalFunctions):
         label_sed_message.grid(row=10, column=0, sticky='E', padx=20)
         radio_cannot_send_message.grid(row=10, column=1, sticky='SW')
         radio_can_send_message.grid(row=10, column=2, sticky='SW')
+        #  row 10
+        label_group_search.grid(row=11, column=0, sticky='E', padx=20, pady=15)
+        radio_off_group_search.grid(row=11, column=1, sticky='SW', pady=15)
+        radio_on_group_search.grid(row=11, column=2, sticky='SW', pady=15)
 
         progressbar.grid(row=1, column=0, columnspan=2, rowspan=2)
 
@@ -377,7 +407,7 @@ class App(Tk, AdditionalFunctions):
         self.do_book_main.rowconfigure(2, weight=1)
 
         all_widgets = {
-            'window': self.main_book,
+            'window': self,
             'left_frame': left_frame,
             'right_frame': right_frame,
             'btn_set_setting': btn_set_setting,
@@ -394,7 +424,14 @@ class App(Tk, AdditionalFunctions):
             'btn_parse': btn_parse,
             'label_old_only': label_old_only,
             'spin_old_only': spin_old_only,
-            'label_old_only_day': label_old_only_day
+            'label_old_only_day': label_old_only_day,
+            'var_group_search': var_group_search,
+            'entry_group_id': entry_group_id,
+            'var_follower_to': var_follower_to,
+            'var_follower_from': var_follower_from,
+            'var_friends_to': var_friends_to,
+            'var_friends_from': var_friends_from,
+            'var_send_message': var_send_message
 
         }
         radio_only.bind(
@@ -417,9 +454,24 @@ class App(Tk, AdditionalFunctions):
                 widgets=all_widgets
             )
         )
+        radio_on_group_search.bind(
+            '<Button-1>', lambda event: self.set_entry_for_group_search(
+                widgets=all_widgets
+            )
+        )
+        radio_off_group_search.bind(
+            '<Button-1>', lambda event: self.set_entry_for_group_search(
+                widgets=all_widgets
+            )
+        )
         btn_set_setting.bind(
             '<Button-1>',
-            lambda event: self.function_api.get_cities_or_regions_combobox(
+            lambda event: self.function_api.settings_before_parsing(
+                widgets=all_widgets
+            )
+        )
+        btn_parse.bind(
+            '<Button-1>', lambda event: self.function_api.main_parsing(
                 widgets=all_widgets
             )
         )
@@ -429,69 +481,65 @@ class App(Tk, AdditionalFunctions):
         Функция отрисовки главной вкладки программы
         :return: ничего
         """
+        left_frame = ttk.Frame(
+            self.main_book, borderwidth=2, relief='groove', padding=10
+        )
+        left_frame.grid(
+            row=0, column=0, sticky='SN', padx=10
+        )
+        right_frame = ttk.Frame(
+            self.main_book, padding=10, borderwidth=2, relief='groove'
+        )
+        right_frame.grid(
+            row=0, column=1, sticky='NW'
+        )
+
         label_FPVK = ttk.Label(
-            self.main_book, image=self.app_ico['348x348_FPVK'],
+            left_frame, image=self.app_ico['348x348_FPVK'],
             cursor='heart'
         )
         button_update = ttk.Button(
-            self.main_book, text='Проверить обновления', cursor='exchange'
+            left_frame, text='Проверить обновления', cursor='exchange'
+        )
+        button_authorization = ttk.Button(
+            left_frame, text='Авторизоваться'
         )
         label_version = ttk.Label(
-            self.main_book, text=f'Version: {self.settings_app.VERSION}'
-        )
-        label_name_app = ttk.Label(
-            self.main_book, text=self.settings_app.APP_NAME, justify='center',
-            font=self.settings_app.H1_FONT, foreground='#A3DAFF'
-        )
-        label_description = ttk.Label(
-            self.main_book, text=LABEL_DESCRIPTION,
-            justify='center', font=self.settings_app.H5_FONT, wraplength=650
-        )
-        label_help_description = ttk.Label(
-            self.main_book, text=LABEL_HELP_DESCRIPTION,
-            justify='center', font=self.settings_app.H6_FONT, wraplength=650
+            left_frame, text=f'Version: {self.settings_app.VERSION}'
         )
         label_FH = ttk.Label(
-            self.main_book, image=self.app_ico['148x30_FH'], cursor='heart',
+            left_frame, image=self.app_ico['148x30_FH'], cursor='heart',
             justify='center'
         )
+        label_name_app = ttk.Label(
+            right_frame, text=self.settings_app.APP_NAME, justify='center',
+            font=font.H1_FONT, foreground='#A3DAFF'
+        )
+        label_description = ttk.Label(
+            right_frame, text=LABEL_DESCRIPTION,
+            justify='center', font=font.H5_FONT, wraplength=650
+        )
+        label_help_description = ttk.Label(
+            right_frame, text=LABEL_HELP_DESCRIPTION,
+            justify='center', font=font.H6_FONT, wraplength=650
+        )
         btn_open_page_app = ttk.Button(
-            self.main_book, text='Сайт программы', cursor='star',
+            right_frame, text='Сайт программы', cursor='star',
             command=lambda: web_open(self.settings_app.PAGE_APP)
         )
-        btn_open_bot_tg = ttk.Button(
-            self.main_book, text='Бот Telegram', cursor='star',
-            command=lambda: web_open(self.settings_app.TELEGRAM_BOT_APP)
-        )
-        btn_open_bot_vk = ttk.Button(
-            self.main_book, text='Бот VK', cursor='star',
-            command=lambda: web_open(self.settings_app.VK_BOT_APP)
-        )
 
-        label_FPVK.grid(row=0, column=0, sticky='EW', padx=15, rowspan=3)
-        label_name_app.grid(row=0, column=1, sticky='N', columnspan=6)
-        label_description.grid(row=1, column=1, sticky='N', columnspan=6)
-        label_help_description.grid(row=2, column=1, sticky='N', columnspan=6)
-        button_update.grid(row=3, column=0, sticky='S', pady=10)
-        label_version.grid(row=4, column=0, sticky='S')
-        btn_open_page_app.grid(
-            row=4, column=1, sticky='SWE', padx=10, columnspan=2
-        )
-        btn_open_bot_tg.grid(row=4, column=3, sticky='SWE', columnspan=2)
-        btn_open_bot_vk.grid(
-            row=4, column=5, sticky='SWE', padx=10, columnspan=2
-        )
-        label_FH.grid(row=5, column=0, columnspan=7, rowspan=2)
+        label_version.grid(row=0, column=0, pady=5)
+        label_FPVK.grid(row=1, rowspan=2, column=0)
+        button_authorization.grid(row=4, column=0, pady=10)
+        button_update.grid(row=5, column=0)
+        label_FH.grid(row=6, column=0, pady=10)
+        label_name_app.grid(row=0, column=0, pady=10)
+        label_description.grid(row=1, column=0, sticky='SWE')
+        label_help_description.grid(row=2, column=0, sticky='SWE', pady=10)
+        btn_open_page_app.grid(row=3, column=0, pady=15, sticky='SWE')
 
-        self.main_book.columnconfigure(1, weight=1)
-        self.main_book.columnconfigure(2, weight=1)
-        self.main_book.columnconfigure(3, weight=1)
-        self.main_book.columnconfigure(4, weight=1)
-        self.main_book.columnconfigure(5, weight=1)
-        self.main_book.columnconfigure(6, weight=1)
-
-        self.main_book.rowconfigure(5, weight=1)
-        self.main_book.rowconfigure(6, weight=1)
+        self.main_book.columnconfigure(0, weight=1)
+        self.main_book.columnconfigure(1, weight=3)
 
         label_FPVK.bind(
             '<Button-1>', lambda event: web_open(self.settings_app.PAGE_APP)
@@ -514,15 +562,15 @@ class App(Tk, AdditionalFunctions):
             f'VISA: {self.settings_app.BANK_DETAILS["qiwi_visa"]} (QIWI VISA)'
         )
         label_main = ttk.Label(
-            self.donat_book, text='Донаты', font=self.settings_app.H1_FONT,
+            self.donat_book, text='Донаты', font=font.H1_FONT,
             justify='center', foreground='#A3DAFF'
         )
         label_bank_details_caption = ttk.Label(
-            self.donat_book, text=caption, font=self.settings_app.H5_FONT,
+            self.donat_book, text=caption, font=font.H5_FONT,
             justify='center', foreground='#FFC8A3'
         )
         label_bank_details = ttk.Label(
-            self.donat_book, text=bank_details, font=self.settings_app.H6_FONT,
+            self.donat_book, text=bank_details, font=font.H6_FONT,
             justify='center'
         )
         label_FPVK_1 = ttk.Label(

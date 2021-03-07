@@ -21,9 +21,9 @@ class MainBD:
         :return: None
         """
         should_be_table_in_db = {
-            'User_data': self.create_user_db,
-            'Settings_app': self.create_settings_db,
-            'Get_people': self.create_get_people_db
+            'UserData': self.create_user_db,
+            'AppSettings': self.create_settings_db,
+            'GetRequestApi': self.create_get_people_db
 
         }
         table_in_bd = list(
@@ -43,7 +43,7 @@ class MainBD:
         """
         self.remote_control_bd.execute(
             '''
-            CREATE TABLE IF NOT EXISTS User_data(
+            CREATE TABLE IF NOT EXISTS UserData(
             vk_login TEXT NOT NULL, 
             vk_password TEXT NOT NULL
             )
@@ -53,7 +53,7 @@ class MainBD:
         logger.info('Создали базу данных юзера User_data')
         default_params = [('none_value', 'none_value')]
         self.remote_control_bd.executemany(
-            'INSERT INTO User_data VALUES (?,?)',
+            'INSERT INTO UserData VALUES (?,?)',
             default_params
         )
         self.connect_bd.commit()
@@ -66,9 +66,9 @@ class MainBD:
         """
         self.remote_control_bd.execute(
             '''
-            CREATE TABLE IF NOT EXISTS Settings_app(
+            CREATE TABLE IF NOT EXISTS AppSettings(
             auto_update INT NOT NULL,
-            person_agreement INT NOT NULL
+            first_start INT NOT NULL
             )
             '''
         )
@@ -76,7 +76,7 @@ class MainBD:
         logger.info('Создали базу данных настроек')
         default_params = [(1, 1)]
         self.remote_control_bd.executemany(
-            'INSERT INTO Settings_app VALUES (?,?)',
+            'INSERT INTO AppSettings VALUES (?,?)',
             default_params
         )
         self.connect_bd.commit()
@@ -89,13 +89,13 @@ class MainBD:
         """
         self.remote_control_bd.execute(
             '''
-            CREATE TABLE IF NOT EXISTS Get_people(
-            id INTEGER PRIMARY KEY,
-            type_request TEXT NOT NULL,
-            datetime_request TEXT NOT NULL, 
+            CREATE TABLE IF NOT EXISTS GetRequestApi(
+            pk INT PRIMARY KEY,
+            type_request TEXT NOT NULL, 
             count_people INT NOT NULL,
             response TEXT NOT NULL,
-            params_request TEXT NOT NULL
+            params_request TEXT NOT NULL,
+            datetime_request INT NOT NULL
             )
             '''
         )

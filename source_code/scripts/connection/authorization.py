@@ -5,6 +5,7 @@ from requests import exceptions as requests_except
 
 from scripts.scripts.request_to_bd import RequestGetToBD, RequestUpdateToBD
 from settings.settings import get_logger
+from settings.dicts.additional_dicts import ERROR_MSG
 
 logger = get_logger('authorization')
 
@@ -54,11 +55,7 @@ class Authorize:
             from scripts.main.windows.dialog import DialogWindows
             DialogWindows.warning_window(
                 title='Вы не авторизовались',
-                warning_txt='Вы не авторизовались!\n\nВы можете '
-                            'продолжить использование программы, '
-                            'но делать запросы к VK вы не сможете.\n\nВы '
-                            'в любой момент можете авторизоваться на '
-                            'главной странице! '
+                warning_txt=ERROR_MSG['Authorization']['not_authorization']
             )
 
             return None
@@ -68,7 +65,7 @@ class Authorize:
             logger.warning(f'Отсутствует подключение! {error}')
             DialogWindows.warning_window(
                 title='Нет сети',
-                warning_txt='У вас отсутствует интернет подключение!'
+                warning_txt=ERROR_MSG['Authorization']['not_authorization']
             )
 
         except BaseException as error:
@@ -76,8 +73,7 @@ class Authorize:
             logger.error(f'Неизвестная ошибка! {error}')
             DialogWindows.error_window(
                 title='Непредвиденная ошибка',
-                error_txt=f'Мы не предвидели эту ошибку, обратитесь с ней к '
-                          f'автору программы\n\nОшибка: {error} '
+                error_txt=ERROR_MSG['Unforeseen_error'].format(error)
             )
         else:
             if (elementary_vk_login != vk_login) or \

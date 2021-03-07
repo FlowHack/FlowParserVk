@@ -26,7 +26,7 @@ class BrainForApp:
         time.sleep(2)
         MainBD()
         first_start: int = \
-            RequestGetToBD().get_settings_table_value()['person_agreement']
+            RequestGetToBD().get_settings_table_value()['first_start']
         if first_start == 1:
             from scripts.main.windows.additional import AdditionalWindows
             from scripts.scripts.request_to_bd import RequestUpdateToBD

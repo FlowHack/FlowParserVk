@@ -12,7 +12,7 @@ class RequestGetToBD(MainBD):
         Функция получения данных настроек программы из базы данных
         :return: словарь со значениями по имени их названия в базе
         """
-        self.remote_control_bd.execute('SELECT * FROM Settings_app')
+        self.remote_control_bd.execute('SELECT * FROM AppSettings')
         settings_app = self.remote_control_bd.fetchone()
 
         auto_update: int = settings_app[0]
@@ -20,7 +20,7 @@ class RequestGetToBD(MainBD):
 
         return {
             'auto_update': auto_update,
-            'person_agreement': first_start,
+            'first_start': first_start,
         }
 
     def get_user_data_table_value(self):
@@ -28,7 +28,7 @@ class RequestGetToBD(MainBD):
         Функция получения данных пользователя программы из базы данных
         :return: словарь со значениями по имени их названия в базе
         """
-        self.remote_control_bd.execute('SELECT * FROM User_data')
+        self.remote_control_bd.execute('SELECT * FROM UserData')
         data_user = self.remote_control_bd.fetchone()
 
         vk_login: str = data_user[0]
@@ -44,7 +44,7 @@ class RequestGetToBD(MainBD):
         Функция получения результатов get запросов пользователей в вк
         :return: список запросов
         """
-        self.remote_control_bd.execute('SELECT * FROM Get_people')
+        self.remote_control_bd.execute('SELECT * FROM GetRequestApi')
 
         get_people_requests = self.remote_control_bd.fetchall()
 
@@ -63,13 +63,13 @@ class RequestUpdateToBD(MainBD):
         """
         self.remote_control_bd.execute(
             f'''
-            UPDATE User_data
+            UPDATE UserData
             SET vk_login = "{new_vk_login}",
             vk_password = "{new_vk_password}"
             '''
         )
         self.connect_bd.commit()
-        logger.warning('Обновлены данные таблицы User_data')
+        logger.warning('Обновлены данные таблицы UserData')
 
     def update_settings_app_table(self,
                                   auto_update=None, person_agreement=None):
@@ -87,14 +87,14 @@ class RequestUpdateToBD(MainBD):
                 auto_update: int = settings_app_table_values['auto_update']
             if person_agreement is None:
                 person_agreement: int = \
-                    settings_app_table_values['person_agreement']
+                    settings_app_table_values['first_start']
 
         self.remote_control_bd.execute(
             f'''
-            UPDATE Settings_app
+            UPDATE AppSettings
             SET auto_update = {auto_update},
-            person_agreement = {person_agreement}
+            first_start = {person_agreement}
             '''
         )
         self.connect_bd.commit()
-        logger.warning('Обновлены данные таблицы Settings_app')
+        logger.warning('Обновлены данные таблицы AppSettings')

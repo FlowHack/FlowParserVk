@@ -11,8 +11,8 @@ def get_logger(name: str) -> object:
     :param name: имя файла логгера
     :return: объект логгера
     """
-    logger = getLogger(name)
-    logger.setLevel(INFO)
+    file_logger = getLogger(name)
+    file_logger.setLevel(INFO)
 
     logger_format = (
         '[%(asctime)s] [%(name)s] [%(levelname)s] > %(message)s'
@@ -27,9 +27,9 @@ def get_logger(name: str) -> object:
     )
 
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    file_logger.addHandler(handler)
 
-    return logger
+    return file_logger
 
 
 logger = get_logger('settings')
@@ -56,42 +56,6 @@ class SettingsFunction:
     path_to_dir_style = f'{path_to_dir_settings}/style/awthemes-10.2.0'
     path_to_db = f'{path_to_dir_settings}/settings.db'
 
-    MAIN_FONT = 'Times New Roman'
-    H1_FONT = (MAIN_FONT, 20, 'bold italic')
-    H5_FONT = (MAIN_FONT, 14, 'bold italic')
-    H6_FONT = (MAIN_FONT, 12, 'bold italic')
-    INPUT_FONT = (MAIN_FONT, 10, 'bold italic')
-    COMBOBOX_FONT = (MAIN_FONT, 11, 'bold italic')
-    SPINBOX_FONT = (MAIN_FONT, 10, 'bold')
-
-    PROGRESSBAR_MAXIMUM = 1000
-    FRIENDS_MAXIMUM = 100000
-    FOLLOWER_MAXIMUM = 100000
-
-    try:
-        with open(f'{path_to_dir_dicts}/countries.json', 'r') as file:
-            file_str = json.load(file)
-            LIST_COUNTRIES = json.loads(file_str)
-    except FileNotFoundError as error:
-        logger.warning('Не найден файл "countries.json", парсинг невозможен!')
-        LIST_COUNTRIES = {
-            'Россия': 1,
-            'Украина': 2,
-            'Беларусь': 3
-        }
-
-    STATUS_VK_PERSON = {
-        'Не выбрано': '',
-        'не женат (не замужем)': 1,
-        'встречается': 2,
-        'помолвлен(-а)': 3,
-        'женат (замужем)': 4,
-        'всё сложно': 5,
-        'в активном поиске': 6,
-        'влюблен(-а)': 7,
-        'в гражданском браке': 8
-    }
-
     @staticmethod
     def copy_in_clipboard(widget, value):
         """
@@ -113,4 +77,4 @@ LICENSE_AGREEMENT = f"""
 """
 
 LABEL_DESCRIPTION = 'Эта программа создана для парсинга целевой аудитории из Vk. Основные инструменты для сбора ЦА находятся во вкладке "Действия"'
-LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить на сайте программы (для перехода нажмите на иконку программы слева, либо на соответствующую кнопку). Либо в боте Vk, Telgram.\n\nВ случае ошибки, вы можете сообщить о ней в соответствующей вкладке программы, либо также в боте программы.\n\n\nПоддержать проект вы можете во вкладке "Донаты"'
+LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить на сайте программы (для перехода нажмите на иконку программы слева, либо на соответствующую кнопку). Либо в боте Vk, Telgram.\n\nВ случае ошибки, вы можете сообщить о ней в соответствующей вкладке программы, либо также в боте программы.\n\nПоддержать проект вы можете во вкладке "Донаты"'
