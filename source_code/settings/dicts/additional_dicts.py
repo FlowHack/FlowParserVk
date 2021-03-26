@@ -1,11 +1,12 @@
-from settings.settings import SettingsFunction, get_logger
 import json
+
+from ..settings import SettingsFunctions, get_logger
 
 logger = get_logger('additional_dicts')
 
 #  Словарь стран
 try:
-    with open(f'{SettingsFunction.path_to_dir_dicts}/countries.json',
+    with open(f'{SettingsFunctions.path_to_dir_dicts}/countries.json',
               'r') as file:
         file_str = json.load(file)
         LIST_COUNTRIES = json.loads(file_str)
@@ -21,14 +22,14 @@ except FileNotFoundError as error:
 
 #  Словарь ошибок
 try:
-    with open(f'{SettingsFunction.path_to_dir_dicts}/error.json', 'r') as file:
+    with open(f'{SettingsFunctions.path_to_dir_dicts}/error.json', 'r') as file:
         ERROR_MSG = json.load(file)
 except FileNotFoundError as error:
     logger.error('Не найден файл "error.json"')
 
 #  Словарь статусов
 STATUS_VK_PERSON = {
-        'Не выбрано': 0,
+        'Не выбранно': 0,
         'не женат (не замужем)': 1,
         'встречается': 2,
         'помолвлен(-а)': 3,

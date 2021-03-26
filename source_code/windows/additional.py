@@ -2,9 +2,10 @@ from sys import exit as exit_ex
 from time import time
 from tkinter import Text, Tk, messagebox, ttk
 
-import scripts.main.styles as styles
-from scripts.main.windows.master import set_position_window_on_center
+from settings import styles
 from settings.settings import get_logger
+
+from .master import set_position_window_on_center
 
 lose_agreement_count: int = 0
 logger = get_logger('additional_windows')

@@ -1,7 +1,7 @@
-from tkinter import Toplevel, messagebox, ttk, YES
+from tkinter import YES, Toplevel, messagebox, ttk
 
+from settings import fonts
 from settings.settings import get_logger
-from settings.style import font
 
 logger = get_logger('dialog_windows')
 
@@ -22,8 +22,9 @@ class GetWindow:
         :param header: Необязательно поле. Label-заголовок
         :return: ничего
         """
-        import scripts.main.styles as styles
-        from scripts.main.windows.master import set_position_window_on_center
+        from settings import styles
+
+        from .master import set_position_window_on_center
 
         def press_ok_btn(parent, one_entry, two_entry=None):
             """
@@ -89,7 +90,7 @@ class GetWindow:
             top_frame,
             text=header,
             justify='center',
-            font=font.H6_FONT
+            font=fonts.H6_FONT
         ).pack(side='top')
 
         bottom_frame = ttk.Frame(self.get_window, padding=10)
@@ -99,7 +100,7 @@ class GetWindow:
             row=0, column=0, sticky='NW', pady=5, padx=10
         )
         entry_one = ttk.Entry(
-            bottom_frame, font=font.INPUT_FONT
+            bottom_frame, font=fonts.INPUT_FONT
         )
         entry_one.grid(row=0, column=1, sticky='WE', columnspan=2)
 
@@ -108,7 +109,7 @@ class GetWindow:
                 row=1, column=0, sticky='NW', pady=5, padx=2
             )
             entry_two = ttk.Entry(
-                bottom_frame, font=font.INPUT_FONT
+                bottom_frame, font=fonts.INPUT_FONT
             )
             entry_two.grid(row=1, column=1, sticky='WE', columnspan=2)
             btn_ok = ttk.Button(
@@ -150,8 +151,9 @@ class GetWindow:
 
 class RequestTreeView:
     def __init__(self):
-        import scripts.main.styles as styles
-        from scripts.main.windows.master import set_position_window_on_center
+        from settings import styles
+
+        from .master import set_position_window_on_center
         self.window = Toplevel()
         styles.set_global_style(self.window)
         self.window.title('Все запросы')

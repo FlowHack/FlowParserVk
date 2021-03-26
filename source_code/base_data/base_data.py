@@ -1,16 +1,16 @@
 from sqlite3 import connect
 
-from settings.settings import SettingsFunction, get_logger
+from settings import SettingsFunctions, get_logger
 
 logger = get_logger('base_data')
 
 
-class MainBD:
+class MainDB:
     def __init__(self):
         """
         Управление созданием базы
         """
-        path_to_db = SettingsFunction.path_to_db
+        path_to_db = SettingsFunctions.path_to_db
         self.connect_bd = connect(path_to_db)
         self.remote_control_bd = self.connect_bd.cursor()
         self.check_availability_db()

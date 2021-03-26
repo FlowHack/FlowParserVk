@@ -1,26 +1,37 @@
 from webbrowser import open as web_open
 
 import vk_api
+from base_data import GetRequestsToDB, UpdateRequestsToDB
 from requests import exceptions as requests_except
-
-from scripts.scripts.request_to_bd import RequestGetToBD, RequestUpdateToBD
-from settings.settings import get_logger
-from settings.dicts.additional_dicts import ERROR_MSG
+from settings import ERROR_MSG, get_logger
 
 logger = get_logger('authorization')
 
 
-class Authorize:
+class ConnectionToVk(GetRequestsToDB, UpdateRequestsToDB):
     def __init__(self):
-        """
-        Получение объекта сессии VK
-        """
-        base_data_get_requests = RequestGetToBD()
+        super().__init__()
+        vk_login, vk_password = self.get_login_and_password_vk()
+        vk_session = self.get_vk_session(vk_login, vk_password)
+
+        if vk_session is not None:
+            self.session = vk_session
+            self.api = vk_session.get_api()
+            # from windows import DialogWindows
+            # DialogWindows.info_window(
+            #     'Авторизовн!', 'Вы удачно авторизовались!'
+            # )
+        else:
+            self.session = None
+            self.api = None
+
+    def get_login_and_password_vk(self):
         user_data_table_value = \
-            base_data_get_requests.get_user_data_table_value()
+            self.get_user_data_table_value()
         vk_login = user_data_table_value['vk_login']
         vk_password = user_data_table_value['vk_password']
-        self.vk_session = self.get_vk_session(vk_login, vk_password)
+
+        return vk_login, vk_password
 
     def get_vk_session(self, elementary_vk_login, elementary_vk_password):
         """
@@ -29,6 +40,7 @@ class Authorize:
         :param elementary_vk_password: пароль из базы
         :return: объект сессии VK
         """
+
         if (elementary_vk_login == 'none_value') or \
                 (elementary_vk_password == 'none_value'):
             vk_login, vk_password = self.get_data_for_authorization()
@@ -52,7 +64,7 @@ class Authorize:
             self.get_vk_session(vk_login, vk_password)
 
         except vk_api.exceptions.LoginRequired:
-            from scripts.main.windows.dialog import DialogWindows
+            from windows import DialogWindows
             DialogWindows.warning_window(
                 title='Вы не авторизовались',
                 warning_txt=ERROR_MSG['Authorization']['not_authorization']
@@ -61,7 +73,7 @@ class Authorize:
             return None
 
         except requests_except.ConnectionError as error:
-            from scripts.main.windows.dialog import DialogWindows
+            from windows import DialogWindows
             logger.warning(f'Отсутствует подключение! {error}')
             DialogWindows.warning_window(
                 title='Нет сети',
@@ -69,16 +81,18 @@ class Authorize:
             )
 
         except BaseException as error:
-            from scripts.main.windows.dialog import DialogWindows
+            from windows import DialogWindows
             logger.error(f'Неизвестная ошибка! {error}')
             DialogWindows.error_window(
                 title='Непредвиденная ошибка',
                 error_txt=ERROR_MSG['Unforeseen_error'].format(error)
             )
+
+            return None
         else:
             if (elementary_vk_login != vk_login) or \
                     (elementary_vk_password != vk_password):
-                RequestUpdateToBD().update_data_on_user_table(
+                self.update_data_on_user_table(
                     new_vk_login=vk_login, new_vk_password=vk_password
                 )
 
@@ -90,7 +104,7 @@ class Authorize:
         Связующий между человеком и двухфакторной авторизацией
         :return: код, булево (сохранять ли устройство)
         """
-        from scripts.main.windows.dialog import DialogWindows
+        from windows import DialogWindows
         key = DialogWindows.get_one_or_two_params(
             title='Двухфакторная аутентификация', text_field_one='Код',
             header='Введите код из смс/vk'
@@ -106,7 +120,7 @@ class Authorize:
         :param captcha: объект капчи
         :return: результат прохождения
         """
-        from scripts.main.windows.dialog import DialogWindows
+        from windows import DialogWindows
         web_open(captcha.get_url())
         key = DialogWindows.get_one_or_two_params(
             title='Капча', text_field_one='Капча',
@@ -123,7 +137,7 @@ class Authorize:
         :param header: Заголовок инпут окна.
         :return: Возваращает результат получения данных
         """
-        from scripts.main.windows.dialog import DialogWindows
+        from windows import DialogWindows
         response = DialogWindows().get_one_or_two_params(
             title='Введите ваши данные от аккаунта Vk', text_field_one='Логин',
             text_field_two='Пароль', header=header, count_field=2

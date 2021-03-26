@@ -1,10 +1,9 @@
 from tkinter.ttk import Style
 
 from _tkinter import TclError
+from settings import SettingsFunctions
 
-from settings.settings import SettingsFunction
-
-PATH_TO_STYLE = SettingsFunction.path_to_dir_style
+PATH_TO_STYLE = SettingsFunctions.path_to_dir_style
 BACKGROUND = '#33393B'
 BUTTON_BACKGROUND = '#6D6D6D'
 DEFAULT_STYLE = 'awdark'

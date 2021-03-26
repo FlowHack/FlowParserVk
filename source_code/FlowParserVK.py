@@ -2,12 +2,11 @@ import time
 from tkinter import Label, Tk
 
 from _tkinter import TclError
+from base_data import GetRequestsToDB, MainDB
 from PIL import Image, ImageTk
+from settings import SettingsFunctions, get_logger
 
-from scripts.main.windows.master import App
-from scripts.scripts.base_data import MainBD
-from scripts.scripts.request_to_bd import RequestGetToBD
-from settings.settings import SettingsFunction, get_logger
+from windows import App
 
 logger = get_logger('main')
 
@@ -24,14 +23,15 @@ class BrainForApp:
         window_preview.update()
 
         time.sleep(2)
-        MainBD()
+        MainDB()
         first_start: int = \
-            RequestGetToBD().get_settings_table_value()['first_start']
+            GetRequestsToDB().get_settings_table_value()['first_start']
         if first_start == 1:
-            from scripts.main.windows.additional import AdditionalWindows
-            from scripts.scripts.request_to_bd import RequestUpdateToBD
+            from base_data import UpdateRequestsToDB
+
+            from windows import AdditionalWindows
             AdditionalWindows.person_and_agreement_data(window_preview)
-            RequestUpdateToBD().update_settings_app_table(person_agreement=0)
+            UpdateRequestsToDB().update_settings_app_table(person_agreement=0)
 
         try:
             window_preview.destroy()
@@ -62,7 +62,7 @@ class BrainForApp:
         while True:
             try:
                 png_preview_open = Image.open(
-                    fr'{SettingsFunction.path_to_dir_ico}/preview.png'
+                    fr'{SettingsFunctions.path_to_dir_ico}/preview.png'
                 )
                 png_preview = ImageTk.PhotoImage(png_preview_open)
                 return png_preview_open, png_preview
