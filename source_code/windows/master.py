@@ -2,8 +2,8 @@ from sys import exit as exit_ex
 from tkinter import IntVar, StringVar, Tk, ttk
 from webbrowser import open as web_open
 
-from functions import FunctionsForAPI, FunctionsForWindows
 from connection_to_vk import ConnectionToVk
+from functions import FunctionsForWindows
 from PIL import Image, ImageTk
 from settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
                       LIST_COUNTRIES, STATUS_VK_PERSON, SettingsFunctions,

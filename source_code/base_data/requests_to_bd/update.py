@@ -1,6 +1,5 @@
+from base_data import GetRequestsToDB, MainDB
 from settings import get_logger
-
-from base_data import MainDB, GetRequestsToDB
 
 logger = get_logger('update_requests_to_bd')
 

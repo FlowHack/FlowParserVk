@@ -1,14 +1,17 @@
 from settings import LIST_COUNTRIES, get_logger
 from windows.dialog import RequestTreeView
 
-from ..vk_api import FunctionsForAPI
+from ..vk_api import FunctionsForRequestToAPI
+from .additional import AdditionalFunctionsForWindows
+from time import time as  time_now
 
 logger = get_logger('additional_functions_for_windows')
 
 
-class FunctionsForWindows:
+class FunctionsForWindows(AdditionalFunctionsForWindows):
     def __init__(self):
-        self.functions_for_api = FunctionsForAPI
+        super().__init__()
+        self.functions_for_api = FunctionsForRequestToAPI
         self.cities = None
         self.regions = None
 
@@ -57,16 +60,34 @@ class FunctionsForWindows:
 
     def main_parsing(self, widgets):
         var = widgets['var_city_or_region']
+        progressbar = widgets['progressbar']
 
         if var == 'city':
-            self.functions_for_api().main_parsing_city(
+            main_values, additional_values = self.data_preparation_for_main_parsing(
                 widgets=widgets,
-                cities=self.cities
+                city_or_region='city',
+                regions=self.cities
+            )
+
+            self.functions_for_api().main_parsing_city(
+                main_values=main_values,
+                additional_values=additional_values
             )
         else:
-            self.functions_for_api().main_parsing_region(
+            main_values, additional_values = self.data_preparation_for_main_parsing(
                 widgets=widgets,
+                city_or_region='region',
                 regions=self.regions
+            )
+            if 'last_only' in additional_values.keys():
+                last_only = additional_values['last_only']
+                last_only = time_now() - (int(last_only) * 24 * 60 * 60)
+                additional_values['last_only'] = last_only
+
+            self.functions_for_api().main_parsing_region(
+                main_values=main_values,
+                additional_values=additional_values,
+                progressbar=progressbar
             )
 
     @staticmethod

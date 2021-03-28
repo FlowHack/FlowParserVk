@@ -53,7 +53,8 @@ class ConnectionToVk(GetRequestsToDB, UpdateRequestsToDB):
                 password=vk_password,
                 auth_handler=self.auth_handler,
                 captcha_handler=self.captcha_handler,
-                scope=2
+                app_id=7743684,
+                scope=65536
             )
             vk_session.auth()
 
