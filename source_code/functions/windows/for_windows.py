@@ -1,17 +1,16 @@
-from settings import LIST_COUNTRIES, get_logger
-from windows.dialog import RequestTreeView
+from time import time as time_now
 
-from ..vk_api import FunctionsForRequestToAPI
+from settings import LIST_COUNTRIES, LOGGER
+from windows import TreeViewWindowMain
+
+from ..vk_api import FunctionsForMainParsing, MainFunctionsForParsing
 from .additional import AdditionalFunctionsForWindows
-from time import time as  time_now
-
-logger = get_logger('additional_functions_for_windows')
+from base_data import UpdateRequestsToDB
 
 
 class FunctionsForWindows(AdditionalFunctionsForWindows):
     def __init__(self):
         super().__init__()
-        self.functions_for_api = FunctionsForRequestToAPI
         self.cities = None
         self.regions = None
 
@@ -25,30 +24,43 @@ class FunctionsForWindows(AdditionalFunctionsForWindows):
 
         country_name: str = cmb_country.get()
         country_id: int = LIST_COUNTRIES[country_name]
+        objects = {}
 
         if var == 'city':
             if self.cities is None:
                 objects_cities_or_regions = \
-                    self.functions_for_api().get_all_cities(
+                    MainFunctionsForParsing.get_objects(
+                        do=1,
                         country_id=country_id,
                         progressbar=progressbar
                     )
+
                 if objects_cities_or_regions is None:
                     return None
+                else:
+                    for item in objects_cities_or_regions:
+                        objects[item['title']] = item['id']
 
+                objects_cities_or_regions = objects
                 self.cities = objects_cities_or_regions
             else:
                 objects_cities_or_regions = self.cities
         else:
             if self.regions is None:
                 objects_cities_or_regions = \
-                    self.functions_for_api().get_all_regions(
+                    MainFunctionsForParsing.get_objects(
+                        do=2,
                         country_id=country_id,
                         progressbar=progressbar
                     )
+
                 if objects_cities_or_regions is None:
                     return None
+                else:
+                    for item in objects_cities_or_regions:
+                        objects[item['title']] = item['id']
 
+                objects_cities_or_regions = objects
                 self.regions = objects_cities_or_regions
             else:
                 objects_cities_or_regions = self.regions
@@ -59,36 +71,50 @@ class FunctionsForWindows(AdditionalFunctionsForWindows):
         btn_parse.grid(row=0, column=0)
 
     def main_parsing(self, widgets):
-        var = widgets['var_city_or_region']
+        var = widgets['var_city_or_region'].get()
         progressbar = widgets['progressbar']
 
         if var == 'city':
             main_values, additional_values = self.data_preparation_for_main_parsing(
                 widgets=widgets,
                 city_or_region='city',
-                regions=self.cities
+                cities=self.cities
             )
 
-            self.functions_for_api().main_parsing_city(
+            result = FunctionsForMainParsing().main_parsing_city(
                 main_values=main_values,
-                additional_values=additional_values
+                additional_values=additional_values,
+                progressbar=progressbar
             )
+
+            type_request = 'Основ. парсинг по городу'
+            time_request = time_now()
+            response = result['response']
         else:
             main_values, additional_values = self.data_preparation_for_main_parsing(
                 widgets=widgets,
                 city_or_region='region',
                 regions=self.regions
             )
-            if 'last_only' in additional_values.keys():
-                last_only = additional_values['last_only']
-                last_only = time_now() - (int(last_only) * 24 * 60 * 60)
-                additional_values['last_only'] = last_only
 
-            self.functions_for_api().main_parsing_region(
+            result = FunctionsForMainParsing().main_parsing_region(
                 main_values=main_values,
                 additional_values=additional_values,
                 progressbar=progressbar
             )
+
+            type_request = 'Основ. парсинг по региону'
+            time_request = time_now()
+            response = result['response']
+
+        response = '\n'.join(response)
+
+        UpdateRequestsToDB().update_get_people_bd(
+            type_request=type_request,
+            time=time_request,
+            count_people=result['count_people'],
+            response=response
+        )
 
     @staticmethod
     def set_label_and_var_city_or_region(widgets):
@@ -143,7 +169,7 @@ class FunctionsForWindows(AdditionalFunctionsForWindows):
             entry.grid_remove()
 
     @staticmethod
-    def open_request_tree_view():
-        tree_view = RequestTreeView()
+    def open_request_tree_view_main():
+        tree_view = TreeViewWindowMain()
 
         tree_view.window.wait_window()

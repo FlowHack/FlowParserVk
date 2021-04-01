@@ -1,8 +1,6 @@
 from sqlite3 import connect
 
-from settings import SettingsFunctions, get_logger
-
-logger = get_logger('base_data')
+from settings import DEFAULT_VALUE_FOR_BD, LOGGER, path_to_db
 
 
 class MainDB:
@@ -10,7 +8,6 @@ class MainDB:
         """
         Управление созданием базы
         """
-        path_to_db = SettingsFunctions.path_to_db
         self.connect_bd = connect(path_to_db)
         self.remote_control_bd = self.connect_bd.cursor()
         self.check_availability_db()
@@ -44,20 +41,17 @@ class MainDB:
         self.remote_control_bd.execute(
             '''
             CREATE TABLE IF NOT EXISTS UserData(
-            vk_login TEXT NOT NULL, 
-            vk_password TEXT NOT NULL
+            access_token TEXT NOT NULL
             )
             '''
         )
         self.connect_bd.commit()
-        logger.info('Создали базу данных юзера User_data')
-        default_params = [('none_value', 'none_value')]
-        self.remote_control_bd.executemany(
-            'INSERT INTO UserData VALUES (?,?)',
-            default_params
+        LOGGER.info('Создали базу данных юзера User_data')
+        self.remote_control_bd.execute(
+            f'INSERT INTO UserData VALUES ("{DEFAULT_VALUE_FOR_BD}")'
         )
         self.connect_bd.commit()
-        logger.info('Заполнили бд юзера дефолтными значениями')
+        LOGGER.info('Заполнили бд юзера дефолтными значениями')
 
     def create_settings_db(self):
         """
@@ -67,20 +61,17 @@ class MainDB:
         self.remote_control_bd.execute(
             '''
             CREATE TABLE IF NOT EXISTS AppSettings(
-            auto_update INT NOT NULL,
-            first_start INT NOT NULL
+            auto_update INTEGER NOT NULL,
+            first_start INTEGER NOT NULL,
+            start_free_version INTEGER NOT NULL
             )
             '''
         )
         self.connect_bd.commit()
-        logger.info('Создали базу данных настроек')
-        default_params = [(1, 1)]
-        self.remote_control_bd.executemany(
-            'INSERT INTO AppSettings VALUES (?,?)',
-            default_params
-        )
+        LOGGER.info('Создали базу данных настроек')
+        self.remote_control_bd.execute('INSERT INTO AppSettings VALUES (1,1,0)')
         self.connect_bd.commit()
-        logger.info('Заполнили бд настроек дефолтными значениями')
+        LOGGER.info('Заполнили бд настроек дефолтными значениями')
 
     def create_get_people_db(self):
         """
@@ -89,15 +80,14 @@ class MainDB:
         """
         self.remote_control_bd.execute(
             '''
-            CREATE TABLE IF NOT EXISTS GetRequestApi(
-            pk INT PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS GetRequestsApi(
+            pk INTEGER PRIMARY KEY NOT NULL,
             type_request TEXT NOT NULL, 
-            count_people INT NOT NULL,
+            count_people INTEGER NOT NULL,
             response TEXT NOT NULL,
-            params_request TEXT NOT NULL,
-            datetime_request INT NOT NULL
+            time_request INTEGER NOT NULL
             )
             '''
         )
         self.connect_bd.commit()
-        logger.info('Создали базу данных записей get запросов')
+        LOGGER.info('Создали базу данных записей get запросов')

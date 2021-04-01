@@ -2,29 +2,16 @@ from sys import exit as exit_ex
 from tkinter import IntVar, StringVar, Tk, ttk
 from webbrowser import open as web_open
 
-from connection_to_vk import ConnectionToVk
-from functions import FunctionsForWindows
 from PIL import Image, ImageTk
-from settings import (LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
-                      LIST_COUNTRIES, STATUS_VK_PERSON, SettingsFunctions,
-                      fonts, get_logger, styles, value_constraints)
 
-logger = get_logger('master_windows')
-
-
-def set_position_window_on_center(parent, width: int, height: int):
-    """
-    Функция установки окна по середине окна
-    :param parent: объект окна, которое нужно расположить посередине
-    :param width: параметр длины окна
-    :param height: параметр высоты окна
-    :return: ничего
-    """
-    sw = parent.winfo_screenwidth()
-    sh = parent.winfo_screenheight()
-    x = (sw - width) / 2
-    y = (sh - height) / 2
-    parent.geometry('%dx%d+%d+%d' % (width, height, x, y))
+from functions import FunctionsForWindows
+from settings import (APP_NAME, AUTHOR_PAGE, BANK_DETAILS, FOLLOWERS_MAX,
+                      FRIENDS_MAX, LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
+                      LIST_COUNTRIES, LOGGER, OLD_YEAR_MAX, OLD_YEAR_MIN,
+                      PAGE_APP, PROGRESSBAR_MAX, STATUS_VK_PERSON, VERSION,
+                      copy_in_clipboard, fonts, path_to_dir_ico,
+                      set_position_window_on_center, styles)
+from vk_api import ConfigureVkApi
 
 
 class App(Tk):
@@ -32,7 +19,6 @@ class App(Tk):
         """
         Создание главного окна, вкладок и управление функциями
         """
-        self.settings_app = SettingsFunctions()
         super().__init__()
         self.app_ico = self.get_app_ico()
         self.initialize_ui()
@@ -68,7 +54,7 @@ class App(Tk):
         Функция настройки окна пограммы
         :return: ничего
         """
-        self.title(self.settings_app.APP_NAME)
+        self.title(APP_NAME)
         styles.set_global_style(self)
         w = 1200
         h = 630
@@ -93,25 +79,25 @@ class App(Tk):
         :return: Словарь имя: переменная готовой иконки
         """
         x48_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/48x48_FPVK.png'
+            f'{path_to_dir_ico}/48x48_FPVK.png'
         ))
         x72_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/72x72_FPVK.png'
+            f'{path_to_dir_ico}/72x72_FPVK.png'
         ))
         x96_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/96x96_FPVK.png'
+            f'{path_to_dir_ico}/96x96_FPVK.png'
         ))
         x144_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/144x144_FPVK.png'
+            f'{path_to_dir_ico}/144x144_FPVK.png'
         ))
         x192_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/192x192_FPVK.png'
+            f'{path_to_dir_ico}/192x192_FPVK.png'
         ))
         x348_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/348x348_FPVK.png'
+            f'{path_to_dir_ico}/348x348_FPVK.png'
         ))
         x148x30_FH = ImageTk.PhotoImage(Image.open(
-            f'{self.settings_app.path_to_dir_ico}/148x30_FH.png'
+            f'{path_to_dir_ico}/148x30_FH.png'
         ))
 
         return {
@@ -144,7 +130,7 @@ class App(Tk):
         btn_set_setting = ttk.Button(right_frame, text='Настроить')
         btn_see_old_requests = ttk.Button(
             right_frame, text='Все запросы',
-            command=FunctionsForWindows.open_request_tree_view
+            command=FunctionsForWindows.open_request_tree_view_main
         )
 
         #  row 0
@@ -212,39 +198,19 @@ class App(Tk):
         )
         spin_old_from = ttk.Spinbox(
             left_frame, font=fonts.SPINBOX_FONT,
-            from_=value_constraints.OLD_YEAR_MIN,
-            to=value_constraints.OLD_YEAR_MAX,
+            from_=OLD_YEAR_MIN,
+            to=OLD_YEAR_MAX,
             textvariable=var_old_from, state='readonly',
             width=5
         )
         spin_old_to = ttk.Spinbox(
             left_frame, font=fonts.SPINBOX_FONT,
-            from_=value_constraints.OLD_YEAR_MIN,
-            to=value_constraints.OLD_YEAR_MAX,
+            from_=OLD_YEAR_MIN,
+            to=OLD_YEAR_MAX,
             textvariable=var_old_to, state='readonly',
             width=5
         )
         #  row 5
-        var_friends_to = IntVar()
-        var_friends_from = IntVar()
-        var_friends_from.set(0)
-        var_friends_to.set(1000)
-
-        label_friends = ttk.Label(
-            left_frame, font=fonts.H6_FONT,
-            text='Количество друзей (От|До)'
-        )
-        spin_friends_from = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=0, to=value_constraints.FRIENDS_MAX,
-            textvariable=var_friends_from, width=7
-        )
-        spin_friends_to = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=50, to=value_constraints.FRIENDS_MAX,
-            textvariable=var_friends_to, width=7
-        )
-        #  row 6
         var_follower_to = IntVar()
         var_follower_from = IntVar()
         var_follower_from.set(0)
@@ -256,15 +222,15 @@ class App(Tk):
         )
         spin_follower_from = ttk.Spinbox(
             left_frame, font=fonts.SPINBOX_FONT,
-            from_=0, to=value_constraints.FOLLOWERS_MAX,
+            from_=0, to=FOLLOWERS_MAX,
             textvariable=var_follower_from, width=6
         )
         spin_follower_to = ttk.Spinbox(
             left_frame, font=fonts.SPINBOX_FONT,
-            from_=50, to=value_constraints.FOLLOWERS_MAX,
+            from_=50, to=FOLLOWERS_MAX,
             textvariable=var_follower_to, width=6
         )
-        #  row 7
+        #  row 6
         var_only = IntVar()
         var_only.set(0)
 
@@ -294,7 +260,7 @@ class App(Tk):
             left_frame, font=fonts.H6_FONT,
             text='д. назад'
         )
-        #  row 8
+        #  row 7
         var_photo = IntVar()
         var_photo.set(0)
         label_photo = ttk.Label(
@@ -309,9 +275,9 @@ class App(Tk):
 
         progressbar = ttk.Progressbar(
             self.do_book_main, orient='horizontal', length=1000,
-            maximum=value_constraints.PROGRESSBAR_MAX
+            maximum=PROGRESSBAR_MAX
         )
-        #  row 9
+        #  row 8
         var_send_message = IntVar()
         var_send_message.set(0)
 
@@ -325,7 +291,7 @@ class App(Tk):
         radio_cannot_send_message = ttk.Radiobutton(
             left_frame, value=0, variable=var_send_message, text='Неважно'
         )
-        #  row 10
+        #  row 9
         var_group_search = IntVar()
         var_group_search.set(0)
 
@@ -359,39 +325,35 @@ class App(Tk):
         spin_old_from.grid(row=4, column=1, sticky='SW')
         spin_old_to.grid(row=4, column=2, sticky='SW')
         #  row 4
-        label_friends.grid(row=5, column=0, sticky='E', padx=20, pady=15)
-        spin_friends_from.grid(row=5, column=1, sticky='SW', pady=15)
-        spin_friends_to.grid(row=5, column=2, sticky='SW', pady=15)
+        label_follower.grid(row=5, column=0, sticky='E', padx=20, pady=15)
+        spin_follower_from.grid(row=5, column=1, sticky='SW', pady=15)
+        spin_follower_to.grid(row=5, column=2, sticky='SW', pady=15)
         #  row 5
-        label_follower.grid(row=6, column=0, sticky='E', padx=20)
-        spin_follower_from.grid(row=6, column=1, sticky='SW')
-        spin_follower_to.grid(row=6, column=2, sticky='SW')
+        label_sex.grid(row=6, column=0, sticky='E', padx=20)
+        radio_none_sex.grid(row=6, column=1, sticky='SW')
+        radio_male.grid(row=6, column=2, sticky='SW')
+        radio_female.grid(row=6, column=3, sticky='SW')
         #  row 6
-        label_sex.grid(row=7, column=0, sticky='E', padx=20, pady=15)
-        radio_none_sex.grid(row=7, column=1, sticky='SW', pady=15)
-        radio_male.grid(row=7, column=2, sticky='SW', pady=15)
-        radio_female.grid(row=7, column=3, sticky='SW', pady=15)
+        label_only.grid(row=7, column=0, sticky='E', padx=25, pady=15)
+        radio_offline.grid(row=7, column=1, sticky='SW', pady=15)
+        radio_only.grid(row=7, column=2, sticky='SW', pady=15)
+        label_old_only.grid(row=7, column=3, sticky='SE', pady=15)
+        spin_old_only.grid(row=7, column=4, sticky='SW', padx=15, pady=15)
+        label_old_only_day.grid(row=7, column=5, sticky='SW', pady=15)
         #  row 7
-        label_only.grid(row=8, column=0, sticky='E', padx=25)
-        radio_offline.grid(row=8, column=1, sticky='SW')
-        radio_only.grid(row=8, column=2, sticky='SW')
-        label_old_only.grid(row=8, column=3, sticky='SE')
-        spin_old_only.grid(row=8, column=4, sticky='SW', padx=15)
-        label_old_only_day.grid(row=8, column=5, sticky='SW')
+        label_photo.grid(row=8, column=0, sticky='E', padx=20)
+        radio_has_not_photo.grid(row=8, column=1, sticky='SW')
+        radio_has_photo.grid(row=8, column=2, sticky='SW')
         #  row 8
-        label_photo.grid(row=9, column=0, sticky='E', padx=20, pady=15)
-        radio_has_not_photo.grid(row=9, column=1, sticky='SW', pady=15)
-        radio_has_photo.grid(row=9, column=2, sticky='SW', pady=15)
+        label_sed_message.grid(row=9, column=0, sticky='E', padx=20, pady=15)
+        radio_cannot_send_message.grid(row=9, column=1, sticky='SW', pady=15)
+        radio_can_send_message.grid(row=9, column=2, sticky='SW', pady=15)
         #  row 9
-        label_sed_message.grid(row=10, column=0, sticky='E', padx=20)
-        radio_cannot_send_message.grid(row=10, column=1, sticky='SW')
-        radio_can_send_message.grid(row=10, column=2, sticky='SW')
-        #  row 10
-        label_group_search.grid(row=11, column=0, sticky='E', padx=20, pady=15)
-        radio_off_group_search.grid(row=11, column=1, sticky='SW', pady=15)
-        radio_on_group_search.grid(row=11, column=2, sticky='SW', pady=15)
+        label_group_search.grid(row=10, column=0, sticky='E', padx=20)
+        radio_off_group_search.grid(row=10, column=1, sticky='SW')
+        radio_on_group_search.grid(row=10, column=2, sticky='SW')
 
-        progressbar.grid(row=1, column=0, columnspan=2, rowspan=2)
+        progressbar.grid(row=1, column=0, columnspan=2, rowspan=2, pady=15)
 
         btn_set_setting.grid(row=1, column=0, pady=2)
         btn_see_old_requests.grid(row=2, column=0)
@@ -426,8 +388,6 @@ class App(Tk):
             'entry_group_id': entry_group_id,
             'var_follower_to': var_follower_to,
             'var_follower_from': var_follower_from,
-            'var_friends_to': var_friends_to,
-            'var_friends_from': var_friends_from,
             'var_send_message': var_send_message
 
         }
@@ -512,14 +472,14 @@ class App(Tk):
             left_frame, text='Авторизоваться'
         )
         label_version = ttk.Label(
-            left_frame, text=f'Version: {self.settings_app.VERSION}'
+            left_frame, text=f'Version: {VERSION}'
         )
         label_FH = ttk.Label(
             left_frame, image=self.app_ico['148x30_FH'], cursor='heart',
             justify='center'
         )
         label_name_app = ttk.Label(
-            right_frame, text=self.settings_app.APP_NAME, justify='center',
+            right_frame, text=APP_NAME, justify='center',
             font=fonts.H1_FONT, foreground='#A3DAFF'
         )
         label_description = ttk.Label(
@@ -532,7 +492,7 @@ class App(Tk):
         )
         btn_open_page_app = ttk.Button(
             right_frame, text='Сайт программы', cursor='star',
-            command=lambda: web_open(self.settings_app.PAGE_APP)
+            command=lambda: web_open(PAGE_APP)
         )
 
         label_version.grid(row=0, column=0, pady=5)
@@ -548,14 +508,18 @@ class App(Tk):
         self.main_book.columnconfigure(0, weight=1)
         self.main_book.columnconfigure(1, weight=3)
 
+        left_frame.columnconfigure(0, weight=1)
+
+        right_frame.columnconfigure(0, weight=1)
+
         label_FPVK.bind(
-            '<Button-1>', lambda event: web_open(self.settings_app.PAGE_APP)
+            '<Button-1>', lambda event: web_open(PAGE_APP)
         )
         label_FH.bind(
-            '<Button-1>', lambda event: web_open(self.settings_app.AUTHOR_PAGE)
+            '<Button-1>', lambda event: web_open(AUTHOR_PAGE)
         )
         button_authorization.bind(
-            '<Button-1>', lambda event: ConnectionToVk()
+            '<Button-1>', lambda event: ConfigureVkApi(ignore_existing_token=True)
         )
 
     def build_donat_book(self):
@@ -566,10 +530,10 @@ class App(Tk):
         caption = 'Бесплатность проекта зависит от ваших пожертвований!'
         bank_details = (
             'Номер счёта: '
-            f'{self.settings_app.BANK_DETAILS["sberbank"]} (Сбербанк)\n'
-            f'ЮMoney: {self.settings_app.BANK_DETAILS["ymoney"]} '
+            f'{BANK_DETAILS["sberbank"]} (Сбербанк)\n'
+            f'ЮMoney: {BANK_DETAILS["ymoney"]} '
             '(Яндекс деньги)\n'
-            f'VISA: {self.settings_app.BANK_DETAILS["qiwi_visa"]} (QIWI VISA)'
+            f'VISA: {BANK_DETAILS["qiwi_visa"]} (QIWI VISA)'
         )
         label_main = ttk.Label(
             self.donat_book, text='Донаты', font=fonts.H1_FONT,
@@ -591,20 +555,20 @@ class App(Tk):
         )
         btn_copy_sber = ttk.Button(
             self.donat_book, text='Копировать счёт Сбербанка',
-            command=lambda: self.settings_app.copy_in_clipboard(
-                btn_copy_sber, self.settings_app.BANK_DETAILS['sberbank']
+            command=lambda: copy_in_clipboard(
+                btn_copy_sber, BANK_DETAILS['sberbank']
             )
         )
         btn_copy_ymoney = ttk.Button(
             self.donat_book, text='Копировать счёт ЮMoney',
-            command=lambda: self.settings_app.copy_in_clipboard(
-                btn_copy_ymoney, self.settings_app.BANK_DETAILS['ymoney']
+            command=lambda: copy_in_clipboard(
+                btn_copy_ymoney, BANK_DETAILS['ymoney']
             )
         )
         btn_copy_qiwi_visa = ttk.Button(
             self.donat_book, text='Копировать счёт VISA',
-            command=lambda: self.settings_app.copy_in_clipboard(
-                btn_copy_qiwi_visa, self.settings_app.BANK_DETAILS['qiwi_visa']
+            command=lambda: copy_in_clipboard(
+                btn_copy_qiwi_visa, BANK_DETAILS['qiwi_visa']
             )
         )
 
@@ -628,8 +592,8 @@ class App(Tk):
         self.donat_book.rowconfigure(2, weight=2)
 
         label_FPVK_1.bind(
-            '<Button-1>', lambda: web_open(self.settings_app.PAGE_APP)
+            '<Button-1>', lambda: web_open(PAGE_APP)
         )
         label_FPVK_2.bind(
-            '<Button-1>', lambda: web_open(self.settings_app.PAGE_APP)
+            '<Button-1>', lambda: web_open(PAGE_APP)
         )

@@ -1,9 +1,8 @@
-from tkinter import YES, Toplevel, messagebox, ttk
+from tkinter import YES, Toplevel, ttk, VERTICAL, E
 
-from settings import fonts
-from settings.settings import get_logger
-
-logger = get_logger('dialog_windows')
+from settings import LOGGER, fonts, set_position_window_on_center, styles
+from base_data import UpdateRequestsToDB, GetRequestsToDB
+from time import strftime, gmtime
 
 one_value = None
 two_value = None
@@ -12,20 +11,6 @@ two_value = None
 class GetWindow:
     def __init__(self, title, text_field_one, text_field_two=None,
                  header='Заполните!', count_field=1):
-        """
-        Функция создания диалогового окна с двумя полями или одним для ввода
-        данных
-        :param count_field: Количество используемых полей (1 или 2)
-        :param title: Заголовок окна
-        :param text_field_one: Label к первому полю
-        :param text_field_two: Label ко второму полю
-        :param header: Необязательно поле. Label-заголовок
-        :return: ничего
-        """
-        from settings import styles
-
-        from .master import set_position_window_on_center
-
         def press_ok_btn(parent, one_entry, two_entry=None):
             """
             Обработка нажатия на кнопку ok
@@ -149,37 +134,95 @@ class GetWindow:
         )
 
 
-class RequestTreeView:
+class TreeViewWindowMain:
     def __init__(self):
-        from settings import styles
+        self.values = GetRequestsToDB().get_get_requests_people_table_value()
 
-        from .master import set_position_window_on_center
         self.window = Toplevel()
-        styles.set_global_style(self.window)
-        self.window.title('Все запросы')
-        w = 700
-        h = 500
-        set_position_window_on_center(self.window, width=w, height=h)
+        self.initialize_ui()
 
-        self.main_frame = ttk.Frame(self.window)
-        self.main_frame.pack(side='top', fill='both', expand=True)
+        left_frame = ttk.Frame(self.window)
+        left_frame.grid(row=0, column=0, sticky='NSWE')
+
+        right_frame = ttk.Frame(self.window, padding=5)
+        right_frame.grid(row=0, column=1, sticky='NSWE')
 
         self.tree_view = ttk.Treeview(
-            self.main_frame, columns=('Количество id', 'Параметры')
+            left_frame, columns=('Тип', 'Количество id', 'Дата')
         )
 
         self.tree_view.heading('#0', text='Дата')
-        self.tree_view.heading('#1', text='Количество id')
-        self.tree_view.heading('#2', text='Параметры')
+        self.tree_view.heading('#1', text='Тип')
+        self.tree_view.heading('#2', text='Количество id')
+        self.tree_view.heading('#3', text='ID')
 
-        self.tree_view.column('#1', stretch=YES)
-        self.tree_view.column('#2', stretch=YES)
-        self.tree_view.column('#0', stretch=YES)
+        self.tree_view.column('#0', minwidth=200, width=200, stretch=0)
+        self.tree_view.column('#1', minwidth=200, width=220, stretch=0)
+        self.tree_view.column('#2', minwidth=50, width=130, stretch=0, anchor='center')
+        self.tree_view.column('#3', minwidth=100, width=100, stretch=0, anchor='center')
 
-        self.tree_view.grid(row=0, column=0, columnspan=3, sticky='NSEW')
+        btn_clear = ttk.Button(right_frame, text='Очистить')
+        btn_delete = ttk.Button(right_frame, text='Удалить')
+        btn_download = ttk.Button(right_frame, text='Выгрузить txt')
+
+        self.tree_view.grid(row=0, column=0, columnspan=4, rowspan=3, sticky='NSEW')
+        btn_clear.grid(row=0, column=0, sticky='WE')
+        btn_delete.grid(row=1, column=0, pady=5, sticky='WE')
+        btn_download.grid(row=2, column=0, sticky='WE')
+
+        self.window.rowconfigure(0, weight=1)
+        self.window.columnconfigure(0, weight=9)
+        self.window.columnconfigure(1, weight=1)
+
+        left_frame.rowconfigure(0, weight=1)
+        left_frame.columnconfigure(0, weight=1)
+
+        btn_clear.bind('<Button-1>', lambda event: self.get_choose_value())
+
+        self.completion_tree_view()
+
+    def initialize_ui(self):
+        styles.set_global_style(self.window)
+
+        w = 800
+        h = 600
+        self.window.title('Основные запросы')
+        set_position_window_on_center(self.window, width=w, height=h)
+
+    def get_choose_value(self):
+        if not self.tree_view.selection():
+            raise IndexError('not choose item')
+
+        item = self.tree_view.selection()[0]
+        values = self.tree_view.item(item, option="values")
+        return values
+
+    def completion_tree_view(self):
+        index = 0
+        for item in self.values:
+            time = gmtime(int(item[4]))
+            data = strftime('%A  %x %H:%M', time)
+            self.tree_view.insert(
+                '', index=index, text=data,
+                values=(item[1], item[2], item[0])
+            )
+            index += 1
+
+    def clear_values(self):
+        pass
+
+    def delete_value(self):
+        pass
+
+    def download_on_txt(self):
+        pass
 
 
 class DialogWindows:
+    def __init__(self):
+        self.window_get_two_params = GetWindow
+        self.window_tree_view_main = TreeViewWindowMain
+
     @staticmethod
     def get_one_or_two_params(
                               title, text_field_one, text_field_two=None,
@@ -192,33 +235,3 @@ class DialogWindows:
         get_window.get_window.wait_window()
 
         return get_window.one_value, get_window.two_value
-
-    @staticmethod
-    def info_window(title, info_txt):
-        """
-        Функция создания информационного окна
-        :param title: титул окна
-        :param info_txt: информационный текст
-        :return: ничего
-        """
-        messagebox.showinfo(title, info_txt)
-
-    @staticmethod
-    def warning_window(title, warning_txt):
-        """
-        Функция создания предупреждающего окна
-        :param title: титул окна
-        :param warning_txt: предупреждающий текст
-        :return: ничего
-        """
-        messagebox.showwarning(title, warning_txt)
-
-    @staticmethod
-    def error_window(title, error_txt):
-        """
-        Функция создания окна ошибки
-        :param title: титул окна
-        :param error_txt: текст ошибки
-        :return: ничего
-        """
-        messagebox.showerror(title, error_txt)

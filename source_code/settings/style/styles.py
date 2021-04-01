@@ -1,9 +1,9 @@
 from tkinter.ttk import Style
 
 from _tkinter import TclError
-from settings import SettingsFunctions
 
-PATH_TO_STYLE = SettingsFunctions.path_to_dir_style
+from settings.additional.variables import path_to_dir_style
+
 BACKGROUND = '#33393B'
 BUTTON_BACKGROUND = '#6D6D6D'
 DEFAULT_STYLE = 'awdark'
@@ -13,7 +13,7 @@ def set_global_style(parent):
     default_style = DEFAULT_STYLE
 
     try:
-        parent.tk.call('lappend', 'auto_path', f'{PATH_TO_STYLE}')
+        parent.tk.call('lappend', 'auto_path', f'{path_to_dir_style}')
         parent.tk.call('package', 'require', DEFAULT_STYLE)
     except TclError as error:
         if str(error) == 'can\'t find package awdark':

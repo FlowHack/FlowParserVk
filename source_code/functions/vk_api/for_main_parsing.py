@@ -1,117 +1,107 @@
+from time import sleep
 from time import time as time_now
 
-from connection_to_vk import ConnectionToVk, GetRequestsToVkApi
-from settings import SettingsFunctions, get_logger
+from settings import LOGGER, PROGRESSBAR_MAX
+from vk_api import ConfigureVkApi, GetRequestsToVkApi
+from base_data import UpdateRequestsToDB
 
 from .additional import AdditionalFunctionsVkApi
-from settings import PROGRESSBAR_MAX
-
-logger = get_logger('additional_functions_for_windows')
 
 
-class FunctionsForRequestToAPI(AdditionalFunctionsVkApi, GetRequestsToVkApi):
-    def __init__(self):
-        super().__init__()
-        self.settings_app = SettingsFunctions()
+class FunctionsForMainParsing:
+    @staticmethod
+    def check_values_for_main_parsing(additional_values, json):
+        count_people = 0
+        result = []
 
-    def get_all_cities(self, country_id, progressbar=None):
-        api = ConnectionToVk().api
-        if api is None:
-            return None
+        followers_from = additional_values['followers_from']
+        followers_to = additional_values['followers_to']
 
-        response = {}
-        action_arguments = {
-            'need_all': 1,
-            'country_id': country_id
-        }
-        api_method = api.database.getCities
-
-        json = self.get_all_object(
-            api_method=api_method,
-            progressbar=progressbar,
-            **action_arguments
-        )
+        if additional_values.get('last_seen'):
+            last_seen_need = int(additional_values.get('last_seen'))
 
         for item in json:
-            response[item['title']] = item['id']
+            if item.get('followers_count') is None:
+                continue
 
-        return response
+            followers_count = int(item.get('followers_count'))
+            if (followers_count > followers_to) or (followers_count < followers_from):
+                continue
 
-    def get_all_regions(self, country_id, progressbar=None):
-        api = ConnectionToVk().api
-        if api is None:
-            return None
+            if additional_values.get('last_seen'):
+                last_seen = int(item.get('last_seen')['time'])
 
-        response = {}
-        action_arguments = {
-            'country_id': country_id
-        }
-        api_method = self.api.database.getRegions
+                if last_seen < last_seen_need:
+                    continue
 
-        json = self.get_all_object(
-            api_method=api_method,
-            progressbar=progressbar,
-            **action_arguments
+            if additional_values.get('can_send_message'):
+                if int(item.get('can_write_private_message')) != 1:
+                    continue
+
+            result.append(str(item.get('id')))
+            count_people += 1
+
+        return result, count_people
+
+    def main_parsing_city(self, main_values, additional_values, progressbar):
+        get_requests_to_vk_api = GetRequestsToVkApi()
+        api_method = 'users.search'
+
+        try:
+            json = get_requests_to_vk_api.get_all_object(
+                api_method=api_method,
+                progressbar=progressbar,
+                **main_values
+            )
+        except ValueError as error:
+            if str(error) == 'неверный токен':
+                return None
+            else:
+                return None
+        response, count_people = self.check_values_for_main_parsing(
+            additional_values,
+            json
         )
 
-        for item in json:
-            response[item['title']] = item['id']
+        progressbar['value'] = 0
 
-        return response
-
-    def get_all_cities_in_region(self, country_id, region_id):
-        api = ConnectionToVk().api
-        if api is None:
-            return None
-
-        response = []
-        action_arguments = {
-            'country_id': country_id,
-            'region_id': region_id,
-            'need_all': 1
+        return {
+            'count_people': count_people,
+            'response': response,
         }
-        api_method = api.database.getCities
-
-        json = self.get_all_object(
-            api_method=api_method,
-            **action_arguments
-        )
-
-        for item in json:
-            response.append(item['id'])
-
-        return response
-
-    def sort_group_id(self, ids):
-        group_id = self.get_group_id(ids)
-        group_id = group_id[0].get('id')
-
-        return group_id
-
-    def main_parsing_city(self, main_values, additional_values):
-        pass
 
     def main_parsing_region(self, main_values, additional_values, progressbar):
-        api = ConnectionToVk().api
-        if api is None:
-            return None
-
         cities = additional_values['cities']
         step_progressbar = PROGRESSBAR_MAX / len(cities)
-        api_method = api.users.search
+        get_requests_to_vk_api = GetRequestsToVkApi()
+        api_method = 'users.search'
+        count_people = 0
         response = []
 
         for city in cities:
             progressbar['value'] += step_progressbar
             progressbar.update()
             main_values['city'] = city
+            sleep(0.2)
 
-            json = self.get_all_object(
-                api_method=api_method,
-                **main_values
-            )
-            print(json)
+            try:
+                json = get_requests_to_vk_api.get_all_object(
+                    api_method=api_method,
+                    **main_values
+                )
+            except ValueError as error:
+                if str(error) == 'неверный токен':
+                    return None
+                else:
+                    return None
 
-            response.append(json)
+            checker = self.check_values_for_main_parsing(additional_values, json)
+            response += checker[0]
+            count_people += checker[1]
 
-        print(response)
+        progressbar['value'] = 0
+
+        return {
+            'count_people': count_people,
+            'response': response,
+        }

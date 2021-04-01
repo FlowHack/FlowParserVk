@@ -1,10 +1,10 @@
 from .additional import AdditionalWindows
-from .dialog import DialogWindows
-from .master import App, set_position_window_on_center
+from .dialog import DialogWindows, TreeViewWindowMain
+from .master import App
 
 __all__ = [
+    'TreeViewWindowMain',
     'AdditionalWindows',
     'DialogWindows',
     'App',
-    'set_position_window_on_center'
 ]

@@ -1,15 +1,16 @@
-from _tkinter import TclError
-from settings import (ERROR_MSG, LIST_COUNTRIES, STATUS_VK_PERSON,
-                      value_constraints)
-
-from functions import FunctionsForRequestToAPI
 from time import time as time_now
+from tkinter.messagebox import showwarning
+from math import ceil
+
+from _tkinter import TclError
+
+from settings import (ERROR_MSG, FOLLOWERS_MAX, FRIENDS_MAX, LIST_COUNTRIES,
+                      STATUS_VK_PERSON)
+
+from ..vk_api import FunctionsForMainParsing, MainFunctionsForParsing
 
 
 class AdditionalFunctionsForWindows:
-    def __init__(self):
-        self.functions_request_to_api = FunctionsForRequestToAPI
-
     @staticmethod
     def sort_group_ids(ids):
         if ids[:15] == 'https://vk.com/':
@@ -41,8 +42,7 @@ class AdditionalFunctionsForWindows:
 
         return ids
 
-    def data_preparation_for_main_parsing(self,
-                                          widgets, city_or_region, cities=None,
+    def data_preparation_for_main_parsing(self, widgets, city_or_region, cities=None,
                                           regions=None):
         main_values_for_parsing = {'fields': 'followers_count'}
         additional_values = {}
@@ -56,31 +56,26 @@ class AdditionalFunctionsForWindows:
             city_region = cities[city_region]
             main_values_for_parsing['city'] = city_region
         else:
+            cities = []
+
             city_region = regions[city_region]
-            city_region = self.functions_request_to_api().get_all_cities_in_region(
-                country_id=country, region_id=city_region
+            city_region = MainFunctionsForParsing.get_objects(
+                country_id=country, region_id=city_region,
+                do=3
             )
-            additional_values['cities'] = city_region
+            for item in city_region:
+                cities.append(item['id'])
+
+            additional_values['cities'] = cities
 
         try:
-            friend_from = int(widgets['var_friends_from'].get())
-            friend_to = int(widgets['var_friends_to'].get())
-
             follower_from = int(widgets['var_follower_from'].get())
             follower_to = int(widgets['var_follower_to'].get())
 
-            if (friend_to > value_constraints.FRIENDS_MAX) or \
-                    (friend_from > value_constraints.FRIENDS_MAX) or \
-                    (friend_from > friend_to):
-                raise TclError('Неверное значение в поле "Друзья"')
-
-            if (follower_to > value_constraints.FOLLOWERS_MAX) or \
-                    (follower_from > value_constraints.FOLLOWERS_MAX) or \
+            if (follower_to > FOLLOWERS_MAX) or \
+                    (follower_from > FOLLOWERS_MAX) or \
                     (follower_from > follower_to):
                 raise TclError('Неверное значение в поле "Подписчики"')
-
-            additional_values['friends_from'] = friend_from
-            additional_values['friends_to'] = friend_to
 
             additional_values['followers_from'] = follower_from
             additional_values['followers_to'] = follower_to
@@ -90,23 +85,14 @@ class AdditionalFunctionsForWindows:
             if str(error) == 'Неверное значение в поле "Друзья"':
                 error = ERROR_MSG['Preparation_of_data']
                 error = error['invalid_friends_value']
-                DialogWindows.error_window(
-                    title='Неверное значение',
-                    error_txt=error.format(value_constraints.FRIENDS_MAX)
-                )
+                showwarning('Неверное значение', error.format(FRIENDS_MAX))
             if str(error) == 'Неверное значение в поле "Подписчики"':
                 error = ERROR_MSG['Preparation_of_data']
                 error = error['invalid_followers_value']
-                DialogWindows.error_window(
-                    title='Неверное значение',
-                    error_txt=error.format(value_constraints.FOLLOWERS_MAX)
-                )
+                showwarning('Неверное значение', error.format(FOLLOWERS_MAX))
             error = ERROR_MSG['Preparation_of_data']
             error = error['invalid_value_friends_or_followers']
-            DialogWindows.error_window(
-                title='Неверное значение',
-                error_txt=error
-            )
+            showwarning('Неверное значение', error)
 
         status = widgets['cmb_status'].get()
         status = STATUS_VK_PERSON[status]
@@ -127,11 +113,11 @@ class AdditionalFunctionsForWindows:
             if last_only == '':
                 last_only = 0
             else:
-                last_only = time_now() - (int(last_only) * 24 * 60 * 60)
+                last_only = ceil(time_now() - (int(last_only) * 24 * 60 * 60))
 
             main_values_for_parsing['online'] = only
             main_values_for_parsing['fields'] += ', last_seen'
-            additional_values['last_only'] = last_only
+            additional_values['last_seen'] = last_only
         else:
             main_values_for_parsing['online'] = only
 
@@ -150,7 +136,7 @@ class AdditionalFunctionsForWindows:
             group_ids = widgets['entry_group_id'].get()
 
             ids = self.sort_group_ids(group_ids)
-            group_id = self.functions_request_to_api().sort_group_id(ids)
+            group_id = MainFunctionsForParsing.sort_group_id(ids)
 
             main_values_for_parsing['group_id'] = group_id
 

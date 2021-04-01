@@ -1,31 +1,45 @@
 import json
 
-from ..settings import SettingsFunctions, get_logger
+from settings.additional.variables import path_to_dir_dicts
 
-logger = get_logger('additional_dicts')
+from ..settings import LOGGER
 
 #  Словарь стран
 try:
-    with open(f'{SettingsFunctions.path_to_dir_dicts}/countries.json',
+    with open(f'{path_to_dir_dicts}/countries.json',
               'r') as file:
         file_str = json.load(file)
         LIST_COUNTRIES = json.loads(file_str)
+        LOGGER.info('Загружен словарь LIST_COUNTRIES')
 except FileNotFoundError as error:
-    logger.warning(
-        'Не найден файл "countries.json", загружены резервные данные!'
-    )
     LIST_COUNTRIES = {
         'Россия': 1,
         'Украина': 2,
         'Беларусь': 3
     }
+    LOGGER.warning(
+        'Не найден файл "countries.json", загружены резервные данные!'
+    )
 
 #  Словарь ошибок
 try:
-    with open(f'{SettingsFunctions.path_to_dir_dicts}/error.json', 'r') as file:
+    with open(f'{path_to_dir_dicts}/error.json', 'r') as file:
         ERROR_MSG = json.load(file)
+        LOGGER.info('Загружен словарь ошибок')
 except FileNotFoundError as error:
-    logger.error('Не найден файл "error.json"')
+    LOGGER.error('Не найден файл "error.json"')
+try:
+    with open(f'{path_to_dir_dicts}/warning.json', 'r') as file:
+        WARNING_MSG = json.load(file)
+        LOGGER.info('Загружен словарь предупреждений')
+except FileNotFoundError as error:
+    LOGGER.error('Не найден файл "warning.json"')
+try:
+    with open(f'{path_to_dir_dicts}/info.json', 'r') as file:
+        INFO_MSG = json.load(file)
+        LOGGER.info('Загружен словарь информационных сообщений')
+except FileNotFoundError as error:
+    LOGGER.error('Не найден файл "info.json"')
 
 #  Словарь статусов
 STATUS_VK_PERSON = {
