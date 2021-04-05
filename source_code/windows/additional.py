@@ -101,7 +101,7 @@ class GetTokenWindow:
         )
         top_frame.pack(side='top', fill='x')
 
-        text_label = 'Скопируйте значение "access_token" из URL и вставьте его ниже.'
+        text_label = 'Скопируйте значение URL и вставьте его ниже.'
         ttk.Label(
             top_frame, text=text_label, justify='center', font=fonts.H6_FONT
         ).pack(side='top')
@@ -111,7 +111,7 @@ class GetTokenWindow:
         )
         bottom_frame.pack(side='top', fill='both', expand=True)
         label_token = ttk.Label(
-            bottom_frame, justify='center', text='Введите токен', font=fonts.H6_FONT
+            bottom_frame, justify='center', text='Ссылка', font=fonts.H6_FONT
         )
         self.entry_token = ttk.Entry(
             bottom_frame, font=fonts.INPUT_FONT

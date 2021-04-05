@@ -26,3 +26,8 @@ HTTP_GET_TOKEN = 'https://oauth.vk.com/authorize?client_id=7743684&display=page&
 
 DEFAULT_VALUE_FOR_BD = 'non_value'
 TIME_FREE_VERSION = 7200
+
+FORMAT_DATE = '%A  %x %H:%M'
+NAME_PARSING = {
+    'by_groups': 'Парсинг по группам'
+}

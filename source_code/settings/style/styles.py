@@ -5,8 +5,11 @@ from _tkinter import TclError
 from settings.additional.variables import path_to_dir_style
 
 BACKGROUND = '#33393B'
+BACKGROUND_TEXT = '#33393B'
+FOREGROUND_TEXT = '#c8c8c8'
 BUTTON_BACKGROUND = '#6D6D6D'
 DEFAULT_STYLE = 'awdark'
+NOTABLE_LABEL_FONT = '#00c7ff'
 
 
 def set_global_style(parent):

@@ -20,7 +20,7 @@ class MainDB:
         should_be_table_in_db = {
             'UserData': self.create_user_db,
             'AppSettings': self.create_settings_db,
-            'GetRequestApi': self.create_get_people_db
+            'GetRequestsApi': self.create_get_people_db
 
         }
         table_in_bd = list(
@@ -85,7 +85,8 @@ class MainDB:
             type_request TEXT NOT NULL, 
             count_people INTEGER NOT NULL,
             response TEXT NOT NULL,
-            time_request INTEGER NOT NULL
+            time_request INTEGER NOT NULL,
+            last_parse INTEGER NOT NULL
             )
             '''
         )

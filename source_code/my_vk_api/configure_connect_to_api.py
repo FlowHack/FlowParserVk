@@ -1,9 +1,10 @@
+from math import ceil
 from time import time as time_now
 from tkinter.messagebox import showinfo, showwarning
 from webbrowser import open_new_tab as web_open_new_tab
-from math import ceil
 
 import requests
+import vk_api
 
 from base_data import GetRequestsToDB, UpdateRequestsToDB
 from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
@@ -16,7 +17,7 @@ class ConfigureVkApi:
     def __init__(self, ignore_existing_token=False):
         user_data_table_value = GetRequestsToDB().get_user_data_table_value()
         token = user_data_table_value['access_token']
-        self.additional_windows = AdditionalWindows
+        self.__additional_windows = AdditionalWindows
 
         if ignore_existing_token is False:
             if token is None:
@@ -31,11 +32,17 @@ class ConfigureVkApi:
 
         self.token = token
 
+        if token is not None:
+            vk_session = vk_api.VkApi(token=self.token)
+            self.vk_tool = vk_api.tools.VkTools(vk_session)
+        else:
+            self.vk_tool = None
+
     def get_token(self):
         showinfo('Получение токена!', INFO_MSG['VK_API']['get_token'])
         web_open_new_tab(HTTP_GET_TOKEN)
 
-        token = self.additional_windows().get_token()
+        token = self.__additional_windows().get_token()
         token = self.preparation_final_token(token)
 
         UpdateRequestsToDB().update_data_on_user_table(token)

@@ -1,7 +1,7 @@
-from .vk_api.for_main_parsing import FunctionsForMainParsing
 from .windows.for_windows import FunctionsForWindows
+from .vk_api import ParsingVk
 
 __all__ = [
-    'FunctionsForMainParsing',
-    'FunctionsForWindows'
+    'FunctionsForWindows',
+    'ParsingVk'
 ]

@@ -52,3 +52,33 @@ class GetRequestsToDB(MainDB):
         get_people_requests = self.remote_control_bd.fetchall()
 
         return get_people_requests
+
+    def get_get_requests_people_for_parse(self, name):
+        self.remote_control_bd.execute(
+            f'''
+            SELECT *
+            FROM GetRequestsApi
+            WHERE (type_request = "{name}") and (last_parse = 1)
+            ORDER BY pk DESC
+            '''
+        )
+
+        get_people_requests = self.remote_control_bd.fetchall()
+
+        return get_people_requests
+
+    def get_one_get_requests_table(self, pk):
+        self.remote_control_bd.execute(f'SELECT * FROM GetRequestsApi WHERE pk={pk}')
+
+        data = self.remote_control_bd.fetchone()
+        pk, method, count, result, data, last_parse = \
+            data[0], data[1], data[2], data[3], data[4], int(data[5])
+
+        return {
+            'pk': pk,
+            'method': method,
+            'count': count,
+            'result': result,
+            'data': data,
+            'last_parse': last_parse
+        }

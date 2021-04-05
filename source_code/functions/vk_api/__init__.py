@@ -1,7 +1,5 @@
-from .for_main_parsing import FunctionsForMainParsing
-from .main import MainFunctionsForParsing
+from .parsing import ParsingVk
 
 __all__ = [
-    'FunctionsForMainParsing',
-    'MainFunctionsForParsing'
+    'ParsingVk',
 ]

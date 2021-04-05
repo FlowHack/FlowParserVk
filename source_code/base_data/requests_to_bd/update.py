@@ -41,12 +41,15 @@ class UpdateRequestsToDB(MainDB):
         self.connect_bd.commit()
         LOGGER.warning('Обновлены данные таблицы AppSettings')
 
-    def update_get_people_bd(self, type_request, count_people, response, time):
+    def update_get_people_bd(self,
+                             type_request, count_people, response, time, last_parse):
+        LOGGER.warning('Начинаю добавлять даные в таблицу GetRequestsApi')
+        values = [type_request, count_people, response, time, last_parse]
         self.remote_control_bd.execute(
             f'''
-            INSERT INTO GetRequestsApi (type_request,count_people,response,time_request) 
-            VALUES("{type_request}",{count_people},"{response}",{time})
-            '''
+            INSERT INTO GetRequestsApi (type_request,count_people,response,
+            time_request,last_parse) VALUES(?,?,?,?,?)
+            ''', values
         )
         self.connect_bd.commit()
         LOGGER.warning('Добавлены данные в таблицу GetRequestsApi')

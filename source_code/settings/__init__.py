@@ -16,6 +16,9 @@ __all__ = [
     'OLD_YEAR_MAX',
     'OLD_YEAR_MIN',
     'PROGRESSBAR_MAX',
+    'MACH_PHOTO_MIN',
+    'MACH_PHOTO_MAX',
+    'LAST_SEEN_MAX',
     #  additional_variables
     'VERSION',
     'VERSION_API',
@@ -36,12 +39,19 @@ __all__ = [
     'DEFAULT_VALUE_FOR_BD',
     'ID_GROUP_VK',
     'TIME_FREE_VERSION',
+    'FORMAT_DATE',
+    'NAME_PARSING',
     #  additional_dicts
     'LIST_COUNTRIES',
     'ERROR_MSG',
     'WARNING_MSG',
     'INFO_MSG',
     'STATUS_VK_PERSON',
+    'POLITICAL',
+    'PEOPLE_MAIN',
+    'LIFE_MAIN',
+    'SMOKING',
+    'ALCOHOL',
     #  exceptions
     'VkApiExceptions',
     #  settings

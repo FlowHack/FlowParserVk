@@ -1,17 +1,20 @@
 from sys import exit as exit_ex
-from tkinter import IntVar, StringVar, Tk, ttk
+from tkinter import IntVar, StringVar, Text, Tk, ttk, BooleanVar
 from webbrowser import open as web_open
 
 from PIL import Image, ImageTk
 
 from functions import FunctionsForWindows
+from my_vk_api import ConfigureVkApi
 from settings import (APP_NAME, AUTHOR_PAGE, BANK_DETAILS, FOLLOWERS_MAX,
                       FRIENDS_MAX, LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
                       LIST_COUNTRIES, LOGGER, OLD_YEAR_MAX, OLD_YEAR_MIN,
                       PAGE_APP, PROGRESSBAR_MAX, STATUS_VK_PERSON, VERSION,
                       copy_in_clipboard, fonts, path_to_dir_ico,
-                      set_position_window_on_center, styles)
-from vk_api import ConfigureVkApi
+                      set_position_window_on_center, styles, MACH_PHOTO_MIN,
+                      MACH_PHOTO_MAX, LAST_SEEN_MAX, POLITICAL, PEOPLE_MAIN,
+                      LIFE_MAIN, SMOKING, ALCOHOL, NAME_PARSING)
+from windows import TreeViewWindow
 
 
 class App(Tk):
@@ -27,21 +30,23 @@ class App(Tk):
         notebook = ttk.Notebook(self)
         self.main_book = ttk.Frame(notebook, padding=15)
         self.donat_book = ttk.Frame(notebook, padding=20)
-        self.do_book = ttk.Frame(notebook)
+        self.parsing_book = ttk.Frame(notebook)
 
         notebook.add(self.main_book, text='Главная')
-        notebook.add(self.do_book, text='Действия')
+        notebook.add(self.parsing_book, text='Парсинг')
         notebook.add(self.donat_book, text='Донаты')
 
         notebook.pack(expand=True, fill='both')
 
-        # Панель вкладок во вкладке действий
-        notebook_do = ttk.Notebook(self.do_book)
+        # Панель вкладок во вкладке парсинг
+        notebook_parsing = ttk.Notebook(self.parsing_book)
 
-        self.do_book_main = ttk.Frame(notebook_do, padding=15)
+        self.parsing_book_groups = ttk.Frame(notebook_parsing, padding=15)
+        self.parsing_book_by_groups = ttk.Frame(notebook_parsing, padding=10)
 
-        notebook_do.add(self.do_book_main, text='Общий парсинг')
-        notebook_do.pack(expand=True, fill='both', side='top')
+        notebook_parsing.add(self.parsing_book_groups, text='Парсинг по группам')
+        notebook_parsing.add(self.parsing_book_by_groups, text='Парсинг по критериям')
+        notebook_parsing.pack(expand=True, fill='both', side='top')
 
         self.update()
         self.build_app()
@@ -57,7 +62,7 @@ class App(Tk):
         self.title(APP_NAME)
         styles.set_global_style(self)
         w = 1200
-        h = 630
+        h = 660
         set_position_window_on_center(self, width=w, height=h)
         self.minsize(w, h)
         self.protocol("WM_DELETE_WINDOW", exit_ex)
@@ -68,8 +73,12 @@ class App(Tk):
         :return:
         """
         self.build_main_book()
+        self.update()
         self.build_donat_book()
-        self.build_do_book_main()
+        self.update()
+        self.build_parsing_book_groups()
+        self.update()
+        self.build_parsing_book_by_groups()
         self.update()
 
     def get_app_ico(self):
@@ -110,337 +119,814 @@ class App(Tk):
             '148x30_FH': x148x30_FH
         }
 
-    def build_do_book_main(self):
+    def build_parsing_book_groups(self):
         left_frame = ttk.Frame(
-            self.do_book_main, padding=10, borderwidth=2, relief='groove'
-        )
-        left_frame.grid(
-            row=0, column=0, sticky='SWE', padx=10
+            self.parsing_book_groups, relief='solid',
+            borderwidth=1, padding=1
         )
         right_frame = ttk.Frame(
-            self.do_book_main, padding=10, borderwidth=2, relief='groove'
+            self.parsing_book_groups, padding=5
         )
-        right_frame.grid(
-            row=0, column=1, sticky='NW'
+        left_frame.grid(row=0, column=0, sticky='NSWE', padx=3, pady=3)
+        right_frame.grid(row=0, column=1, sticky='NSWE', padx=3, pady=3)
+
+        lbl_progress = ttk.Label(
+            self.parsing_book_groups, font=fonts.H6_FONT
         )
+        progressbar = ttk.Progressbar(
+            self.parsing_book_groups, orient='vertical',
+            mode='determinate', maximum=PROGRESSBAR_MAX, value=0
+        )
+        lbl_progress.grid(row=1, column=0, columnspan=2, pady=5, sticky='SWE')
+        progressbar.grid(row=2, column=0, columnspan=2, pady=5, sticky='SWE')
+
+        ##########################---------LEFT_FRAME---------##########################
+
+        var_easy_parse = BooleanVar()
+        var_easy_parse.set(0)
+
+        #  row 0
+        lbl_count = ttk.Label(
+            left_frame, font=fonts.H1_FONT,
+            text='Количество: 0'
+        )
+
+        #  row 1
+        check_easy_parse = ttk.Checkbutton(
+            left_frame, variable=var_easy_parse,
+            text='Отключить сбор доп. данных(Дальнейший парсинг по выборке недоступен)',
+            onvalue=1, offvalue=0
+        )
+
+        #  row 2
+        txt_groups = Text(
+            left_frame, wrap='word', font=fonts.TEXT_FONT,
+            foreground=styles.FOREGROUND_TEXT, background=styles.BACKGROUND_TEXT
+        )
+
+        #  row 3
+        lbl_warning = ttk.Label(
+            left_frame, foreground='#e10000', font=fonts.H6_FONT,
+            text='Вводите исключительно ссылки на группы. И вводите через "Enter"'
+        )
+
+        ##########################---------RIGHT_FRAME---------##########################
 
         btn_parse = ttk.Button(
             right_frame, text='Парсить'
         )
-        btn_set_setting = ttk.Button(right_frame, text='Настроить')
-        btn_see_old_requests = ttk.Button(
-            right_frame, text='Все запросы',
-            command=FunctionsForWindows.open_request_tree_view_main
+        btn_up_count = ttk.Button(
+            right_frame, text='Обновить кол-во', cursor='exchange'
+        )
+        btn_show_all = ttk.Button(
+            right_frame, text='Все запросы'
         )
 
-        #  row 0
-        label_country = ttk.Label(
-            left_frame, text='Страна*', font=fonts.H6_FONT
-        )
-        cmb_country = ttk.Combobox(
-            left_frame, font=fonts.COMBOBOX_FONT, state='readonly'
-        )
-        cmb_country['values'] = list(LIST_COUNTRIES.keys())
-        cmb_country.set('Россия')
-        #  row 1
-        var_city_or_region = StringVar()
-        var_city_or_region.set('city')
-        label_city_or_country = ttk.Label(
-            left_frame, text='Парсинг по городу или региону?',
-            font=fonts.H6_FONT
-        )
-        radio_city = ttk.Radiobutton(left_frame,
-                                     variable=var_city_or_region, value='city',
-                                     text='Городу'
-                                     )
-        radio_region = ttk.Radiobutton(left_frame,
-                                       variable=var_city_or_region,
-                                       value='region', text='Региону'
-                                       )
-        cmb_city_or_region = ttk.Combobox(
-            left_frame, font=fonts.COMBOBOX_FONT, state='readonly'
-        )
-        cmb_city_or_region.set('Нажмите "Настроить"')
-        #  row 2
-        var_sex = IntVar()
-        var_sex.set(0)
-        label_sex = ttk.Label(
-            left_frame, text='Пол', font=fonts.H6_FONT
-        )
-        radio_male = ttk.Radiobutton(
-            left_frame, variable=var_sex, value=2, text='Мужской'
-        )
-        radio_female = ttk.Radiobutton(
-            left_frame, variable=var_sex, value=1, text='Женский'
-        )
-        radio_none_sex = ttk.Radiobutton(
-            left_frame, variable=var_sex, value=0, text='Не выбрано'
-        )
-        #  row 3
-        label_status = ttk.Label(
-            left_frame, font=fonts.H6_FONT,
-            text='Семейное положение'
-        )
-        cmb_status = ttk.Combobox(
-            left_frame, font=fonts.COMBOBOX_FONT, state='readonly'
-        )
-        statuses = list(STATUS_VK_PERSON.keys())
-        cmb_status['value'] = statuses
-        cmb_status.set(statuses[0])
-        #  row 4
-        var_old_from = IntVar()
-        var_old_to = IntVar()
-        var_old_from.set(20)
-        var_old_to.set(40)
-
-        label_old = ttk.Label(
-            left_frame, font=fonts.H6_FONT, text='Возраст (От|До)'
-        )
-        spin_old_from = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=OLD_YEAR_MIN,
-            to=OLD_YEAR_MAX,
-            textvariable=var_old_from, state='readonly',
-            width=5
-        )
-        spin_old_to = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=OLD_YEAR_MIN,
-            to=OLD_YEAR_MAX,
-            textvariable=var_old_to, state='readonly',
-            width=5
-        )
-        #  row 5
-        var_follower_to = IntVar()
-        var_follower_from = IntVar()
-        var_follower_from.set(0)
-        var_follower_to.set(400)
-
-        label_follower = ttk.Label(
-            left_frame, font=fonts.H6_FONT,
-            text='Количество подписчиков (От|До)'
-        )
-        spin_follower_from = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=0, to=FOLLOWERS_MAX,
-            textvariable=var_follower_from, width=6
-        )
-        spin_follower_to = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=50, to=FOLLOWERS_MAX,
-            textvariable=var_follower_to, width=6
-        )
-        #  row 6
-        var_only = IntVar()
-        var_only.set(0)
-
-        var_old_only = IntVar()
-        var_old_only.set(5)
-
-        label_only = ttk.Label(
-            left_frame, font=fonts.H6_FONT, text='Онлайн'
-        )
-        radio_only = ttk.Radiobutton(
-            left_frame, value=1, variable=var_only, text='Онлайн'
-        )
-        radio_offline = ttk.Radiobutton(
-            left_frame, value=0, variable=var_only, text='Неважно'
-        )
-
-        label_old_only = ttk.Label(
-            left_frame, font=fonts.H6_FONT,
-            text='Последний раз был в сети'
-        )
-        spin_old_only = ttk.Spinbox(
-            left_frame, font=fonts.SPINBOX_FONT,
-            from_=1, to=999, textvariable=var_old_only, state='readonly',
-            width=5
-        )
-        label_old_only_day = ttk.Label(
-            left_frame, font=fonts.H6_FONT,
-            text='д. назад'
-        )
-        #  row 7
-        var_photo = IntVar()
-        var_photo.set(0)
-        label_photo = ttk.Label(
-            left_frame, font=fonts.H6_FONT, text='Наличие фото'
-        )
-        radio_has_photo = ttk.Radiobutton(
-            left_frame, value=1, variable=var_photo, text='Есть фото'
-        )
-        radio_has_not_photo = ttk.Radiobutton(
-            left_frame, value=0, variable=var_photo, text='Неважно'
-        )
-
-        progressbar = ttk.Progressbar(
-            self.do_book_main, orient='horizontal', length=1000,
-            maximum=PROGRESSBAR_MAX
-        )
-        #  row 8
-        var_send_message = IntVar()
-        var_send_message.set(0)
-
-        label_sed_message = ttk.Label(
-            left_frame,
-            font=fonts.H6_FONT, text='Отправка собщений'
-        )
-        radio_can_send_message = ttk.Radiobutton(
-            left_frame, value=1, variable=var_send_message, text='Возможна'
-        )
-        radio_cannot_send_message = ttk.Radiobutton(
-            left_frame, value=0, variable=var_send_message, text='Неважно'
-        )
-        #  row 9
-        var_group_search = IntVar()
-        var_group_search.set(0)
-
-        label_group_search = ttk.Label(
-            left_frame,
-            font=fonts.H6_FONT, text='Поиск по группе'
-        )
-        radio_on_group_search = ttk.Radiobutton(
-            left_frame, value=1, variable=var_group_search, text='Включить'
-        )
-        radio_off_group_search = ttk.Radiobutton(
-            left_frame, value=0, variable=var_group_search, text='Отключено'
-        )
-        entry_group_id = ttk.Entry(
-            left_frame, font=fonts.INPUT_FONT
-        )
-
-        #  row 0
-        label_country.grid(row=0, column=0, sticky='E', padx=10, pady=15)
-        cmb_country.grid(row=0, column=1, sticky='SWE', columnspan=8, pady=15)
-        #  row 1
-        label_city_or_country.grid(row=1, column=0, sticky='E', padx=10)
-        radio_city.grid(row=1, column=1, sticky='SW')
-        radio_region.grid(row=1, column=2, sticky='SW')
-        cmb_city_or_region.grid(row=1, column=3, sticky='SWE', columnspan=6)
-        #  row 2
-        label_status.grid(row=3, column=0, sticky='E', padx=20, pady=15)
-        cmb_status.grid(row=3, column=1, sticky='SWE', columnspan=8, pady=15)
-        #  row 3
-        label_old.grid(row=4, column=0, sticky='E', padx=20)
-        spin_old_from.grid(row=4, column=1, sticky='SW')
-        spin_old_to.grid(row=4, column=2, sticky='SW')
-        #  row 4
-        label_follower.grid(row=5, column=0, sticky='E', padx=20, pady=15)
-        spin_follower_from.grid(row=5, column=1, sticky='SW', pady=15)
-        spin_follower_to.grid(row=5, column=2, sticky='SW', pady=15)
-        #  row 5
-        label_sex.grid(row=6, column=0, sticky='E', padx=20)
-        radio_none_sex.grid(row=6, column=1, sticky='SW')
-        radio_male.grid(row=6, column=2, sticky='SW')
-        radio_female.grid(row=6, column=3, sticky='SW')
-        #  row 6
-        label_only.grid(row=7, column=0, sticky='E', padx=25, pady=15)
-        radio_offline.grid(row=7, column=1, sticky='SW', pady=15)
-        radio_only.grid(row=7, column=2, sticky='SW', pady=15)
-        label_old_only.grid(row=7, column=3, sticky='SE', pady=15)
-        spin_old_only.grid(row=7, column=4, sticky='SW', padx=15, pady=15)
-        label_old_only_day.grid(row=7, column=5, sticky='SW', pady=15)
-        #  row 7
-        label_photo.grid(row=8, column=0, sticky='E', padx=20)
-        radio_has_not_photo.grid(row=8, column=1, sticky='SW')
-        radio_has_photo.grid(row=8, column=2, sticky='SW')
-        #  row 8
-        label_sed_message.grid(row=9, column=0, sticky='E', padx=20, pady=15)
-        radio_cannot_send_message.grid(row=9, column=1, sticky='SW', pady=15)
-        radio_can_send_message.grid(row=9, column=2, sticky='SW', pady=15)
-        #  row 9
-        label_group_search.grid(row=10, column=0, sticky='E', padx=20)
-        radio_off_group_search.grid(row=10, column=1, sticky='SW')
-        radio_on_group_search.grid(row=10, column=2, sticky='SW')
-
-        progressbar.grid(row=1, column=0, columnspan=2, rowspan=2, pady=15)
-
-        btn_set_setting.grid(row=1, column=0, pady=2)
-        btn_see_old_requests.grid(row=2, column=0)
-
-        left_frame.columnconfigure(6, weight=1)
-
-        self.do_book_main.columnconfigure(0, weight=1)
-
-        self.do_book_main.rowconfigure(1, weight=1)
-        self.do_book_main.rowconfigure(2, weight=1)
-
-        all_widgets = {
-            'window': self,
-            'left_frame': left_frame,
+        widgets = {
             'right_frame': right_frame,
-            'btn_set_setting': btn_set_setting,
-            'cmb_country': cmb_country,
-            'var_city_or_region': var_city_or_region,
-            'cmb_city_or_region': cmb_city_or_region,
-            'var_sex': var_sex,
-            'cmb_status': cmb_status,
-            'var_old_from': var_old_from,
-            'var_old_to': var_old_to,
-            'var_only': var_only,
-            'var_photo': var_photo,
-            'progressbar': progressbar,
-            'btn_parse': btn_parse,
-            'label_old_only': label_old_only,
-            'spin_old_only': spin_old_only,
-            'label_old_only_day': label_old_only_day,
-            'var_group_search': var_group_search,
-            'entry_group_id': entry_group_id,
-            'var_follower_to': var_follower_to,
-            'var_follower_from': var_follower_from,
-            'var_send_message': var_send_message
-
+            'left_frame': left_frame,
+            'lbl_count': lbl_count,
+            'var_easy_parse': var_easy_parse,
+            'txt_groups': txt_groups,
+            'lbl_progress': lbl_progress,
+            'progressbar': progressbar
         }
-        radio_only.bind(
+
+        #########################-------------GRID-------------#########################
+
+        #  left_frame
+        #  row 0
+        lbl_count.grid(row=0, column=0, sticky='NSWE')
+        #  row 1
+        check_easy_parse.grid(row=1, column=0, sticky='SWE', pady=7)
+        #  row 2
+        txt_groups.grid(row=2, column=0, sticky='NSWE')
+        #  row 3
+        lbl_warning.grid(row=3, column=0, sticky='SWE')
+
+        # right_frame
+        #  row 0
+        btn_parse.grid(row=0, column=0, sticky='NWE', pady=5)
+        #  row 1
+        btn_up_count.grid(row=1, column=0, sticky='NWE')
+        #  row 2
+        btn_show_all.grid(row=2, column=0, sticky='NWE', pady=5)
+
+        left_frame.rowconfigure(2, weight=1)
+        left_frame.columnconfigure(0, weight=1)
+
+        right_frame.columnconfigure(0, weight=1)
+
+        self.parsing_book_groups.rowconfigure(0, weight=1)
+        self.parsing_book_groups.columnconfigure(0, weight=9)
+        self.parsing_book_groups.columnconfigure(1, weight=1)
+
+        btn_show_all.bind('<Button-1>', lambda event: TreeViewWindow(method='view'))
+        btn_up_count.bind(
             '<Button-1>',
-            lambda event: self.function_windows.set_widget_old_only(
-                widgets=all_widgets
-            )
-        )
-        radio_offline.bind(
-            '<Button-1>',
-            lambda event: self.function_windows.set_widget_old_only(
-                widgets=all_widgets
-            )
-        )
-        radio_region.bind(
-            '<Button-1>',
-            lambda event:
-            self.function_windows.set_label_and_var_city_or_region(
-                widgets=all_widgets
-            )
-        )
-        radio_city.bind(
-            '<Button-1>',
-            lambda event:
-            self.function_windows.set_label_and_var_city_or_region(
-                widgets=all_widgets
-            )
-        )
-        radio_on_group_search.bind(
-            '<Button-1>',
-            lambda event: self.function_windows.set_entry_for_group_search(
-                widgets=all_widgets
-            )
-        )
-        radio_off_group_search.bind(
-            '<Button-1>',
-            lambda event: self.function_windows.set_entry_for_group_search(
-                widgets=all_widgets
-            )
-        )
-        btn_set_setting.bind(
-            '<Button-1>',
-            lambda event:
-            self.function_windows.settings_before_parsing(
-                widgets=all_widgets
-            )
+            lambda event: FunctionsForWindows.update_label_count_group(widgets)
         )
         btn_parse.bind(
             '<Button-1>',
-            lambda event: self.function_windows.main_parsing(
-                widgets=all_widgets
+            lambda event: FunctionsForWindows.parsing_groups(widgets)
+        )
+
+    def build_parsing_book_by_groups(self):
+        #####################-------------PARSING_BOOK-------------#####################
+        left_frame = ttk.Frame(
+            self.parsing_book_by_groups, relief='solid', borderwidth=1, padding=3
+        )
+        right_frame = ttk.Frame(
+            self.parsing_book_by_groups, padding=5
+        )
+        left_frame.grid(row=0, column=0, sticky='NSWE')
+        right_frame.grid(row=0, column=1, sticky='NSWE')
+
+        progressbar = ttk.Progressbar(
+            self.parsing_book_by_groups, orient='horizontal',
+            mode='determinate', maximum=PROGRESSBAR_MAX, value=0
+        )
+        lbl_progress = ttk.Label(
+            self.parsing_book_by_groups, text='', font=fonts.H5_FONT
+        )
+
+        lbl_progress.grid(row=1, column=0, columnspan=2, pady=5, sticky='SWE')
+        progressbar.grid(row=2, column=0, columnspan=2, sticky='SWE')
+
+        ######################-------------LEFT_FRAME-------------######################
+        #  row 0
+        var_need_country = BooleanVar()
+
+        var_need_city_region = BooleanVar()
+
+        var_city_region = BooleanVar()
+
+        var_need_country.set(0)
+        var_need_city_region.set(0)
+        var_city_region.set(0)
+
+        country_frame = ttk.Frame(left_frame, padding=4)
+        chk_country_frame = ttk.Checkbutton(
+            country_frame, text='', variable=var_need_country, onvalue=1, offvalue=0
+        )
+
+        lbl_country = ttk.Label(
+            country_frame, text='Страна', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        __var_country__ = list(LIST_COUNTRIES.keys())
+        var_country = ttk.Combobox(
+            country_frame, font=fonts.COMBOBOX_FONT, width=38, state='readonly'
+        )
+        var_country['values'] = __var_country__
+        var_country.set(__var_country__[0])
+
+        chk_city_region = ttk.Checkbutton(
+            country_frame, variable=var_need_city_region, onvalue=1, offvalue=0, text=''
+        )
+        lbl_city_region = ttk.Label(
+            country_frame, text='Город/Регион', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_city = ttk.Radiobutton(
+            country_frame, text='Город', value=0,
+            variable=var_city_region
+        )
+        rdb_region = ttk.Radiobutton(
+            country_frame, text='Регион', value=1,
+            variable=var_city_region
+        )
+        cmb_city_region = ttk.Combobox(
+            country_frame, font=fonts.COMBOBOX_FONT, width=30, state='readonly'
+        )
+        cmb_city_region.set('Нажмите "Настройка"')
+
+        #  row 1
+        var_need_old = BooleanVar()
+
+        var_need_relationship = BooleanVar()
+
+        var_old_from = IntVar()
+        var_old_to = IntVar()
+
+        var_need_old.set(0)
+        var_need_relationship.set(0)
+        var_old_from.set(18)
+        var_old_to.set(40)
+
+        relationship_old_frame = ttk.Frame(left_frame, padding=4)
+
+        chk_old = ttk.Checkbutton(
+            relationship_old_frame, variable=var_need_old, onvalue=1, offvalue=0,
+            text=''
+        )
+        lbl_old = ttk.Label(
+            relationship_old_frame, font=fonts.H6_FONT, text='Возраст',
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        spn_old_from = ttk.Spinbox(
+            relationship_old_frame, width=5, font=fonts.SPINBOX_FONT,
+            from_=18, to=99, textvariable=var_old_from
+        )
+        lbl_old_to = ttk.Label(
+            relationship_old_frame, text='--', font=fonts.H6_FONT
+        )
+        spn_old_to = ttk.Spinbox(
+            relationship_old_frame, width=5, font=fonts.SPINBOX_FONT,
+            from_=19, to=100, textvariable=var_old_to
+        )
+
+        chk_relationship_has_photo_frame = ttk.Checkbutton(
+            relationship_old_frame, variable=var_need_relationship,
+            text='', onvalue=1, offvalue=0
+        )
+        lbl_relationship = ttk.Label(
+            relationship_old_frame, text='Семейное положение',
+            font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
+        )
+        var_relationship = ttk.Combobox(
+            relationship_old_frame, font=fonts.COMBOBOX_FONT, width=30,
+            state='readonly'
+        )
+        __var_relationship__ = list(STATUS_VK_PERSON.keys())
+        var_relationship['values'] = __var_relationship__
+        var_relationship.set(__var_relationship__[0])
+
+        #  row 2
+        var_need_mach_photo = BooleanVar()
+
+        var_has_photo = BooleanVar()
+
+        var_photo_from = IntVar()
+        var_photo_to = IntVar()
+
+        var_need_mach_photo.set(0)
+        var_has_photo.set(0)
+        var_photo_from.set(1)
+        var_photo_to.set(50)
+
+        has_photo_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        lbl_has_photo = ttk.Label(
+            has_photo_frame, text='Фотографии', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_not_has_photo = ttk.Radiobutton(
+            has_photo_frame, variable=var_has_photo,
+            text='Неважно', value=0
+        )
+        rdb_has_photo = ttk.Radiobutton(
+            has_photo_frame, variable=var_has_photo,
+            text='Есть фото', value=1
+        )
+
+        chk_need_mach_photo = ttk.Checkbutton(
+            has_photo_frame, variable=var_need_mach_photo,
+            onvalue=1, offvalue=0, text=''
+        )
+        lbl_how_mach_photo = ttk.Label(
+            has_photo_frame, font=fonts.H6_FONT, text='Количество фото',
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        lbl_photo_to = ttk.Label(
+            has_photo_frame, font=fonts.H6_FONT, text='--'
+        )
+        spn_photo_from = ttk.Spinbox(
+            has_photo_frame, from_=MACH_PHOTO_MIN, to=MACH_PHOTO_MAX//2-1,
+            textvariable=var_photo_from, state='readonly', width=5,
+            font=fonts.SPINBOX_FONT
+        )
+        spn_photo_to = ttk.Spinbox(
+            has_photo_frame, from_=MACH_PHOTO_MAX//2, to=MACH_PHOTO_MAX,
+            textvariable=var_photo_to, state='readonly', width=5,
+            font=fonts.SPINBOX_FONT
+        )
+
+        #  row 3
+        var_need_count_friends = BooleanVar()
+
+        var_need_count_followers = BooleanVar()
+
+        var_friends_from = IntVar()
+        var_friends_to = IntVar()
+
+        var_followers_from = IntVar()
+        var_followers_to = IntVar()
+
+        var_need_count_friends.set(0)
+        var_need_count_followers.set(0)
+        var_friends_from.set(1)
+        var_friends_to.set(100)
+        var_followers_from.set(0)
+        var_followers_to.set(50)
+
+        count_followers_friends_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_need_friends = ttk.Checkbutton(
+            count_followers_friends_frame, variable=var_need_count_friends,
+            onvalue=1, offvalue=0, text=''
+        )
+        lbl_friends = ttk.Label(
+            count_followers_friends_frame, text='Друзей', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        spn_friends_from = ttk.Spinbox(
+            count_followers_friends_frame, from_=0, to=FRIENDS_MAX,
+            font=fonts.SPINBOX_FONT, textvariable=var_friends_from
+        )
+        lbl_friends_to = ttk.Label(
+            count_followers_friends_frame, text='--', font=fonts.H6_FONT
+        )
+        spn_friends_to = ttk.Spinbox(
+            count_followers_friends_frame, from_=1, to=FRIENDS_MAX,
+            font=fonts.SPINBOX_FONT, textvariable=var_friends_to
+        )
+
+        chk_need_followers = ttk.Checkbutton(
+            count_followers_friends_frame, variable=var_need_count_followers,
+            onvalue=1, offvalue=0
+        )
+        lbl_followers = ttk.Label(
+            count_followers_friends_frame, text='Подписчиков',
+            font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
+        )
+        spn_followers_from = ttk.Spinbox(
+            count_followers_friends_frame, from_=0, to=FOLLOWERS_MAX,
+            font=fonts.SPINBOX_FONT, textvariable=var_followers_from
+        )
+        lbl_followers_to = ttk.Label(
+            count_followers_friends_frame, text='--', font=fonts.H6_FONT
+        )
+        spn_followers_to = ttk.Spinbox(
+            count_followers_friends_frame, from_=1, to=FOLLOWERS_MAX,
+            font=fonts.SPINBOX_FONT, textvariable=var_followers_to
+        )
+        #  row 4
+        var_need_last_seen = BooleanVar()
+
+        var_only = BooleanVar()
+
+        var_last_seen_from = IntVar()
+        var_last_seen_to = IntVar()
+
+        var_need_last_seen.set(0)
+        var_only.set(0)
+        var_last_seen_from.set(5)
+        var_last_seen_to.set(10)
+
+        only_last_seen_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        lbl_only = ttk.Label(
+            only_last_seen_frame, text='Онлайн', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_not_only = ttk.Radiobutton(
+            only_last_seen_frame, text='Неважно', variable=var_only,
+            value=0
+        )
+        rdb_only = ttk.Radiobutton(
+            only_last_seen_frame, text='Онлайн сейчас', variable=var_only,
+            value=1
+        )
+
+        chk_need_last_seen = ttk.Checkbutton(
+            only_last_seen_frame, variable=var_need_last_seen, onvalue=1, offvalue=0
+        )
+        lbl_last_seen = ttk.Label(
+            only_last_seen_frame, text='Последний раз в сети', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        spn_last_seen_from = ttk.Spinbox(
+            only_last_seen_frame, from_=1, to=LAST_SEEN_MAX, font=fonts.SPINBOX_FONT,
+            textvariable=var_last_seen_from, width=5
+        )
+        lbl_last_seen_to = ttk.Label(
+            only_last_seen_frame, text='--', font=fonts.H6_FONT
+        )
+        spn_last_seen_to = ttk.Spinbox(
+            only_last_seen_frame, from_=2, to=LAST_SEEN_MAX, font=fonts.SPINBOX_FONT,
+            textvariable=var_last_seen_to, width=5
+        )
+        lbl_last_seen_day = ttk.Label(
+            only_last_seen_frame, text='дней', font=fonts.H6_FONT
+        )
+
+        #  row 5
+        var_sex = IntVar()
+        var_sex.set(0)
+
+        var_can_send_message = BooleanVar()
+        var_can_send_message.set(0)
+
+        send_message_sex_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        lbl_sex = ttk.Label(
+            send_message_sex_frame, text='Пол', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_no_sex = ttk.Radiobutton(
+            send_message_sex_frame, variable=var_sex, value=0, text='Неважно'
+        )
+        rdb_female = ttk.Radiobutton(
+            send_message_sex_frame, variable=var_sex, value=1, text='Женский'
+        )
+        rdb_male = ttk.Radiobutton(
+            send_message_sex_frame, variable=var_sex, value=2, text='Мужской'
+        )
+
+        lbl_send_message = ttk.Label(
+            send_message_sex_frame, text='Можно отправить сообщение',
+            font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_no_matter_send_message = ttk.Radiobutton(
+            send_message_sex_frame, variable=var_can_send_message,
+            value=0, text='Неважно'
+        )
+        rdb_can_send_message = ttk.Radiobutton(
+            send_message_sex_frame, variable=var_can_send_message,
+            value=1, text='Можно'
+        )
+
+        #  row 6
+        var_need_political = BooleanVar()
+        var_need_political.set(0)
+
+        var_need_life_main = BooleanVar()
+        var_need_life_main.set(0)
+
+        political_life_main_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_political = ttk.Checkbutton(
+            political_life_main_frame, variable=var_need_political, onvalue=1,
+            offvalue=0, text=''
+        )
+        lbl_political = ttk.Label(
+            political_life_main_frame, text='Политические предпочтения',
+            font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
+        )
+        __var_political__ = list(POLITICAL.keys())
+        var_political = ttk.Combobox(
+            political_life_main_frame, font=fonts.COMBOBOX_FONT, width=25,
+            state='readonly'
+        )
+        var_political['value'] = __var_political__
+        var_political.set(__var_political__[0])
+
+        chk_life_main = ttk.Checkbutton(
+            political_life_main_frame, variable=var_need_life_main,
+            onvalue=1, offvalue=0, text=''
+        )
+        lbl_life_main = ttk.Label(
+            political_life_main_frame, text='Главное в жизни',
+            font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
+        )
+        __var_life_main__ = list(LIFE_MAIN.keys())
+        var_life_main = ttk.Combobox(
+            political_life_main_frame, font=fonts.COMBOBOX_FONT, width=25,
+            state='readonly'
+        )
+        var_life_main['value'] = __var_life_main__
+        var_life_main.set(__var_life_main__[0])
+
+        #  row 7
+        var_need_people_main = BooleanVar()
+        var_need_people_main.set(0)
+
+        var_need_smoking = BooleanVar()
+        var_need_smoking.set(0)
+
+        people_main_smoking_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_people_main = ttk.Checkbutton(
+            people_main_smoking_frame, variable=var_need_people_main,
+            onvalue=1, offvalue=0, text=''
+        )
+        lbl_people_main = ttk.Label(
+            people_main_smoking_frame, font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT, text='Главное в людях'
+        )
+        __var_people_main__ = list(PEOPLE_MAIN.keys())
+        var_people_main = ttk.Combobox(
+            people_main_smoking_frame, font=fonts.COMBOBOX_FONT
+        )
+        var_people_main['value'] = __var_people_main__
+        var_people_main.set(__var_people_main__[0])
+        chk_smoking = ttk.Checkbutton(
+            people_main_smoking_frame, variable=var_need_smoking,
+            onvalue=1, offvalue=0, text=''
+        )
+        lbl_smoking = ttk.Label(
+            people_main_smoking_frame, font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT, text='Отношение к курению'
+        )
+        __var_smoking__ = list(SMOKING.keys())
+        var_smoking = ttk.Combobox(
+            people_main_smoking_frame, font=fonts.COMBOBOX_FONT
+        )
+        var_smoking['value'] = __var_smoking__
+        var_smoking.set(__var_smoking__[0])
+
+        #  row 8
+        var_need_alcohol = BooleanVar()
+        var_need_alcohol.set(0)
+
+        alcohol_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_alcohol = ttk.Checkbutton(
+            alcohol_frame, variable=var_need_alcohol, onvalue=1, offvalue=0,
+            text=''
+        )
+        lbl_alcohol = ttk.Label(
+            alcohol_frame, font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT,
+            text='Отношение к курению'
+        )
+        __var_alcohol__ = list(ALCOHOL.keys())
+        var_alcohol = ttk.Combobox(
+            alcohol_frame, font=fonts.COMBOBOX_FONT
+        )
+        var_alcohol['value'] = __var_alcohol__
+        var_alcohol.set(__var_alcohol__[0])
+
+        #  row 9
+        var_need_entry_status = BooleanVar()
+        var_need_entry_status.set(0)
+
+        entry_status_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_entry_status = ttk.Checkbutton(
+            entry_status_frame, variable=var_need_entry_status, onvalue=1, offvalue=0,
+            text=''
+        )
+        lbl_entry_status = ttk.Label(
+            entry_status_frame, text='Ключевое слово в статусе', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        var_entry_status = ttk.Entry(
+            entry_status_frame, font=fonts.INPUT_FONT
+        )
+
+        #  row 10
+        var_need_entry_about = BooleanVar()
+        var_need_entry_about.set(0)
+
+        entry_about_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+
+        chk_entry_about = ttk.Checkbutton(
+            entry_about_frame, variable=var_need_entry_about, onvalue=1, offvalue=0,
+            text=''
+        )
+        lbl_entry_about = ttk.Label(
+            entry_about_frame, font=fonts.H6_FONT, text='Ключевое слово в "О себе"',
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        var_entry_about = ttk.Entry(
+            entry_about_frame, font=fonts.INPUT_FONT
+        )
+        #  row 11
+        var_deactivate = BooleanVar()
+        var_deactivate.set(1)
+
+        deactivate_frame = ttk.Frame(
+            left_frame, padding=4
+        )
+        lbl_deactivate = ttk.Label(
+            deactivate_frame, text='Заблокированные аккаунты', font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT
+        )
+        rdb_not_deactivate = ttk.Radiobutton(
+            deactivate_frame, variable=var_deactivate, value=0, text='Оставить',
+        )
+        rdb_deactivate = ttk.Radiobutton(
+            deactivate_frame, variable=var_deactivate, value=1, text='Убрать'
+        )
+
+        # right_frame
+        btn_choose_record = ttk.Button(
+            right_frame, text='Парсить'
+        )
+        btn_settings = ttk.Button(
+            right_frame, text='Настройка'
+        )
+        btn_all_record = ttk.Button(
+            right_frame, text='Все записи'
+        )
+
+        widgets = {
+            'left_frame': left_frame,
+            'right_frame': right_frame,
+            'var_need_country': var_need_country,
+            'var_need_relationship': var_need_relationship,
+            'var_need_mach_photo': var_need_mach_photo,
+            'var_need_city_region': var_need_city_region,
+            'var_need_count_friends': var_need_count_friends,
+            'var_need_count_followers': var_need_count_followers,
+            'var_need_last_seen': var_need_last_seen,
+            'var_need_political': var_need_political,
+            'var_need_people_main': var_need_people_main,
+            'var_need_life_main': var_need_life_main,
+            'var_need_smoking': var_need_smoking,
+            'var_need_alcohol': var_need_alcohol,
+            'var_need_entry_status': var_need_entry_status,
+            'var_need_entry_about': var_need_entry_about,
+            'var_country': var_country,
+            'var_city_region': var_city_region,
+            'cmb_city_region': cmb_city_region,
+            'var_can_send_message': var_can_send_message,
+            'var_relationship': var_relationship,
+            'var_has_photo': var_has_photo,
+            'var_photo_from': var_photo_from,
+            'var_photo_to': var_photo_to,
+            'var_friends_from': var_friends_from,
+            'var_friends_to': var_friends_to,
+            'var_followers_from': var_followers_from,
+            'var_followers_to': var_followers_to,
+            'var_last_seen_from': var_last_seen_from,
+            'var_last_seen_to': var_last_seen_to,
+            'var_only': var_only,
+            'var_sex': var_sex,
+            'var_entry_about': var_entry_about,
+            'var_entry_status': var_entry_status,
+            'var_political': var_political,
+            'var_life_main': var_life_main,
+            'var_people_main': var_people_main,
+            'var_smoking': var_smoking,
+            'var_alcohol': var_alcohol,
+            'lbl_progress': lbl_progress,
+            'progressbar': progressbar,
+            'lbl_last_seen': lbl_last_seen,
+            'lbl_last_seen_to': lbl_last_seen_to,
+            'spn_last_seen_from': spn_last_seen_from,
+            'spn_last_seen_to': spn_last_seen_to,
+            'chk_need_last_seen': chk_need_last_seen,
+            'chk_need_mach_photo': chk_need_mach_photo,
+            'lbl_how_mach_photo': lbl_how_mach_photo,
+            'lbl_photo_to': lbl_photo_to,
+            'spn_photo_from': spn_photo_from,
+            'spn_photo_to': spn_photo_to,
+            'var_deactivate': var_deactivate,
+            'lbl_last_seen_day': lbl_last_seen_day
+        }
+        #########################-------------GRID-------------#########################
+        #  row 0
+        country_frame.grid(row=0, column=0, sticky='NSWE', pady=6)
+        chk_country_frame.grid(row=0, column=0, padx=5, sticky='SW')
+        lbl_country.grid(row=0, column=1, sticky='SW')
+        var_country.grid(row=0, column=2, sticky='SWE', padx=7)
+        chk_city_region.grid(row=0, column=3, sticky='SW', padx=15)
+        lbl_city_region.grid(row=0, column=4, sticky='SW')
+        rdb_city.grid(row=0, column=5, sticky='SW', padx=5)
+        rdb_region.grid(row=0, column=6, sticky='SW')
+        cmb_city_region.grid(row=0, column=7, sticky='SWE', padx=5)
+        #  row 1
+        count_followers_friends_frame.grid(row=1, column=0, sticky='NSWE')
+        chk_need_friends.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_friends.grid(row=0, column=1, sticky='SW')
+        spn_friends_from.grid(row=0, column=2, sticky='SW', padx=2)
+        lbl_friends_to.grid(row=0, column=3, sticky='SW', padx=5)
+        spn_friends_to.grid(row=0, column=4, sticky='SW', padx=2)
+        chk_need_followers.grid(row=0, column=5, sticky='SW', padx=15)
+        lbl_followers.grid(row=0, column=6, sticky='SW')
+        spn_followers_from.grid(row=0, column=7, sticky='SW', padx=2)
+        lbl_followers_to.grid(row=0, column=8, sticky='SW', padx=5)
+        spn_followers_to.grid(row=0, column=9, sticky='SW', padx=2)
+        #  row 2
+        relationship_old_frame.grid(row=2, column=0, sticky='NSWE', pady=7)
+        chk_old.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_old.grid(row=0, column=1, sticky='SW')
+        spn_old_from.grid(row=0, column=2, sticky='SW', padx=2)
+        lbl_old_to.grid(row=0, column=3, sticky='SW', padx=5)
+        spn_old_to.grid(row=0, column=4, sticky='SW', padx=2)
+        chk_relationship_has_photo_frame.grid(row=0, column=5, sticky='SW', padx=10)
+        lbl_relationship.grid(row=0, column=6, sticky='SW')
+        var_relationship.grid(row=0, column=7, sticky='SWE', padx=10)
+        #  row 3
+        send_message_sex_frame.grid(row=3, column=0, sticky='NSWE')
+        lbl_sex.grid(row=0, column=0, sticky='SW', padx=5)
+        rdb_no_sex.grid(row=0, column=1, sticky='SW')
+        rdb_female.grid(row=0, column=2, sticky='SW', padx=2)
+        rdb_male.grid(row=0, column=3, sticky='SW')
+        lbl_send_message.grid(row=0, column=4, sticky='SW', padx=10)
+        rdb_no_matter_send_message.grid(row=0, column=5, sticky='SW')
+        rdb_can_send_message.grid(row=0, column=6, sticky='SW', padx=2)
+        #  row 4
+        only_last_seen_frame.grid(row=4, column=0, sticky='NSWE')
+        lbl_only.grid(row=0, column=0, sticky='SW', padx=5)
+        rdb_not_only.grid(row=0, column=1, sticky='SW')
+        rdb_only.grid(row=0, column=2, sticky='SW', padx=3)
+        chk_need_last_seen.grid(row=0, column=3, sticky='SW', padx=5)
+        lbl_last_seen.grid(row=0, column=4, sticky='SW', padx=5)
+        spn_last_seen_from.grid(row=0, column=5, sticky='SW')
+        lbl_last_seen_to.grid(row=0, column=6, sticky='SW', padx=5)
+        spn_last_seen_to.grid(row=0, column=7, sticky='SW')
+        lbl_last_seen_day.grid(row=0, column=8, sticky='SW', padx=2)
+        #  row 5
+        has_photo_frame.grid(row=5, column=0, sticky='NSWE')
+        lbl_has_photo.grid(row=0, column=0, sticky='SW', padx=5)
+        rdb_not_has_photo.grid(row=0, column=1, sticky='SW')
+        rdb_has_photo.grid(row=0, column=2, sticky='SW', padx=3)
+        chk_need_mach_photo.grid(row=0, column=3, sticky='SW', padx=3)
+        chk_need_mach_photo.grid_remove()
+        lbl_how_mach_photo.grid(row=0, column=4, sticky='SW', padx=5)
+        lbl_how_mach_photo.grid_remove()
+        spn_photo_from.grid(row=0, column=5, sticky='SW')
+        spn_photo_from.grid_remove()
+        lbl_photo_to.grid(row=0, column=6, sticky='SW', padx=5)
+        lbl_photo_to.grid_remove()
+        spn_photo_to.grid(row=0, column=7, sticky='SW')
+        spn_photo_to.grid_remove()
+        #  row 6
+        political_life_main_frame.grid(row=6, column=0, sticky='NSWE', pady=6)
+        chk_political.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_political.grid(row=0, column=1, sticky='SW')
+        var_political.grid(row=0, column=2, sticky='SW', padx=3)
+        chk_life_main.grid(row=0, column=3, sticky='SW', padx=10)
+        lbl_life_main.grid(row=0, column=4, sticky='SW')
+        var_life_main.grid(row=0, column=5, sticky='SW', padx=3)
+        #  row 7
+        people_main_smoking_frame.grid(row=7, column=0, sticky='NSWE', pady=6)
+        chk_people_main.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_people_main.grid(row=0, column=1, sticky='SW')
+        var_people_main.grid(row=0, column=2, sticky='SW', padx=3)
+        chk_smoking.grid(row=0, column=3, sticky='SW', padx=10)
+        lbl_smoking.grid(row=0, column=4, sticky='SW')
+        var_smoking.grid(row=0, column=5, sticky='SW', padx=3)
+        #  row 8
+        alcohol_frame.grid(row=8, column=0, sticky='NSWE', pady=6)
+        chk_alcohol.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_alcohol.grid(row=0, column=1, sticky='SW')
+        var_alcohol.grid(row=0, column=2, sticky='SW', padx=3)
+        #  row 9
+        entry_status_frame.grid(row=9, column=0, sticky='NSWE', pady=6)
+        chk_entry_status.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_entry_status.grid(row=0, column=1, sticky='SW')
+        var_entry_status.grid(row=0, column=2, sticky='SWE', padx=3)
+        #  row 10
+        entry_about_frame.grid(row=10, column=0, sticky='NSWE', pady=6)
+        chk_entry_about.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_entry_about.grid(row=0, column=1, sticky='SW')
+        var_entry_about.grid(row=0, column=2, sticky='SWE')
+        #  row 11
+        deactivate_frame.grid(row=11, column=0, sticky='NSWE')
+        lbl_deactivate.grid(row=0, column=0, sticky='SW', padx=5)
+        rdb_not_deactivate.grid(row=0, column=1, sticky='SW')
+        rdb_deactivate.grid(row=0, column=2, sticky='SW')
+
+        btn_choose_record.grid(row=0, column=0, sticky='SWE', pady=5)
+        btn_settings.grid(row=1, column=0, sticky='SWE')
+        btn_all_record.grid(row=2, column=0, sticky='SWE', pady=5)
+
+        self.parsing_book_by_groups.columnconfigure(0, weight=9)
+        self.parsing_book_by_groups.columnconfigure(1, weight=1)
+        self.parsing_book_by_groups.rowconfigure(0, weight=1)
+
+        left_frame.columnconfigure(0, weight=1)
+
+        entry_status_frame.columnconfigure(2, weight=1)
+        entry_about_frame.columnconfigure(2, weight=1)
+
+        btn_all_record.bind('<Button-1>', lambda event: TreeViewWindow())
+        btn_choose_record.bind(
+            '<Button-1>',
+            lambda event: TreeViewWindow(
+                method='parse', completion_name=NAME_PARSING['by_groups'],
+                widgets=widgets
             )
+        )
+        rdb_city.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_region_city(widgets)
+        )
+        rdb_region.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_region_city(widgets)
+        )
+        rdb_not_only.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_only(widgets)
+        )
+        rdb_only.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_only(widgets)
+        )
+        rdb_has_photo.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_photo(widgets)
+        )
+        rdb_not_has_photo.bind(
+            '<Button-1>', lambda event: FunctionsForWindows.setting_photo(widgets)
         )
 
     def build_main_book(self):

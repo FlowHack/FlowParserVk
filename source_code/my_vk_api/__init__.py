@@ -1,7 +1,10 @@
 from .configure_connect_to_api import ConfigureVkApi
 from .requests.get import GetRequestsToVkApi
+from .requests.vk_scripts import *
 
 __all__ = [
     'ConfigureVkApi',
-    'GetRequestsToVkApi'
+    'GetRequestsToVkApi',
+    'PARSE_BY_GROUP_CODE',
+    'EASY_PARSE_BY_GROUP_CODE'
 ]

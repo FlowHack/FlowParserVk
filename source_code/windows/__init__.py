@@ -1,9 +1,9 @@
 from .additional import AdditionalWindows
-from .dialog import DialogWindows, TreeViewWindowMain
+from .dialog import DialogWindows, TreeViewWindow
 from .master import App
 
 __all__ = [
-    'TreeViewWindowMain',
+    'TreeViewWindow',
     'AdditionalWindows',
     'DialogWindows',
     'App',
