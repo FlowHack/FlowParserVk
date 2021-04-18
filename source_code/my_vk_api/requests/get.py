@@ -5,10 +5,9 @@ from tkinter.messagebox import showwarning
 import requests
 import vk_api
 
+from FlowParserVK import ConfigureVkApi
 from settings import (HTTP_FOR_REQUESTS, LOGGER, PROGRESSBAR_MAX, VERSION_API,
                       WARNING_MSG)
-
-from ..configure_connect_to_api import ConfigureVkApi
 
 
 class GetRequestsToVkApi:
@@ -16,10 +15,6 @@ class GetRequestsToVkApi:
         config = ConfigureVkApi()
         token = config.token
         self.vk_tool = config.vk_tool
-
-        if (token is None) or (self.vk_tool is None):
-            showwarning('Неверный токен', WARNING_MSG['VK_API']['bad_token'])
-            LOGGER.warning('Получен неверный токен при GET запросе')
 
         self.default_params = {
             'v': VERSION_API,
@@ -43,6 +38,9 @@ class GetRequestsToVkApi:
         return response
 
     def get_all_object(self, api_method, **kwargs):
+        if self.vk_tool is None:
+            raise ValueError('неверный токен')
+
         response = self.vk_tool.get_all(method=api_method, max_count=1000, values=kwargs)
 
         return response

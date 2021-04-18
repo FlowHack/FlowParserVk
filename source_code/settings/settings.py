@@ -21,7 +21,7 @@ def __get_logger__(name: str) -> object:
     formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
 
     handler = RotatingFileHandler(
-        fr'settings/log/{name}.log',
+        fr'settings/{name}.log',
         maxBytes=50000000,
         backupCount=5,
     )

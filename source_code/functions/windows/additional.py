@@ -4,11 +4,63 @@ from tkinter.messagebox import showwarning
 
 from _tkinter import TclError
 
+from my_vk_api import GetRequestsToVkApi
 from settings import (ERROR_MSG, FOLLOWERS_MAX, FRIENDS_MAX, LIST_COUNTRIES,
                       STATUS_VK_PERSON)
 
 
 class AdditionalFunctionsForWindows:
+    def __init__(self):
+        self.cities = {
+            'country_id': None,
+            'cities': {}
+        }
+        self.regions = {
+            'country_id': None,
+            'regions': {}
+        }
+
+    def get_cities(self, country_id):
+        if self.cities['country_id'] is not None:
+            if country_id == self.cities['country_id']:
+                return self.cities['cities']
+
+        params = {
+            'country_id': country_id,
+            'need_all': 1
+        }
+
+        cities = GetRequestsToVkApi().get_all_object(
+            'database.getCities', **params
+        )
+
+        for item in cities['items']:
+            self.cities['cities'][item['title']] = int(item['id'])
+
+        self.cities['country_id'] = country_id
+
+        return self.cities['cities']
+
+    def get_regions(self, country_id):
+        if self.regions['country_id'] is not None:
+            if country_id == self.cities['country_id']:
+                return self.regions['regions']
+
+        params = {
+            'country_id': country_id,
+        }
+
+        cities = GetRequestsToVkApi().get_all_object(
+            'database.getRegions', **params
+        )
+
+        for item in cities['items']:
+            self.regions['regions'][item['title']] = int(item['id'])
+
+        self.regions['country_id'] = country_id
+
+        return self.regions['regions']
+
     @staticmethod
     def get_groups_from_text(texts):
         need_var = ['https://vk.com/', 'https://vk.com', '/vk.com/', 'vk.com/']
@@ -20,6 +72,8 @@ class AdditionalFunctionsForWindows:
                     group_id = item.split('vk.com/')[1]
                     if group_id[:6] == 'public':
                         group_id = group_id[6:]
+                    elif group_id[:4] == 'club':
+                        group_id = group_id[4:]
 
                     ids.append(group_id)
                 else:
@@ -29,7 +83,3 @@ class AdditionalFunctionsForWindows:
         count = len(ids)
 
         return {'ids': ids, 'count': count}
-
-    @staticmethod
-    def get_values_for_parse_by_groups(widgets):
-        need_country, need_region_city = widgets[''], widgets['']

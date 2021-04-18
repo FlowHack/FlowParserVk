@@ -41,6 +41,7 @@ __all__ = [
     'TIME_FREE_VERSION',
     'FORMAT_DATE',
     'NAME_PARSING',
+    'URL_REPO',
     #  additional_dicts
     'LIST_COUNTRIES',
     'ERROR_MSG',

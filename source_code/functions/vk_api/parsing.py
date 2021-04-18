@@ -1,9 +1,9 @@
-import json
 from time import sleep
 
 import requests
 
-from my_vk_api import PARSE_BY_GROUP_CODE, ConfigureVkApi, EASY_PARSE_BY_GROUP_CODE
+from my_vk_api import (EASY_PARSE_BY_GROUP_CODE, PARSE_BY_GROUP_CODE,
+                       ConfigureVkApi)
 from settings import HTTP_FOR_REQUESTS, PROGRESSBAR_MAX, VERSION_API
 
 
@@ -48,17 +48,6 @@ class ParsingVk:
 
                 response = requests.get(url, params=params).json()
 
-                try:
-                    errors = response.get(['execute_errors'])
-                    if errors is not None:
-                        lbl_progress.configure(
-                            text=f'Прогресс: {i}/{length}. Невалидный id'
-                        )
-                        lbl_progress.update()
-                        continue
-                except TypeError:
-                    pass
-
                 response = response['response']
                 offset = int(response['offset'])
                 count_id = int(response['count_id'])
@@ -68,7 +57,8 @@ class ParsingVk:
 
                 lbl_progress.configure(
                     text=
-                    f'Прогресс: {i}/{length}. Запрос: {i_response}/{count_id//11000}. '
+                    f'Прогресс: {i+1}/{length}. '
+                    f'Запрос: {i_response-1}/{count_id//11000}. '
                     f'Не прекращайте работу, это займёт пару минут...'
                 )
                 lbl_progress.update()

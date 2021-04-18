@@ -67,18 +67,24 @@ class GetRequestsToDB(MainDB):
 
         return get_people_requests
 
-    def get_one_get_requests_table(self, pk):
-        self.remote_control_bd.execute(f'SELECT * FROM GetRequestsApi WHERE pk={pk}')
+    def get_one_get_requests_table(self, pk, columns='*'):
+        self.remote_control_bd.execute(
+            f'SELECT {columns} FROM GetRequestsApi WHERE pk={pk}'
+        )
 
         data = self.remote_control_bd.fetchone()
-        pk, method, count, result, data, last_parse = \
-            data[0], data[1], data[2], data[3], data[4], int(data[5])
 
-        return {
-            'pk': pk,
-            'method': method,
-            'count': count,
-            'result': result,
-            'data': data,
-            'last_parse': last_parse
-        }
+        if len(data) == 6:
+            pk, method, count, result, data, last_parse = \
+                data[0], data[1], data[2], data[3], data[4], int(data[5])
+
+            return {
+                'pk': pk,
+                'method': method,
+                'count': count,
+                'result': result,
+                'data': data,
+                'last_parse': last_parse
+            }
+        else:
+            return data
