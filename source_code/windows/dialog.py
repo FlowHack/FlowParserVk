@@ -139,10 +139,12 @@ class GetWindow:
 
 
 class TreeViewWindow:
-    def __init__(self, method='view', completion_name=None, widgets=None):
+    def __init__(self, method='view', completion_name=None, entry_pk=None):
         if method == 'view':
-            self.values = GetRequestsToDB().get_get_requests_people_table_value()
+            self.values = \
+                GetRequestsToDB().get_get_requests_people_table_value()
         else:
+            self.entry_pk = entry_pk
             self.values = GetRequestsToDB().get_get_requests_people_for_parse(
                 completion_name
             )
@@ -193,6 +195,16 @@ class TreeViewWindow:
             btn_choose.grid(row=0, column=0, sticky='SWE')
             btn_cancel.grid(row=1, column=0, sticky='SWE', pady=5)
 
+            btn_cancel.bind('<Button-1>', lambda event: self.cancel())
+            btn_choose.bind(
+                '<Button-1>',
+                lambda event: self.choose_value_for_parsing()
+            )
+            self.tree_view.bind(
+                '<Double-Button-1>',
+                lambda event: self.choose_value_for_parsing()
+            )
+
         self.window.rowconfigure(0, weight=1)
         self.window.columnconfigure(0, weight=9)
         self.window.columnconfigure(1, weight=1)
@@ -209,6 +221,20 @@ class TreeViewWindow:
         h = 600
         self.window.title('Основные запросы')
         set_position_window_on_center(self.window, width=w, height=h)
+
+    def choose_value_for_parsing(self):
+        try:
+            pk = self.get_choose_value()['pk']
+        except IndexError:
+            return
+
+        self.entry_pk.delete(0, 'end')
+        self.entry_pk.insert('end', str(pk))
+        self.window.destroy()
+
+    def cancel(self):
+        self.entry_pk.delete(0, 'end')
+        self.window.destroy()
 
     def get_choose_value(self):
         if not self.tree_view.selection():

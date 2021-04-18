@@ -29,5 +29,6 @@ TIME_FREE_VERSION = 7200
 
 FORMAT_DATE = '%A  %x %H:%M'
 NAME_PARSING = {
-    'by_groups': 'Парсинг по группам'
+    'by_groups': 'По группам',
+    'by_criteria': 'По критериям'
 }

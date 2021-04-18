@@ -1,19 +1,19 @@
 from sys import exit as exit_ex
-from tkinter import IntVar, StringVar, Text, Tk, ttk, BooleanVar
+from tkinter import BooleanVar, IntVar, StringVar, Text, Tk, ttk
 from webbrowser import open as web_open
 
 from PIL import Image, ImageTk
 
 from functions import FunctionsForWindows
 from my_vk_api import ConfigureVkApi
-from settings import (APP_NAME, AUTHOR_PAGE, BANK_DETAILS, FOLLOWERS_MAX,
-                      FRIENDS_MAX, LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
-                      LIST_COUNTRIES, LOGGER, OLD_YEAR_MAX, OLD_YEAR_MIN,
-                      PAGE_APP, PROGRESSBAR_MAX, STATUS_VK_PERSON, VERSION,
-                      copy_in_clipboard, fonts, path_to_dir_ico,
-                      set_position_window_on_center, styles, MACH_PHOTO_MIN,
-                      MACH_PHOTO_MAX, LAST_SEEN_MAX, POLITICAL, PEOPLE_MAIN,
-                      LIFE_MAIN, SMOKING, ALCOHOL, NAME_PARSING)
+from settings import (ALCOHOL, APP_NAME, AUTHOR_PAGE, BANK_DETAILS,
+                      FOLLOWERS_MAX, FRIENDS_MAX, LABEL_DESCRIPTION,
+                      LABEL_HELP_DESCRIPTION, LAST_SEEN_MAX, LIFE_MAIN,
+                      LIST_COUNTRIES, LOGGER, MACH_PHOTO_MAX, MACH_PHOTO_MIN,
+                      NAME_PARSING, OLD_YEAR_MAX, OLD_YEAR_MIN, PAGE_APP,
+                      PEOPLE_MAIN, POLITICAL, PROGRESSBAR_MAX, SMOKING,
+                      STATUS_VK_PERSON, VERSION, copy_in_clipboard, fonts,
+                      path_to_dir_ico, set_position_window_on_center, styles)
 from windows import TreeViewWindow
 
 
@@ -44,8 +44,10 @@ class App(Tk):
         self.parsing_book_groups = ttk.Frame(notebook_parsing, padding=15)
         self.parsing_book_by_groups = ttk.Frame(notebook_parsing, padding=10)
 
-        notebook_parsing.add(self.parsing_book_groups, text='Парсинг по группам')
-        notebook_parsing.add(self.parsing_book_by_groups, text='Парсинг по критериям')
+        notebook_parsing.add(self.parsing_book_groups,
+                             text='Парсинг по группам')
+        notebook_parsing.add(self.parsing_book_by_groups,
+                             text='Парсинг по критериям')
         notebook_parsing.pack(expand=True, fill='both', side='top')
 
         self.update()
@@ -140,7 +142,7 @@ class App(Tk):
         lbl_progress.grid(row=1, column=0, columnspan=2, pady=5, sticky='SWE')
         progressbar.grid(row=2, column=0, columnspan=2, pady=5, sticky='SWE')
 
-        ##########################---------LEFT_FRAME---------##########################
+        #####################---------LEFT_FRAME---------#####################
 
         var_easy_parse = BooleanVar()
         var_easy_parse.set(0)
@@ -154,23 +156,26 @@ class App(Tk):
         #  row 1
         check_easy_parse = ttk.Checkbutton(
             left_frame, variable=var_easy_parse,
-            text='Отключить сбор доп. данных(Дальнейший парсинг по выборке недоступен)',
+            text='Отключить сбор доп. данных(Дальнейший парсинг по выборке '
+                 'недоступен)',
             onvalue=1, offvalue=0
         )
 
         #  row 2
         txt_groups = Text(
             left_frame, wrap='word', font=fonts.TEXT_FONT,
-            foreground=styles.FOREGROUND_TEXT, background=styles.BACKGROUND_TEXT
+            foreground=styles.FOREGROUND_TEXT,
+            background=styles.BACKGROUND_TEXT
         )
 
         #  row 3
         lbl_warning = ttk.Label(
             left_frame, foreground='#e10000', font=fonts.H6_FONT,
-            text='Вводите исключительно ссылки на группы. И вводите через "Enter"'
+            text='Вводите исключительно ссылки на группы. И вводите через '
+                 '"Enter" '
         )
 
-        ##########################---------RIGHT_FRAME---------##########################
+        #####################---------RIGHT_FRAME---------#####################
 
         btn_parse = ttk.Button(
             right_frame, text='Парсить'
@@ -192,7 +197,7 @@ class App(Tk):
             'progressbar': progressbar
         }
 
-        #########################-------------GRID-------------#########################
+        ####################-------------GRID-------------####################
 
         #  left_frame
         #  row 0
@@ -221,7 +226,8 @@ class App(Tk):
         self.parsing_book_groups.columnconfigure(0, weight=9)
         self.parsing_book_groups.columnconfigure(1, weight=1)
 
-        btn_show_all.bind('<Button-1>', lambda event: TreeViewWindow(method='view'))
+        btn_show_all.bind('<Button-1>',
+                          lambda event: TreeViewWindow(method='view'))
         btn_up_count.bind(
             '<Button-1>',
             lambda event: FunctionsForWindows.update_label_count_group(widgets)
@@ -232,9 +238,10 @@ class App(Tk):
         )
 
     def build_parsing_book_by_groups(self):
-        #####################-------------PARSING_BOOK-------------#####################
+        ################-------------PARSING_BOOK-------------################
         left_frame = ttk.Frame(
-            self.parsing_book_by_groups, relief='solid', borderwidth=1, padding=3
+            self.parsing_book_by_groups, relief='solid', borderwidth=1,
+            padding=3
         )
         right_frame = ttk.Frame(
             self.parsing_book_by_groups, padding=5
@@ -253,7 +260,7 @@ class App(Tk):
         lbl_progress.grid(row=1, column=0, columnspan=2, pady=5, sticky='SWE')
         progressbar.grid(row=2, column=0, columnspan=2, sticky='SWE')
 
-        ######################-------------LEFT_FRAME-------------######################
+        #################-------------LEFT_FRAME-------------#################
         #  row 0
         var_need_country = BooleanVar()
 
@@ -267,7 +274,8 @@ class App(Tk):
 
         country_frame = ttk.Frame(left_frame, padding=4)
         chk_country_frame = ttk.Checkbutton(
-            country_frame, text='', variable=var_need_country, onvalue=1, offvalue=0
+            country_frame, text='', variable=var_need_country, onvalue=1,
+            offvalue=0
         )
 
         lbl_country = ttk.Label(
@@ -276,13 +284,14 @@ class App(Tk):
         )
         __var_country__ = list(LIST_COUNTRIES.keys())
         var_country = ttk.Combobox(
-            country_frame, font=fonts.COMBOBOX_FONT, width=38, state='readonly'
+            country_frame, font=fonts.COMBOBOX_FONT, width=36, state='readonly'
         )
         var_country['values'] = __var_country__
         var_country.set(__var_country__[0])
 
         chk_city_region = ttk.Checkbutton(
-            country_frame, variable=var_need_city_region, onvalue=1, offvalue=0, text=''
+            country_frame, variable=var_need_city_region, onvalue=1,
+            offvalue=0, text=''
         )
         lbl_city_region = ttk.Label(
             country_frame, text='Город/Регион', font=fonts.H6_FONT,
@@ -297,55 +306,27 @@ class App(Tk):
             variable=var_city_region
         )
         cmb_city_region = ttk.Combobox(
-            country_frame, font=fonts.COMBOBOX_FONT, width=30, state='readonly'
+            country_frame, font=fonts.COMBOBOX_FONT, width=36, state='readonly'
         )
         cmb_city_region.set('Нажмите "Настройка"')
 
         #  row 1
-        var_need_old = BooleanVar()
-
         var_need_relationship = BooleanVar()
 
-        var_old_from = IntVar()
-        var_old_to = IntVar()
-
-        var_need_old.set(0)
         var_need_relationship.set(0)
-        var_old_from.set(18)
-        var_old_to.set(40)
 
-        relationship_old_frame = ttk.Frame(left_frame, padding=4)
-
-        chk_old = ttk.Checkbutton(
-            relationship_old_frame, variable=var_need_old, onvalue=1, offvalue=0,
-            text=''
-        )
-        lbl_old = ttk.Label(
-            relationship_old_frame, font=fonts.H6_FONT, text='Возраст',
-            foreground=styles.NOTABLE_LABEL_FONT
-        )
-        spn_old_from = ttk.Spinbox(
-            relationship_old_frame, width=5, font=fonts.SPINBOX_FONT,
-            from_=18, to=99, textvariable=var_old_from
-        )
-        lbl_old_to = ttk.Label(
-            relationship_old_frame, text='--', font=fonts.H6_FONT
-        )
-        spn_old_to = ttk.Spinbox(
-            relationship_old_frame, width=5, font=fonts.SPINBOX_FONT,
-            from_=19, to=100, textvariable=var_old_to
-        )
+        relationship_frame = ttk.Frame(left_frame, padding=4)
 
         chk_relationship_has_photo_frame = ttk.Checkbutton(
-            relationship_old_frame, variable=var_need_relationship,
+            relationship_frame, variable=var_need_relationship,
             text='', onvalue=1, offvalue=0
         )
         lbl_relationship = ttk.Label(
-            relationship_old_frame, text='Семейное положение',
+            relationship_frame, text='Семейное положение',
             font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
         )
         var_relationship = ttk.Combobox(
-            relationship_old_frame, font=fonts.COMBOBOX_FONT, width=30,
+            relationship_frame, font=fonts.COMBOBOX_FONT, width=30,
             state='readonly'
         )
         __var_relationship__ = list(STATUS_VK_PERSON.keys())
@@ -353,17 +334,10 @@ class App(Tk):
         var_relationship.set(__var_relationship__[0])
 
         #  row 2
-        var_need_mach_photo = BooleanVar()
-
         var_has_photo = BooleanVar()
 
         var_photo_from = IntVar()
         var_photo_to = IntVar()
-
-        var_need_mach_photo.set(0)
-        var_has_photo.set(0)
-        var_photo_from.set(1)
-        var_photo_to.set(50)
 
         has_photo_frame = ttk.Frame(
             left_frame, padding=4
@@ -382,87 +356,65 @@ class App(Tk):
             text='Есть фото', value=1
         )
 
-        chk_need_mach_photo = ttk.Checkbutton(
-            has_photo_frame, variable=var_need_mach_photo,
-            onvalue=1, offvalue=0, text=''
-        )
-        lbl_how_mach_photo = ttk.Label(
-            has_photo_frame, font=fonts.H6_FONT, text='Количество фото',
-            foreground=styles.NOTABLE_LABEL_FONT
-        )
-        lbl_photo_to = ttk.Label(
-            has_photo_frame, font=fonts.H6_FONT, text='--'
-        )
-        spn_photo_from = ttk.Spinbox(
-            has_photo_frame, from_=MACH_PHOTO_MIN, to=MACH_PHOTO_MAX//2-1,
-            textvariable=var_photo_from, state='readonly', width=5,
-            font=fonts.SPINBOX_FONT
-        )
-        spn_photo_to = ttk.Spinbox(
-            has_photo_frame, from_=MACH_PHOTO_MAX//2, to=MACH_PHOTO_MAX,
-            textvariable=var_photo_to, state='readonly', width=5,
-            font=fonts.SPINBOX_FONT
-        )
-
         #  row 3
-        var_need_count_friends = BooleanVar()
+        var_need_old = BooleanVar()
+        var_old_from = IntVar()
+        var_old_to = IntVar()
+
+        var_need_old.set(0)
+        var_old_from.set(18)
+        var_old_to.set(40)
 
         var_need_count_followers = BooleanVar()
-
-        var_friends_from = IntVar()
-        var_friends_to = IntVar()
-
         var_followers_from = IntVar()
         var_followers_to = IntVar()
 
-        var_need_count_friends.set(0)
         var_need_count_followers.set(0)
-        var_friends_from.set(1)
-        var_friends_to.set(100)
         var_followers_from.set(0)
         var_followers_to.set(50)
 
-        count_followers_friends_frame = ttk.Frame(
+        count_followers_old_frame = ttk.Frame(
             left_frame, padding=4
         )
 
-        chk_need_friends = ttk.Checkbutton(
-            count_followers_friends_frame, variable=var_need_count_friends,
-            onvalue=1, offvalue=0, text=''
+        chk_old = ttk.Checkbutton(
+            count_followers_old_frame, variable=var_need_old, onvalue=1,
+            offvalue=0,
+            text=''
         )
-        lbl_friends = ttk.Label(
-            count_followers_friends_frame, text='Друзей', font=fonts.H6_FONT,
+        lbl_old = ttk.Label(
+            count_followers_old_frame, font=fonts.H6_FONT, text='Возраст',
             foreground=styles.NOTABLE_LABEL_FONT
         )
-        spn_friends_from = ttk.Spinbox(
-            count_followers_friends_frame, from_=0, to=FRIENDS_MAX,
-            font=fonts.SPINBOX_FONT, textvariable=var_friends_from
+        spn_old_from = ttk.Spinbox(
+            count_followers_old_frame, width=5, font=fonts.SPINBOX_FONT,
+            from_=18, to=99, textvariable=var_old_from, state='readonly'
         )
-        lbl_friends_to = ttk.Label(
-            count_followers_friends_frame, text='--', font=fonts.H6_FONT
+        lbl_old_to = ttk.Label(
+            count_followers_old_frame, text='--', font=fonts.H6_FONT
         )
-        spn_friends_to = ttk.Spinbox(
-            count_followers_friends_frame, from_=1, to=FRIENDS_MAX,
-            font=fonts.SPINBOX_FONT, textvariable=var_friends_to
+        spn_old_to = ttk.Spinbox(
+            count_followers_old_frame, width=5, font=fonts.SPINBOX_FONT,
+            from_=19, to=100, textvariable=var_old_to, state='readonly'
         )
 
         chk_need_followers = ttk.Checkbutton(
-            count_followers_friends_frame, variable=var_need_count_followers,
+            count_followers_old_frame, variable=var_need_count_followers,
             onvalue=1, offvalue=0
         )
         lbl_followers = ttk.Label(
-            count_followers_friends_frame, text='Подписчиков',
+            count_followers_old_frame, text='Подписчиков',
             font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT
         )
         spn_followers_from = ttk.Spinbox(
-            count_followers_friends_frame, from_=0, to=FOLLOWERS_MAX,
+            count_followers_old_frame, from_=0, to=FOLLOWERS_MAX,
             font=fonts.SPINBOX_FONT, textvariable=var_followers_from
         )
         lbl_followers_to = ttk.Label(
-            count_followers_friends_frame, text='--', font=fonts.H6_FONT
+            count_followers_old_frame, text='--', font=fonts.H6_FONT
         )
         spn_followers_to = ttk.Spinbox(
-            count_followers_friends_frame, from_=1, to=FOLLOWERS_MAX,
+            count_followers_old_frame, from_=1, to=FOLLOWERS_MAX,
             font=fonts.SPINBOX_FONT, textvariable=var_followers_to
         )
         #  row 4
@@ -496,25 +448,29 @@ class App(Tk):
         )
 
         chk_need_last_seen = ttk.Checkbutton(
-            only_last_seen_frame, variable=var_need_last_seen, onvalue=1, offvalue=0
+            only_last_seen_frame, variable=var_need_last_seen, onvalue=1,
+            offvalue=0
         )
         lbl_last_seen = ttk.Label(
-            only_last_seen_frame, text='Последний раз в сети', font=fonts.H6_FONT,
+            only_last_seen_frame, text='Последний раз в сети',
+            font=fonts.H6_FONT,
             foreground=styles.NOTABLE_LABEL_FONT
         )
         spn_last_seen_from = ttk.Spinbox(
-            only_last_seen_frame, from_=1, to=LAST_SEEN_MAX, font=fonts.SPINBOX_FONT,
+            only_last_seen_frame, from_=1, to=LAST_SEEN_MAX,
+            font=fonts.SPINBOX_FONT,
             textvariable=var_last_seen_from, width=5
         )
         lbl_last_seen_to = ttk.Label(
             only_last_seen_frame, text='--', font=fonts.H6_FONT
         )
         spn_last_seen_to = ttk.Spinbox(
-            only_last_seen_frame, from_=2, to=LAST_SEEN_MAX, font=fonts.SPINBOX_FONT,
+            only_last_seen_frame, from_=2, to=LAST_SEEN_MAX,
+            font=fonts.SPINBOX_FONT,
             textvariable=var_last_seen_to, width=5
         )
         lbl_last_seen_day = ttk.Label(
-            only_last_seen_frame, text='дней', font=fonts.H6_FONT
+            only_last_seen_frame, text='дней назад', font=fonts.H6_FONT
         )
 
         #  row 5
@@ -619,7 +575,8 @@ class App(Tk):
         )
         __var_people_main__ = list(PEOPLE_MAIN.keys())
         var_people_main = ttk.Combobox(
-            people_main_smoking_frame, font=fonts.COMBOBOX_FONT
+            people_main_smoking_frame, font=fonts.COMBOBOX_FONT,
+            state='readonly'
         )
         var_people_main['value'] = __var_people_main__
         var_people_main.set(__var_people_main__[0])
@@ -633,7 +590,8 @@ class App(Tk):
         )
         __var_smoking__ = list(SMOKING.keys())
         var_smoking = ttk.Combobox(
-            people_main_smoking_frame, font=fonts.COMBOBOX_FONT
+            people_main_smoking_frame, font=fonts.COMBOBOX_FONT,
+            state='readonly'
         )
         var_smoking['value'] = __var_smoking__
         var_smoking.set(__var_smoking__[0])
@@ -651,12 +609,12 @@ class App(Tk):
             text=''
         )
         lbl_alcohol = ttk.Label(
-            alcohol_frame, font=fonts.H6_FONT, foreground=styles.NOTABLE_LABEL_FONT,
-            text='Отношение к курению'
+            alcohol_frame, font=fonts.H6_FONT,
+            foreground=styles.NOTABLE_LABEL_FONT, text='Отношение к алкоголю'
         )
         __var_alcohol__ = list(ALCOHOL.keys())
         var_alcohol = ttk.Combobox(
-            alcohol_frame, font=fonts.COMBOBOX_FONT
+            alcohol_frame, font=fonts.COMBOBOX_FONT, state='readonly'
         )
         var_alcohol['value'] = __var_alcohol__
         var_alcohol.set(__var_alcohol__[0])
@@ -670,11 +628,13 @@ class App(Tk):
         )
 
         chk_entry_status = ttk.Checkbutton(
-            entry_status_frame, variable=var_need_entry_status, onvalue=1, offvalue=0,
+            entry_status_frame, variable=var_need_entry_status, onvalue=1,
+            offvalue=0,
             text=''
         )
         lbl_entry_status = ttk.Label(
-            entry_status_frame, text='Ключевое слово в статусе', font=fonts.H6_FONT,
+            entry_status_frame, text='Ключевое слово в статусе',
+            font=fonts.H6_FONT,
             foreground=styles.NOTABLE_LABEL_FONT
         )
         var_entry_status = ttk.Entry(
@@ -690,11 +650,13 @@ class App(Tk):
         )
 
         chk_entry_about = ttk.Checkbutton(
-            entry_about_frame, variable=var_need_entry_about, onvalue=1, offvalue=0,
+            entry_about_frame, variable=var_need_entry_about, onvalue=1,
+            offvalue=0,
             text=''
         )
         lbl_entry_about = ttk.Label(
-            entry_about_frame, font=fonts.H6_FONT, text='Ключевое слово в "О себе"',
+            entry_about_frame, font=fonts.H6_FONT,
+            text='Ключевое слово в "О себе"',
             foreground=styles.NOTABLE_LABEL_FONT
         )
         var_entry_about = ttk.Entry(
@@ -708,19 +670,24 @@ class App(Tk):
             left_frame, padding=4
         )
         lbl_deactivate = ttk.Label(
-            deactivate_frame, text='Заблокированные аккаунты', font=fonts.H6_FONT,
+            deactivate_frame, text='Заблокированные аккаунты',
+            font=fonts.H6_FONT,
             foreground=styles.NOTABLE_LABEL_FONT
         )
         rdb_not_deactivate = ttk.Radiobutton(
-            deactivate_frame, variable=var_deactivate, value=0, text='Оставить',
+            deactivate_frame, variable=var_deactivate, value=0,
+            text='Оставить',
         )
         rdb_deactivate = ttk.Radiobutton(
             deactivate_frame, variable=var_deactivate, value=1, text='Убрать'
         )
 
         # right_frame
-        btn_choose_record = ttk.Button(
+        btn_parse = ttk.Button(
             right_frame, text='Парсить'
+        )
+        btn_choose_record = ttk.Button(
+            right_frame, text='Выбрать'
         )
         btn_settings = ttk.Button(
             right_frame, text='Настройка'
@@ -729,14 +696,17 @@ class App(Tk):
             right_frame, text='Все записи'
         )
 
+        entry_pk = ttk.Entry(
+            right_frame
+        )
+
         widgets = {
             'left_frame': left_frame,
             'right_frame': right_frame,
             'var_need_country': var_need_country,
             'var_need_relationship': var_need_relationship,
-            'var_need_mach_photo': var_need_mach_photo,
+            'var_need_old': var_need_old,
             'var_need_city_region': var_need_city_region,
-            'var_need_count_friends': var_need_count_friends,
             'var_need_count_followers': var_need_count_followers,
             'var_need_last_seen': var_need_last_seen,
             'var_need_political': var_need_political,
@@ -754,8 +724,6 @@ class App(Tk):
             'var_has_photo': var_has_photo,
             'var_photo_from': var_photo_from,
             'var_photo_to': var_photo_to,
-            'var_friends_from': var_friends_from,
-            'var_friends_to': var_friends_to,
             'var_followers_from': var_followers_from,
             'var_followers_to': var_followers_to,
             'var_last_seen_from': var_last_seen_from,
@@ -769,6 +737,8 @@ class App(Tk):
             'var_people_main': var_people_main,
             'var_smoking': var_smoking,
             'var_alcohol': var_alcohol,
+            'var_old_from': var_old_from,
+            'var_old_to': var_old_to,
             'lbl_progress': lbl_progress,
             'progressbar': progressbar,
             'lbl_last_seen': lbl_last_seen,
@@ -776,15 +746,11 @@ class App(Tk):
             'spn_last_seen_from': spn_last_seen_from,
             'spn_last_seen_to': spn_last_seen_to,
             'chk_need_last_seen': chk_need_last_seen,
-            'chk_need_mach_photo': chk_need_mach_photo,
-            'lbl_how_mach_photo': lbl_how_mach_photo,
-            'lbl_photo_to': lbl_photo_to,
-            'spn_photo_from': spn_photo_from,
-            'spn_photo_to': spn_photo_to,
             'var_deactivate': var_deactivate,
-            'lbl_last_seen_day': lbl_last_seen_day
+            'lbl_last_seen_day': lbl_last_seen_day,
+            'entry_pk': entry_pk,
         }
-        #########################-------------GRID-------------#########################
+        ####################-------------GRID-------------####################
         #  row 0
         country_frame.grid(row=0, column=0, sticky='NSWE', pady=6)
         chk_country_frame.grid(row=0, column=0, padx=5, sticky='SW')
@@ -796,27 +762,23 @@ class App(Tk):
         rdb_region.grid(row=0, column=6, sticky='SW')
         cmb_city_region.grid(row=0, column=7, sticky='SWE', padx=5)
         #  row 1
-        count_followers_friends_frame.grid(row=1, column=0, sticky='NSWE')
-        chk_need_friends.grid(row=0, column=0, sticky='SW', padx=5)
-        lbl_friends.grid(row=0, column=1, sticky='SW')
-        spn_friends_from.grid(row=0, column=2, sticky='SW', padx=2)
-        lbl_friends_to.grid(row=0, column=3, sticky='SW', padx=5)
-        spn_friends_to.grid(row=0, column=4, sticky='SW', padx=2)
+        count_followers_old_frame.grid(row=1, column=0, sticky='NSWE')
+        chk_old.grid(row=0, column=0, sticky='SW', padx=5)
+        lbl_old.grid(row=0, column=1, sticky='SW')
+        spn_old_from.grid(row=0, column=2, sticky='SW', padx=2)
+        lbl_old_to.grid(row=0, column=3, sticky='SW', padx=5)
+        spn_old_to.grid(row=0, column=4, sticky='SW', padx=2)
         chk_need_followers.grid(row=0, column=5, sticky='SW', padx=15)
         lbl_followers.grid(row=0, column=6, sticky='SW')
         spn_followers_from.grid(row=0, column=7, sticky='SW', padx=2)
         lbl_followers_to.grid(row=0, column=8, sticky='SW', padx=5)
         spn_followers_to.grid(row=0, column=9, sticky='SW', padx=2)
         #  row 2
-        relationship_old_frame.grid(row=2, column=0, sticky='NSWE', pady=7)
-        chk_old.grid(row=0, column=0, sticky='SW', padx=5)
-        lbl_old.grid(row=0, column=1, sticky='SW')
-        spn_old_from.grid(row=0, column=2, sticky='SW', padx=2)
-        lbl_old_to.grid(row=0, column=3, sticky='SW', padx=5)
-        spn_old_to.grid(row=0, column=4, sticky='SW', padx=2)
-        chk_relationship_has_photo_frame.grid(row=0, column=5, sticky='SW', padx=10)
-        lbl_relationship.grid(row=0, column=6, sticky='SW')
-        var_relationship.grid(row=0, column=7, sticky='SWE', padx=10)
+        relationship_frame.grid(row=2, column=0, sticky='NSWE', pady=7)
+        chk_relationship_has_photo_frame.grid(row=0, column=0, sticky='SW',
+                                              padx=10)
+        lbl_relationship.grid(row=0, column=1, sticky='SW')
+        var_relationship.grid(row=0, column=2, sticky='SWE', padx=10)
         #  row 3
         send_message_sex_frame.grid(row=3, column=0, sticky='NSWE')
         lbl_sex.grid(row=0, column=0, sticky='SW', padx=5)
@@ -838,20 +800,10 @@ class App(Tk):
         spn_last_seen_to.grid(row=0, column=7, sticky='SW')
         lbl_last_seen_day.grid(row=0, column=8, sticky='SW', padx=2)
         #  row 5
-        has_photo_frame.grid(row=5, column=0, sticky='NSWE')
+        has_photo_frame.grid(row=5, column=0, sticky='NSWE', pady=6)
         lbl_has_photo.grid(row=0, column=0, sticky='SW', padx=5)
         rdb_not_has_photo.grid(row=0, column=1, sticky='SW')
         rdb_has_photo.grid(row=0, column=2, sticky='SW', padx=3)
-        chk_need_mach_photo.grid(row=0, column=3, sticky='SW', padx=3)
-        chk_need_mach_photo.grid_remove()
-        lbl_how_mach_photo.grid(row=0, column=4, sticky='SW', padx=5)
-        lbl_how_mach_photo.grid_remove()
-        spn_photo_from.grid(row=0, column=5, sticky='SW')
-        spn_photo_from.grid_remove()
-        lbl_photo_to.grid(row=0, column=6, sticky='SW', padx=5)
-        lbl_photo_to.grid_remove()
-        spn_photo_to.grid(row=0, column=7, sticky='SW')
-        spn_photo_to.grid_remove()
         #  row 6
         political_life_main_frame.grid(row=6, column=0, sticky='NSWE', pady=6)
         chk_political.grid(row=0, column=0, sticky='SW', padx=5)
@@ -889,9 +841,10 @@ class App(Tk):
         rdb_not_deactivate.grid(row=0, column=1, sticky='SW')
         rdb_deactivate.grid(row=0, column=2, sticky='SW')
 
-        btn_choose_record.grid(row=0, column=0, sticky='SWE', pady=5)
-        btn_settings.grid(row=1, column=0, sticky='SWE')
-        btn_all_record.grid(row=2, column=0, sticky='SWE', pady=5)
+        btn_parse.grid(row=0, column=0, sticky='SWE', pady=5)
+        btn_choose_record.grid(row=1, column=0, sticky='SWE')
+        btn_settings.grid(row=2, column=0, sticky='SWE', pady=5)
+        btn_all_record.grid(row=3, column=0, sticky='SWE')
 
         self.parsing_book_by_groups.columnconfigure(0, weight=9)
         self.parsing_book_by_groups.columnconfigure(1, weight=1)
@@ -907,26 +860,32 @@ class App(Tk):
             '<Button-1>',
             lambda event: TreeViewWindow(
                 method='parse', completion_name=NAME_PARSING['by_groups'],
-                widgets=widgets
+                entry_pk=entry_pk
             )
         )
         rdb_city.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_region_city(widgets)
+            '<Button-1>',
+            lambda event: FunctionsForWindows.setting_region_city(widgets)
         )
         rdb_region.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_region_city(widgets)
+            '<Button-1>',
+            lambda event: FunctionsForWindows.setting_region_city(widgets)
         )
         rdb_not_only.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_only(widgets)
+            '<Button-1>',
+            lambda event: FunctionsForWindows.setting_only(widgets)
         )
         rdb_only.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_only(widgets)
+            '<Button-1>',
+            lambda event: FunctionsForWindows.setting_only(widgets)
         )
-        rdb_has_photo.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_photo(widgets)
+        btn_settings.bind(
+            '<Button-1>',
+            lambda event: self.function_windows.setting_before_parsing(widgets)
         )
-        rdb_not_has_photo.bind(
-            '<Button-1>', lambda event: FunctionsForWindows.setting_photo(widgets)
+        btn_parse.bind(
+            '<Button-1>',
+            lambda event: self.function_windows.parsing_by_groups(widgets)
         )
 
     def build_main_book(self):
@@ -1005,7 +964,8 @@ class App(Tk):
             '<Button-1>', lambda event: web_open(AUTHOR_PAGE)
         )
         button_authorization.bind(
-            '<Button-1>', lambda event: ConfigureVkApi(ignore_existing_token=True)
+            '<Button-1>',
+            lambda event: ConfigureVkApi(ignore_existing_token=True)
         )
 
     def build_donat_book(self):
