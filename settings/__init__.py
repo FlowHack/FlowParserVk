@@ -2,7 +2,6 @@ from .additional.functions import *
 from .additional.value_constraints import *
 from .additional.variables import *
 from .dicts.additional_dicts import *
-from .exceptions import *
 from .settings import *
 from .style import fonts, styles
 
@@ -42,6 +41,9 @@ __all__ = [
     'FORMAT_DATE',
     'NAME_PARSING',
     'URL_REPO',
+    'APP_PAGE',
+    'APP_BOT',
+    'APP_COMMUNITY',
     #  additional_dicts
     'LIST_COUNTRIES',
     'ERROR_MSG',
@@ -53,8 +55,6 @@ __all__ = [
     'LIFE_MAIN',
     'SMOKING',
     'ALCOHOL',
-    #  exceptions
-    'VkApiExceptions',
     #  settings
     'LABEL_DESCRIPTION',
     'LABEL_HELP_DESCRIPTION',
