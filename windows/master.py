@@ -16,6 +16,8 @@ from settings import (ALCOHOL, APP_NAME, AUTHOR_PAGE, BANK_DETAILS,
                       path_to_dir_ico, set_position_window_on_center, styles)
 from windows import TreeViewWindow
 
+LOGGER = LOGGER('master', 'windows')
+
 
 class App(Tk):
     def __init__(self, update):
@@ -29,12 +31,10 @@ class App(Tk):
         #  Панель вкладок в окне
         notebook = ttk.Notebook(self)
         self.main_book = ttk.Frame(notebook, padding=15)
-        self.donat_book = ttk.Frame(notebook, padding=20)
         self.parsing_book = ttk.Frame(notebook)
 
         notebook.add(self.main_book, text='Главная')
         notebook.add(self.parsing_book, text='Парсинг')
-        notebook.add(self.donat_book, text='Донаты')
 
         notebook.pack(expand=True, fill='both')
 
@@ -55,6 +55,7 @@ class App(Tk):
         self.function_windows = FunctionsForWindows()
 
         if update == 1:
+            LOGGER.info('Начинаем процесс проверки обновлений')
             self.function_windows.check_update()
 
         self.mainloop()
@@ -78,8 +79,6 @@ class App(Tk):
         :return:
         """
         self.build_main_book()
-        self.update()
-        self.build_donat_book()
         self.update()
         self.build_parsing_book_groups()
         self.update()
@@ -973,80 +972,4 @@ class App(Tk):
         button_update.bind(
             '<Button-1>',
             lambda event: self.function_windows.check_update(call=True)
-        )
-
-    def build_donat_book(self):
-        """
-        Функция постройки вкладки донатов
-        :return: ничего
-        """
-        caption = 'Бесплатность проекта зависит от ваших пожертвований!'
-        bank_details = (
-            'Номер счёта: '
-            f'{BANK_DETAILS["sberbank"]} (Сбербанк)\n'
-            f'ЮMoney: {BANK_DETAILS["ymoney"]} '
-            '(Яндекс деньги)\n'
-            f'VISA: {BANK_DETAILS["qiwi_visa"]} (QIWI VISA)'
-        )
-        label_main = ttk.Label(
-            self.donat_book, text='Донаты', font=fonts.H1_FONT,
-            justify='center', foreground='#A3DAFF'
-        )
-        label_bank_details_caption = ttk.Label(
-            self.donat_book, text=caption, font=fonts.H5_FONT,
-            justify='center', foreground='#FFC8A3'
-        )
-        label_bank_details = ttk.Label(
-            self.donat_book, text=bank_details, font=fonts.H6_FONT,
-            justify='center'
-        )
-        label_FPVK_1 = ttk.Label(
-            self.donat_book, cursor='heart', image=self.app_ico['96x96_FPVK']
-        )
-        label_FPVK_2 = ttk.Label(
-            self.donat_book, cursor='heart', image=self.app_ico['96x96_FPVK']
-        )
-        btn_copy_sber = ttk.Button(
-            self.donat_book, text='Копировать счёт Сбербанка',
-            command=lambda: copy_in_clipboard(
-                btn_copy_sber, BANK_DETAILS['sberbank']
-            )
-        )
-        btn_copy_ymoney = ttk.Button(
-            self.donat_book, text='Копировать счёт ЮMoney',
-            command=lambda: copy_in_clipboard(
-                btn_copy_ymoney, BANK_DETAILS['ymoney']
-            )
-        )
-        btn_copy_qiwi_visa = ttk.Button(
-            self.donat_book, text='Копировать счёт VISA',
-            command=lambda: copy_in_clipboard(
-                btn_copy_qiwi_visa, BANK_DETAILS['qiwi_visa']
-            )
-        )
-
-        label_main.grid(row=0, column=0, sticky='S', columnspan=5)
-        label_bank_details_caption.grid(
-            row=1, column=0, sticky='S', columnspan=5, pady=20
-        )
-        label_bank_details.grid(row=2, column=0, sticky='N', columnspan=5)
-        label_FPVK_1.grid(row=2, column=0, sticky='NW')
-        label_FPVK_2.grid(row=2, column=4, sticky='NE')
-        btn_copy_sber.grid(row=3, column=1, sticky='WES')
-        btn_copy_ymoney.grid(row=3, column=2, sticky='SWE')
-        btn_copy_qiwi_visa.grid(row=3, column=3, sticky='SWE')
-
-        self.donat_book.columnconfigure(0, weight=1)
-        self.donat_book.columnconfigure(1, weight=1)
-        self.donat_book.columnconfigure(2, weight=1)
-        self.donat_book.columnconfigure(3, weight=1)
-        self.donat_book.columnconfigure(4, weight=1)
-        self.donat_book.rowconfigure(1, weight=1)
-        self.donat_book.rowconfigure(2, weight=2)
-
-        label_FPVK_1.bind(
-            '<Button-1>', lambda: web_open(PAGE_APP)
-        )
-        label_FPVK_2.bind(
-            '<Button-1>', lambda: web_open(PAGE_APP)
         )

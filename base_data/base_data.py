@@ -69,7 +69,9 @@ class MainDB:
         )
         self.connect_bd.commit()
         LOGGER.info('Создали базу данных настроек')
-        self.remote_control_bd.execute('INSERT INTO AppSettings VALUES (1,1,0)')
+        self.remote_control_bd.execute(
+            'INSERT INTO AppSettings VALUES (1,1,0)'
+        )
         self.connect_bd.commit()
         LOGGER.info('Заполнили бд настроек дефолтными значениями')
 

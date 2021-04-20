@@ -1,12 +1,4 @@
-from math import ceil
-from time import time as time_now
-from tkinter.messagebox import showwarning
-
-from _tkinter import TclError
-
 from my_vk_api import GetRequestsToVkApi
-from settings import (ERROR_MSG, FOLLOWERS_MAX, FRIENDS_MAX, LIST_COUNTRIES,
-                      STATUS_VK_PERSON)
 
 
 class AdditionalFunctionsForWindows:

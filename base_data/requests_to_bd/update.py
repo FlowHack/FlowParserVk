@@ -1,6 +1,8 @@
 from base_data import GetRequestsToDB, MainDB
 from settings import LOGGER
 
+LOGGER = LOGGER('bd_request', 'base_data')
+
 
 class UpdateRequestsToDB(MainDB):
     def update_data_on_user_table(self,

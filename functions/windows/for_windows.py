@@ -1,18 +1,24 @@
 import json
+from time import mktime, strptime
 from time import time as time_now
-from time import strptime, mktime
-from tkinter.messagebox import askyesno, showinfo, showwarning, askyesnocancel
+from tkinter.messagebox import (askyesno, askyesnocancel, showerror, showinfo,
+                                showwarning)
 
-from base_data import UpdateRequestsToDB, GetRequestsToDB
-from settings import (FOLLOWERS_MAX, FRIENDS_MAX, LAST_SEEN_MAX,
-                      LIST_COUNTRIES, LOGGER, NAME_PARSING, STATUS_VK_PERSON,
-                      POLITICAL, PEOPLE_MAIN, LIFE_MAIN, SMOKING, ALCOHOL,
-                      PROGRESSBAR_MAX, URL_REPO, VERSION)
+from _tkinter import TclError
+from git.exc import GitCommandError
+from requests.exceptions import ConnectionError
+
+from base_data import GetRequestsToDB, UpdateRequestsToDB
+from my_vk_api import GetRequestsToVkApi
+from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
+                      LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
+                      POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
+                      URL_REPO, VERSION)
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
-from my_vk_api import GetRequestsToVkApi
-from _tkinter import TclError
+
+LOGGER = LOGGER('func_win', 'windows')
 
 
 class FunctionsForWindows:
@@ -21,14 +27,32 @@ class FunctionsForWindows:
 
     @staticmethod
     def check_update(call=False):
-        from git import Repo
         import tempfile
+
+        from git import Repo
 
         with tempfile.TemporaryDirectory() as temp:
             version = temp + '/' + 'version.txt'
             need_update = False
 
-            Repo.clone_from(URL_REPO, temp, branch='control/version', depth=1)
+            try:
+                LOGGER.info('Клонируем проект')
+                Repo.clone_from(
+                    URL_REPO, temp, branch='control/version', depth=1
+                )
+            except GitCommandError as error:
+                LOGGER.error(
+                    f'Произошла ошибка при клонировании проекта {error}'
+                )
+                if call is True:
+                    showerror(
+                        'Невозможно выполнить обновление',
+                        f'Ваша версия: {VERSION}\n\nМы не смогли выполнить '
+                        'обновление. Вы можете скачать новую версию '
+                        'самостоятельно, либо рассказать об ошибке в боте ВК'
+                    )
+
+                return
 
             with open(version) as file:
                 file = file.readline().strip().split('&')
@@ -63,6 +87,7 @@ class FunctionsForWindows:
                     return
 
                 if answer is None:
+                    LOGGER.info('Отмена автообновлений')
                     UpdateRequestsToDB().update_settings_app_table(
                         auto_update=0
                     )
@@ -81,11 +106,10 @@ class FunctionsForWindows:
                 'count']
             lbl.configure(text='Количество: ' + str(count))
         except ValueError as error:
-            if str(error) == 'неверный id':
-                showwarning(
-                    'Неверный id',
-                    'Проверьте ваши id, среди них есть неверный!'
-                )
+            showwarning(
+                'Неверный id',
+                f'Проверьте ваши id, среди них есть неверный!\n\n{error}'
+            )
 
     @staticmethod
     def parsing_groups(widgets):
@@ -104,15 +128,22 @@ class FunctionsForWindows:
             ids = AdditionalFunctionsForWindows.get_groups_from_text(text
                                                                      )['ids']
         except ValueError as error:
-            if str(error) == 'неверный id':
-                showwarning(
-                    'Неверный id',
-                    'Проверьте ваши id, среди них есть неверный!'
-                )
-                return
+            showwarning(
+                'Неверный id',
+                f'Проверьте ваши id, среди них есть неверный!\n\n{error}'
+            )
+            return
 
-        values = ParsingVk.parse_by_groups(progressbar, lbl_progress, ids,
-                                           last_parse)
+        try:
+            values = ParsingVk.parse_by_groups(progressbar, lbl_progress, ids,
+                                               last_parse)
+        except ConnectionError as error:
+            showerror(
+                'Нет подключения',
+                'У вас нет подключения к интернету, парсинг невозможен\n\n'
+                f'{error}'
+            )
+            return
 
         count, peoples = values['count'], values['result']
 
@@ -127,9 +158,8 @@ class FunctionsForWindows:
         peoples = json.dumps(peoples, ensure_ascii=False)
 
         UpdateRequestsToDB().update_get_people_bd(
-            type_request=NAME_PARSING['by_groups'], count_people=count, time=time,
-            response=peoples,
-            last_parse=int(last_parse)
+            type_request=NAME_PARSING['by_groups'], count_people=count,
+            time=time, response=peoples, last_parse=int(last_parse)
         )
 
     @staticmethod
@@ -199,16 +229,23 @@ class FunctionsForWindows:
         )
         lbl_progress.update()
 
-        if var_city_region.get() == 0:
-            cities = self.additional_functions.get_cities(country_id)
-            __var_city_region__ = list(cities.keys())
-            cmb_city_region['value'] = __var_city_region__
-            cmb_city_region.set(__var_city_region__[0])
-        else:
-            regions = self.additional_functions.get_regions(country_id)
-            __var_city_region__ = list(regions.keys())
-            cmb_city_region['value'] = __var_city_region__
-            cmb_city_region.set(__var_city_region__[0])
+        try:
+            if var_city_region.get() == 0:
+                cities = self.additional_functions.get_cities(country_id)
+                __var_city_region__ = list(cities.keys())
+                cmb_city_region['value'] = __var_city_region__
+                cmb_city_region.set(__var_city_region__[0])
+            else:
+                regions = self.additional_functions.get_regions(country_id)
+                __var_city_region__ = list(regions.keys())
+                cmb_city_region['value'] = __var_city_region__
+                cmb_city_region.set(__var_city_region__[0])
+        except ConnectionError:
+            showerror(
+                'Нет подключения',
+                'Подключение к интернету не установлено, настройка невозможна'
+                '\n\n{error}'
+            )
 
         lbl_progress.configure(text='', foreground='white')
         lbl_progress.update()
@@ -454,7 +491,7 @@ class FunctionsForWindows:
             iteration += 1
             lbl_progress.configure(
                 text=f'Прогресс {iteration}/{length}. Подождите, это может '
-                'занять несколько минут... '
+                     'занять несколько минут... '
             )
             progressbar['value'] += step
             progressbar.update()
@@ -506,9 +543,9 @@ class FunctionsForWindows:
                     format_bdate = '%d.%m.%Y'
                     now = time_now()
                     date_from = data_from
-                    date_from = now - (int(date_from)*24*60*60)
+                    date_from = now - (int(date_from) * 24 * 60 * 60)
                     date_to = data_to
-                    date_to = now - (int(date_to)*24*60*60)
+                    date_to = now - (int(date_to) * 24 * 60 * 60)
 
                     bdate = strptime(bdate, format_bdate)
                     bdate = mktime(bdate)

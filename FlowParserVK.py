@@ -1,6 +1,6 @@
 import time
 from tkinter import Label, Tk
-from tkinter.messagebox import showinfo, showwarning
+from tkinter.messagebox import showinfo, showwarning, showerror
 from webbrowser import open_new_tab as web_open_new_tab
 
 import requests
@@ -22,6 +22,7 @@ class BrainForApp:
         Создаёт превью и проверяет нужные настройки для программы
         :param window_preview: объект окна превью
         """
+        self.logger = LOGGER('main', 'main')
         png_preview_open, png_preview = self.preview_image_open()
         self.preview_image_set(png_preview_open, png_preview, window_preview)
         window_preview.update()
@@ -34,7 +35,7 @@ class BrainForApp:
         auto_update = settings['auto_update']
 
         if first_start == 1:
-
+            self.logger.info('Первый запуск')
             window_preview.destroy()
             done = AdditionalWindows().person_and_agreement_data()
 
@@ -45,26 +46,16 @@ class BrainForApp:
 
         try:
             window_preview.destroy()
-        except TclError as error:
-            if str(error) == 'can\'t invoke "destroy" command: application ' \
+        except TclError as err:
+            if str(err) == 'can\'t invoke "destroy" command: application ' \
                              'has been destroyed':
                 pass
 
+        self.logger.info('Запуск приложения')
+
         from windows import App
         App(auto_update)
-
-    @staticmethod
-    def check_ico():
-        """
-        Проверяет наличие иконок
-        """
-        pass
-
-    def check_update(self):
-        """
-        Проверяет наличие обновлений
-        """
-        pass
+        self.logger.info('Закрытие приложения')
 
     def preview_image_open(self):
         """
@@ -77,9 +68,8 @@ class BrainForApp:
                 )
                 png_preview = ImageTk.PhotoImage(png_preview_open)
                 return png_preview_open, png_preview
-            except FileNotFoundError as error:
-                LOGGER.error(str(error))
-                self.check_ico()
+            except FileNotFoundError as err:
+                self.logger.error(str(err))
 
     @staticmethod
     def preview_image_set(png_preview_open, png_preview, window_preview):
@@ -96,6 +86,7 @@ class BrainForApp:
 
 class ConfigureVkApi:
     def __init__(self, ignore_existing_token=False):
+        self.logger = LOGGER('config_vk_api', 'vk_api')
         user_data_table_value = GetRequestsToDB().get_user_data_table_value()
         token = user_data_table_value['access_token']
         self.__additional_windows = AdditionalWindows
@@ -113,10 +104,18 @@ class ConfigureVkApi:
 
         self.token = token
 
-        if token is not None:
+        if self.token is not None:
             vk_session = vk_api.VkApi(token=self.token)
             self.vk_tool = vk_api.tools.VkTools(vk_session)
+
+            if ignore_existing_token is True:
+                showinfo(
+                    'Авторизовались',
+                    'Вы удачно авторизовались!'
+                )
+            self.logger.info('Получен vk_tool и сам токен')
         else:
+            self.logger.error('vk_tool не удалось получить')
             self.vk_tool = None
 
     def get_token(self):
@@ -126,13 +125,38 @@ class ConfigureVkApi:
         token = self.__additional_windows().get_token()
         token = self.preparation_final_token(token)
 
-        UpdateRequestsToDB().update_data_on_user_table(token)
-
         if token == DEFAULT_VALUE_FOR_BD:
             LOGGER.warning(
                 'При выполнении функции get_token был получен невалидный токен'
             )
             return None
+
+        params = {
+            'v': VERSION_API,
+            'access_token': token
+        }
+
+        try:
+            request = requests.get(
+                HTTP_FOR_REQUESTS.format(method='users.get'),
+                params=params
+            ).json()
+        except ConnectionError:
+            showerror(
+                'Нет подключения',
+                'Не возиожно авторизоваться, нетп подключения к интернету'
+            )
+            return None
+
+        if request.get('error'):
+            showerror(
+                'Авторизация не удалась',
+                'Неверный токен авторизации, произошла ошибка, '
+                'повторите попытку'
+            )
+            return None
+
+        UpdateRequestsToDB().update_data_on_user_table(token)
 
         return token
 
@@ -144,14 +168,26 @@ class ConfigureVkApi:
             'access_token': token,
             'owner_id': ID_GROUP_VK
         }
-        request = requests.get(
-            HTTP_FOR_REQUESTS.format(method='donut.isDon'),
-            params=params
-        ).json()
+
+        try:
+            request = requests.get(
+                HTTP_FOR_REQUESTS.format(method='donut.isDon'),
+                params=params
+            ).json()
+        except ConnectionError:
+            showerror(
+                'Нет подключения',
+                'Невозможно авторизоваться, нет подключения к интернету'
+            )
+            return False
+
+        if request.get('error'):
+            showerror(
+                'Ошибка',
+                f'Произошла непредвиденная ошибка {request["error"]}'
+            )
 
         response = request.get('response')
-        if response is None:
-            print(request.get('error'))
 
         if int(response) == 1:
             return True
@@ -191,23 +227,18 @@ class ConfigureVkApi:
                     )
                     return True
 
-    @staticmethod
-    def preparation_final_token(token):
+    def preparation_final_token(self, token):
         token = token.split('access_token=')
 
         if len(token) == 2:
             token = token[1].split('&')[0]
             return token
 
-        if len(token) == 1:
-            token = token[0]
-            return token
-
         showwarning(
             'Не смог распознать токен',
             WARNING_MSG['VK_API']['non_inspected_token']
         )
-        LOGGER.warning(
+        self.logger.warning(
             'При выполнении preparation_final_token, не смог распознать токен'
         )
 
@@ -218,4 +249,13 @@ if __name__ == '__main__':
     master = Tk()
     master.overrideredirect(True)
 
-    app_brain = BrainForApp(master)
+    try:
+        app_brain = BrainForApp(master)
+    except exit():
+        pass
+    except BaseException as error:
+        showerror(
+            'Непредвиденная ошибка',
+            f'Произошла непредвиденная ошибка\n\n{error}'
+        )
+        LOGGER('start', 'main').error(f'Неизвестная ошибка {error}')

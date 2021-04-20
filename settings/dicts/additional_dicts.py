@@ -4,6 +4,8 @@ from settings.additional.variables import path_to_dir_dicts
 
 from ..settings import LOGGER
 
+LOGGER = LOGGER('add_dicts', 'main')
+
 #  Словарь стран
 try:
     with open(f'{path_to_dir_dicts}/countries.json',

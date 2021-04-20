@@ -1,16 +1,20 @@
 import logging
 from logging import INFO, getLogger
 from logging.handlers import RotatingFileHandler
+from os import listdir, mkdir
 
-from settings.additional.variables import APP_NAME
+from settings.additional.variables import APP_NAME, path_to_dir_settings
 
 
-def __get_logger__(name: str) -> object:
+def __get_logger__(name: str, file: str) -> object:
     """
     Функция создания логгера
     :param name: имя файла логгера
     :return: объект логгера
     """
+    if 'log' not in listdir(path_to_dir_settings):
+        mkdir(path_to_dir_settings + '/log')
+
     file_logger = getLogger(name)
     file_logger.setLevel(INFO)
 
@@ -21,7 +25,7 @@ def __get_logger__(name: str) -> object:
     formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
 
     handler = RotatingFileHandler(
-        fr'settings/{name}.log',
+        fr'settings/log/{file}.log',
         maxBytes=50000000,
         backupCount=5,
     )
@@ -32,7 +36,7 @@ def __get_logger__(name: str) -> object:
     return file_logger
 
 
-LOGGER = __get_logger__('main')
+LOGGER = __get_logger__
 
 LICENSE_AGREEMENT = f"""
 Нажимая кнопку "Принять", вы соглашаетесь с собственной ответственностью за ваши действия в программе {APP_NAME}, а также они обдуманны.
