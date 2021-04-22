@@ -1,18 +1,17 @@
+import os
 from sys import exit as exit_ex
-from tkinter import BooleanVar, IntVar, StringVar, Text, Tk, ttk
+from tkinter import BooleanVar, IntVar, Text, Tk, ttk
 from webbrowser import open as web_open
 
 from PIL import Image, ImageTk
 
 from functions import FunctionsForWindows
 from my_vk_api import ConfigureVkApi
-from settings import (ALCOHOL, APP_NAME, AUTHOR_PAGE, BANK_DETAILS,
-                      FOLLOWERS_MAX, FRIENDS_MAX, LABEL_DESCRIPTION,
-                      LABEL_HELP_DESCRIPTION, LAST_SEEN_MAX, LIFE_MAIN,
-                      LIST_COUNTRIES, LOGGER, MACH_PHOTO_MAX, MACH_PHOTO_MIN,
-                      NAME_PARSING, OLD_YEAR_MAX, OLD_YEAR_MIN, PAGE_APP,
-                      PEOPLE_MAIN, POLITICAL, PROGRESSBAR_MAX, SMOKING,
-                      STATUS_VK_PERSON, VERSION, copy_in_clipboard, fonts,
+from settings import (ALCOHOL, APP_COMMUNITY, APP_NAME, APP_PAGE, AUTHOR_PAGE,
+                      FOLLOWERS_MAX, LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
+                      LAST_SEEN_MAX, LIFE_MAIN, LIST_COUNTRIES, LOGGER,
+                      NAME_PARSING, PEOPLE_MAIN, POLITICAL, PROGRESSBAR_MAX,
+                      SMOKING, STATUS_VK_PERSON, VERSION, VK_BOT_APP, fonts,
                       path_to_dir_ico, set_position_window_on_center, styles)
 from windows import TreeViewWindow
 
@@ -66,6 +65,7 @@ class App(Tk):
         :return: ничего
         """
         self.title(APP_NAME)
+        self.tk.call('wm', 'iconphoto', self._w, self.app_ico['FPVK'])
         styles.set_global_style(self)
         w = 1200
         h = 660
@@ -95,23 +95,26 @@ class App(Tk):
             f'{path_to_dir_ico}/48x48_FPVK.png'
         ))
         x72_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/72x72_FPVK.png'
+            os.path.join(path_to_dir_ico, '72x72_FPVK.png')
         ))
         x96_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/96x96_FPVK.png'
+            os.path.join(path_to_dir_ico, '96x96_FPVK.png')
         ))
         x144_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/144x144_FPVK.png'
+            os.path.join(path_to_dir_ico, '144x144_FPVK.png')
         ))
         x192_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/192x192_FPVK.png'
+            os.path.join(path_to_dir_ico, '192x192_FPVK.png')
         ))
         x348_FPVK = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/348x348_FPVK.png'
+            os.path.join(path_to_dir_ico, '348x348_FPVK.png')
         ))
         x148x30_FH = ImageTk.PhotoImage(Image.open(
-            f'{path_to_dir_ico}/148x30_FH.png'
+            os.path.join(path_to_dir_ico, '148x30_FH.png')
         ))
+        FPVK = ImageTk.PhotoImage(
+            file=os.path.join(path_to_dir_ico, 'FPVK.ico')
+        )
 
         return {
             '48x48_FPVK': x48_FPVK,
@@ -120,7 +123,8 @@ class App(Tk):
             '144x144_FPVK': x144_FPVK,
             '192x192_FPVK': x192_FPVK,
             '348x348_FPVK': x348_FPVK,
-            '148x30_FH': x148x30_FH
+            '148x30_FH': x148x30_FH,
+            'FPVK': FPVK
         }
 
     def build_parsing_book_groups(self):
@@ -905,7 +909,7 @@ class App(Tk):
             self.main_book, padding=10, borderwidth=2, relief='groove'
         )
         right_frame.grid(
-            row=0, column=1, sticky='NW'
+            row=0, column=1, sticky='NWE'
         )
 
         label_FPVK = ttk.Label(
@@ -937,9 +941,13 @@ class App(Tk):
             right_frame, text=LABEL_HELP_DESCRIPTION,
             justify='center', font=fonts.H6_FONT, wraplength=650
         )
-        btn_open_page_app = ttk.Button(
-            right_frame, text='Сайт программы', cursor='star',
-            command=lambda: web_open(PAGE_APP)
+        btn_open_community_app = ttk.Button(
+            right_frame, text='Группа FPVK', cursor='star',
+            command=lambda: web_open(APP_COMMUNITY)
+        )
+        btn_open_bot_app = ttk.Button(
+            right_frame, text='VK бот FPVK', cursor='star',
+            command=lambda: web_open(VK_BOT_APP)
         )
 
         label_version.grid(row=0, column=0, pady=5)
@@ -947,20 +955,23 @@ class App(Tk):
         button_authorization.grid(row=4, column=0, pady=10)
         button_update.grid(row=5, column=0)
         label_FH.grid(row=6, column=0, pady=10)
-        label_name_app.grid(row=0, column=0, pady=10)
-        label_description.grid(row=1, column=0, sticky='SWE')
-        label_help_description.grid(row=2, column=0, sticky='SWE', pady=10)
-        btn_open_page_app.grid(row=3, column=0, pady=15, sticky='SWE')
+        label_name_app.grid(row=0, column=0, pady=10, columnspan=2)
+        label_description.grid(row=1, column=0, sticky='SWE', columnspan=2)
+        label_help_description.grid(
+            row=2, column=0, sticky='SWE', pady=10, columnspan=2
+        )
+        btn_open_community_app.grid(row=3, column=0, pady=15, sticky='SWE')
+        btn_open_bot_app.grid(row=3, column=1, pady=15, sticky='SWE')
 
         self.main_book.columnconfigure(0, weight=1)
         self.main_book.columnconfigure(1, weight=3)
-
         left_frame.columnconfigure(0, weight=1)
-
         right_frame.columnconfigure(0, weight=1)
+        right_frame.columnconfigure(1, weight=1)
+        self.main_book.rowconfigure(0, weight=1)
 
         label_FPVK.bind(
-            '<Button-1>', lambda event: web_open(PAGE_APP)
+            '<Button-1>', lambda event: web_open(APP_PAGE)
         )
         label_FH.bind(
             '<Button-1>', lambda event: web_open(AUTHOR_PAGE)

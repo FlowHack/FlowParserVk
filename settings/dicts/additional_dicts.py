@@ -1,4 +1,5 @@
 import json
+import os
 
 from settings.additional.variables import path_to_dir_dicts
 
@@ -8,7 +9,7 @@ LOGGER = LOGGER('add_dicts', 'main')
 
 #  Словарь стран
 try:
-    with open(f'{path_to_dir_dicts}/countries.json',
+    with open(os.path.join(path_to_dir_dicts, 'countries.json'),
               'r', encoding='utf-8') as file:
         file_str = json.load(file)
         LIST_COUNTRIES = json.loads(file_str)
@@ -25,19 +26,22 @@ except FileNotFoundError as error:
 
 #  Словарь ошибок
 try:
-    with open(f'{path_to_dir_dicts}/error.json', 'r', encoding='utf-8') as file:
+    with open(os.path.join(path_to_dir_dicts, 'error.json'), 'r',
+              encoding='utf-8') as file:
         ERROR_MSG = json.load(file)
         LOGGER.info('Загружен словарь ошибок')
 except FileNotFoundError as error:
     LOGGER.error('Не найден файл "error.json"')
 try:
-    with open(f'{path_to_dir_dicts}/warning.json', 'r', encoding='utf-8') as file:
+    with open(os.path.join(path_to_dir_dicts, 'warning.json'), 'r',
+              encoding='utf-8') as file:
         WARNING_MSG = json.load(file)
         LOGGER.info('Загружен словарь предупреждений')
 except FileNotFoundError as error:
     LOGGER.error('Не найден файл "warning.json"')
 try:
-    with open(f'{path_to_dir_dicts}/info.json', 'r', encoding='utf-8') as file:
+    with open(os.path.join(path_to_dir_dicts, 'info.json'), 'r',
+              encoding='utf-8') as file:
         INFO_MSG = json.load(file)
         LOGGER.info('Загружен словарь информационных сообщений')
 except FileNotFoundError as error:

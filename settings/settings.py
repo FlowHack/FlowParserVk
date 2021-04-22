@@ -1,5 +1,4 @@
-import logging
-from logging import INFO, getLogger
+from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
 from os import listdir, mkdir
 
@@ -22,11 +21,11 @@ def __get_logger__(name: str, file: str) -> object:
         '[%(asctime)s] [%(name)s] [%(levelname)s] > %(message)s'
     )
     date_format = '%Y-%m-%d %H:%M:%S'
-    formatter = logging.Formatter(fmt=logger_format, datefmt=date_format)
+    formatter = Formatter(fmt=logger_format, datefmt=date_format)
 
     handler = RotatingFileHandler(
         fr'settings/log/{file}.log',
-        maxBytes=50000000,
+        maxBytes=5252880,
         backupCount=5,
     )
 
@@ -47,4 +46,4 @@ LICENSE_AGREEMENT = f"""
 """
 
 LABEL_DESCRIPTION = 'Эта программа создана для парсинга целевой аудитории из Vk. Основные инструменты для сбора ЦА находятся во вкладке "Действия"'
-LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить в боте программы (для перехода нажмите на иконку программы слева, либо на соответствующую кнопку). Либо в боте Vk.\n\nВ случае ошибки, вы можете сообщить о ней в боте VK программы, либо в сообществе в Vk.'
+LABEL_HELP_DESCRIPTION = 'Помощь по программе можно получить в боте программы (для перехода нажмите на соответствующую кнопку).\n\nВ случае ошибки, вы можете сообщить о ней вcё там же, либо в сообществе в Vk.'

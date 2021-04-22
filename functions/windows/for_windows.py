@@ -54,7 +54,7 @@ class FunctionsForWindows:
 
                 return
 
-            with open(version) as file:
+            with open(version, encoding='utf-8') as file:
                 file = file.readline().strip().split('&')
 
             version = [item for item in file[0].split('.')]

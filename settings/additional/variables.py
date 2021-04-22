@@ -1,14 +1,11 @@
-from os import getcwd
+import os
 
 VERSION = '0.1.0'
 APP_NAME = 'FlowParserVK'
 AUTHOR_PAGE = 'https://vk.com/id311966436'
-APP_PAGE = ''
-APP_BOT = ''
-APP_COMMUNITY = ''
-PAGE_APP = ''
-TELEGRAM_BOT_APP = ''
-VK_BOT_APP = ''
+APP_PAGE = 'https://github.com/FlowHack/FlowParserVk'
+APP_COMMUNITY = 'https://vk.com/club203683544'
+VK_BOT_APP = 'https://vk.com/im?media=&sel=-203683544'
 ID_GROUP_VK = '-203683544'
 BANK_DETAILS = {
     'sberbank': '5469560018109591',
@@ -16,18 +13,19 @@ BANK_DETAILS = {
     'qiwi_visa': '4890494702214891'
 }
 
-path = getcwd()
-path_to_dir_settings = f'{path}/settings'
-path_to_dir_dicts = f'{path_to_dir_settings}/dicts'
-path_to_dir_ico = f'{path_to_dir_settings}/ico'
-path_to_dir_style = f'{path_to_dir_settings}/style/awthemes-10.2.0'
-path_to_db = f'{path_to_dir_settings}/settings.db'
+path = os.getcwd()
+path_to_dir_settings = os.path.join(path, 'settings')
+path_to_dir_dicts = os.path.join(path_to_dir_settings, 'dicts')
+path_to_dir_ico = os.path.join(path_to_dir_settings, 'ico')
+__path_to_dir_style__ = os.path.join(path_to_dir_settings, 'style')
+path_to_dir_style = os.path.join(__path_to_dir_style__, 'awthemes-10.2.0')
+path_to_db = os.path.join(path_to_dir_settings, 'settings.db')
 
 VERSION_API = '5.130'
 HTTP_FOR_REQUESTS = 'https://api.vk.com/method/{method}'
 HTTP_GET_TOKEN = 'https://oauth.vk.com/authorize?client_id=7743684&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=327680&response_type=token&v=5.52'
 
-DEFAULT_VALUE_FOR_BD = 'non_value'
+DEFAULT_VALUE_FOR_BD = 'none_value'
 TIME_FREE_VERSION = 7200
 
 FORMAT_DATE = '%A  %x %H:%M'

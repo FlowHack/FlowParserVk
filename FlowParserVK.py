@@ -1,6 +1,8 @@
+import os
 import time
+from shutil import rmtree
 from tkinter import Label, Tk
-from tkinter.messagebox import showinfo, showwarning, showerror
+from tkinter.messagebox import showerror, showinfo, showwarning
 from webbrowser import open_new_tab as web_open_new_tab
 
 import requests
@@ -11,7 +13,7 @@ from PIL import Image, ImageTk
 from base_data import GetRequestsToDB, MainDB, UpdateRequestsToDB
 from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
                       ID_GROUP_VK, INFO_MSG, LOGGER, TIME_FREE_VERSION,
-                      VERSION_API, WARNING_MSG, path_to_dir_ico)
+                      VERSION_API, WARNING_MSG, path, path_to_dir_ico)
 from windows import AdditionalWindows
 
 
@@ -53,6 +55,14 @@ class BrainForApp:
 
         self.logger.info('Запуск приложения')
 
+        list_path = os.listdir(path)
+
+        if 'updater' in list_path:
+            rmtree('updater', ignore_errors=True, onerror=None)
+
+        if 'tmp' in list_path:
+            rmtree('tmp', ignore_errors=True, onerror=None)
+
         from windows import App
         App(auto_update)
         self.logger.info('Закрытие приложения')
@@ -64,7 +74,7 @@ class BrainForApp:
         while True:
             try:
                 png_preview_open = Image.open(
-                    fr'{path_to_dir_ico}/preview.png'
+                    os.path.join(path_to_dir_ico, 'preview.png')
                 )
                 png_preview = ImageTk.PhotoImage(png_preview_open)
                 return png_preview_open, png_preview
@@ -249,13 +259,4 @@ if __name__ == '__main__':
     master = Tk()
     master.overrideredirect(True)
 
-    try:
-        app_brain = BrainForApp(master)
-    except exit():
-        pass
-    except BaseException as error:
-        showerror(
-            'Непредвиденная ошибка',
-            f'Произошла непредвиденная ошибка\n\n{error}'
-        )
-        LOGGER('start', 'main').error(f'Неизвестная ошибка {error}')
+    app_brain = BrainForApp(master)
