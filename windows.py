@@ -19,17 +19,9 @@ path_app = os.getcwd()
 VERSION_UPDATER = '0.1.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk.git'
 
-REPO_BRANCH = 'app/posix'
-REPO_NAME = 'posix'
-OS = 'Linux система'
-
-# REPO_BRANCH = 'app/windows'
-# REPO_NAME = 'windows'
-# OS = 'Windows'
-#
-# REPO_BRANCH = 'app/mac'
-# REPO_NAME = 'mac'
-# OS = 'MacOs'
+REPO_BRANCH = 'app/windows'
+REPO_NAME = 'windows'
+OS = 'Windows'
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
@@ -194,7 +186,7 @@ class Updater(Tk):
                 'либо рассказать об ошибке в боте ВК'
             )
 
-            self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
+            exit_ex()
 
         self.progressbar['value'] = 50
         self.progressbar.update()
