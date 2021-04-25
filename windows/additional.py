@@ -3,7 +3,9 @@ from time import time
 from tkinter import Text, Tk, Toplevel, messagebox, ttk
 
 from settings import (DEFAULT_VALUE_FOR_BD, LOGGER, WARNING_MSG, fonts,
-                      set_position_window_on_center, styles)
+                      set_position_window_on_center, styles, path_to_dir_ico)
+from PIL import ImageTk
+import os
 
 
 class PersonAndAgreementData:
@@ -47,8 +49,14 @@ class PersonAndAgreementData:
 
         w = 600
         h = 300
+        FPVK = ImageTk.PhotoImage(
+            file=os.path.join(path_to_dir_ico, 'FPVK.ico')
+        )
         self.agreement_window.title('Пользовательское соглашение!')
         set_position_window_on_center(self.agreement_window, w, h)
+        self.agreement_window.tk.call(
+            'wm', 'iconphoto', self.agreement_window._w, FPVK
+        )
         self.agreement_window.protocol("WM_DELETE_WINDOW", exit_ex)
 
     def done_agreement(self):
@@ -141,9 +149,15 @@ class GetTokenWindow:
 
         w = 850
         h = 150
+        FPVK = ImageTk.PhotoImage(
+            file=os.path.join(path_to_dir_ico, 'FPVK.ico')
+        )
         self.token_window.resizable(0, 0)
         self.token_window.title('Получение токена VK')
         set_position_window_on_center(self.token_window, width=w, height=h)
+        self.token_window.tk.call(
+            'wm', 'iconphoto', self.token_window._w, FPVK
+        )
 
     def cancel(self):
         self.token = DEFAULT_VALUE_FOR_BD

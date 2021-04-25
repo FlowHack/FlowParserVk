@@ -13,7 +13,7 @@ from my_vk_api import GetRequestsToVkApi
 from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
-                      URL_REPO, VERSION)
+                      URL_REPO, VERSION, styles)
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -661,10 +661,22 @@ class FunctionsForWindows:
 
             result.append(item['id'])
 
+        lbl_progress.configure(
+            text='Запись данных', foreground=styles.NOTABLE_LABEL_FONT
+        )
+        progressbar['value'] = 0
+        progressbar.update()
+        lbl_progress.update()
+
         count = len(result)
         time_parse = time_now()
 
         if count == 0:
+            lbl_progress.configure(
+                text='', foreground='white'
+            )
+            lbl_progress.update()
+
             showinfo(
                 'Не найдено пользователей',
                 'Пользователи не найдены!\n\nВозможно, что лимит запросов '

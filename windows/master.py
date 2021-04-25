@@ -190,7 +190,7 @@ class App(Tk):
             right_frame, text='Обновить кол-во', cursor='exchange'
         )
         btn_show_all = ttk.Button(
-            right_frame, text='Все запросы'
+            right_frame, text='Все записи'
         )
 
         widgets = {

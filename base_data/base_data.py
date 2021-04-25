@@ -2,6 +2,8 @@ from sqlite3 import connect
 
 from settings import DEFAULT_VALUE_FOR_BD, LOGGER, path_to_db
 
+LOGGER = LOGGER('main_bd', 'base_data')
+
 
 class MainDB:
     def __init__(self):
