@@ -3,3 +3,5 @@ settings.db
 log/
 .idea
 __pycache__
+updater/
+tmp/

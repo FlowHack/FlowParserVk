@@ -19,11 +19,12 @@ LOGGER = LOGGER('master', 'windows')
 
 
 class App(Tk):
-    def __init__(self, update):
+    def __init__(self, update, OS_NAME: str):
         """
         Создание главного окна, вкладок и управление функциями
         """
         super().__init__()
+        self.OS = OS_NAME
         self.app_ico = self.get_app_ico()
         self.initialize_ui()
 
@@ -55,7 +56,7 @@ class App(Tk):
 
         if update == 1:
             LOGGER.info('Начинаем процесс проверки обновлений')
-            self.function_windows.check_update()
+            self.function_windows.check_update(self.OS)
 
         self.mainloop()
 
@@ -982,5 +983,7 @@ class App(Tk):
         )
         button_update.bind(
             '<Button-1>',
-            lambda event: self.function_windows.check_update(call=True)
+            lambda event: self.function_windows.check_update(
+                call=True, OS=self.OS
+            )
         )

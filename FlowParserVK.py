@@ -18,6 +18,8 @@ from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
                       VERSION_API, WARNING_MSG, path, path_to_dir_ico)
 from windows import AdditionalWindows
 
+OS = 'Linux'  # TODO Не забыть изменить  Windows, Linux, MacOs
+
 
 class BrainForApp:
 
@@ -66,7 +68,7 @@ class BrainForApp:
             rmtree('tmp', ignore_errors=True, onerror=None)
 
         from windows import App
-        App(auto_update)
+        App(auto_update, OS)
         self.logger.info('Закрытие приложения')
 
     def preview_image_open(self):

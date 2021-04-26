@@ -13,7 +13,7 @@ from my_vk_api import GetRequestsToVkApi
 from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
-                      URL_REPO, VERSION, styles, OS, path, UPDATE_LINUX,
+                      URL_REPO, VERSION, styles, path, UPDATE_LINUX,
                       UPDATE_MAC, UPDATE_WIN)
 from sys import exit as exit_ex
 import tempfile
@@ -31,7 +31,7 @@ class FunctionsForWindows:
     def __init__(self):
         self.additional_functions = AdditionalFunctionsForWindows()
 
-    def check_update(self, call=False):
+    def check_update(self, os_name, call=False):
         with tempfile.TemporaryDirectory() as temp:
             version = temp + '/' + 'version.txt'
             need_update = False
@@ -95,13 +95,15 @@ class FunctionsForWindows:
 
                 if answer is True:
                     try:
-                        self.update_app()
+                        self.update_app(os_name)
                     except GitCommandError as error:
-                        LOGGER.info(f'Невозможно обновиться {OS} -> {error}')
+                        LOGGER.info(
+                            f'Невозможно обновиться {os_name} -> {error}'
+                        )
 
     @staticmethod
-    def update_app():
-        LOGGER.info(f'Клонируем проект {OS}')
+    def update_app(os_name):
+        LOGGER.info(f'Клонируем проект {os_name}')
         updater = os.path.join(path, 'updater')
         os.mkdir(updater)
 
@@ -109,9 +111,9 @@ class FunctionsForWindows:
             URL_REPO, updater, branch='control/updater', depth=1
         )
 
-        if OS == 'Windows':
+        if os_name == 'Windows':
             command = os.path.join(updater, UPDATE_WIN)
-        elif OS == 'Linux':
+        elif os_name == 'Linux':
             command = os.path.join(updater, UPDATE_LINUX)
             os.system(f'chmod +x {command}')
             showwarning(
@@ -121,7 +123,7 @@ class FunctionsForWindows:
                 f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
             )
             return
-        elif OS == 'MacOs':
+        elif os_name == 'MacOs':
             command = os.path.join(updater, UPDATE_MAC)
         else:
             showerror(

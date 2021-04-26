@@ -40,7 +40,6 @@ __all__ = [
     'NAME_PARSING',
     'URL_REPO',
     'APP_PAGE',
-    'OS',
     'UPDATE_WIN',
     'UPDATE_LINUX',
     'UPDATE_MAC',
