@@ -104,6 +104,8 @@ class Updater(Tk):
         button_frame.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
+        self.btn_start.bind('<Button-1>', lambda event: self.updater())
+
         self.mainloop()
 
     def initialize_ui(self):
