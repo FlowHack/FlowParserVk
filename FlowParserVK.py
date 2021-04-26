@@ -4,6 +4,8 @@ from shutil import rmtree
 from tkinter import Label, Tk
 from tkinter.messagebox import showerror, showinfo, showwarning
 from webbrowser import open_new_tab as web_open_new_tab
+from time import time as time_now
+from math import ceil
 
 import requests
 import vk_api
@@ -172,7 +174,6 @@ class ConfigureVkApi:
 
     @staticmethod
     def check_is_donat(token):
-        return True
         params = {
             'v': VERSION_API,
             'access_token': token,
@@ -259,4 +260,12 @@ if __name__ == '__main__':
     master = Tk()
     master.overrideredirect(True)
 
-    app_brain = BrainForApp(master)
+    try:
+        app_brain = BrainForApp(master)
+    except SystemExit:
+        pass
+    except BaseException as error:
+        showerror(
+            'Ошибка',
+            f'Произошла непредвиденная ошибка\n\n{error}'
+        )

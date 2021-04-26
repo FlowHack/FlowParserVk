@@ -13,7 +13,13 @@ from my_vk_api import GetRequestsToVkApi
 from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
-                      URL_REPO, VERSION, styles)
+                      URL_REPO, VERSION, styles, OS, path, UPDATE_LINUX,
+                      UPDATE_MAC, UPDATE_WIN)
+from sys import exit as exit_ex
+import tempfile
+
+from git import Repo
+import os
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -25,12 +31,7 @@ class FunctionsForWindows:
     def __init__(self):
         self.additional_functions = AdditionalFunctionsForWindows()
 
-    @staticmethod
-    def check_update(call=False):
-        import tempfile
-
-        from git import Repo
-
+    def check_update(self, call=False):
         with tempfile.TemporaryDirectory() as temp:
             version = temp + '/' + 'version.txt'
             need_update = False
@@ -93,8 +94,45 @@ class FunctionsForWindows:
                     )
 
                 if answer is True:
-                    return
-                    # TODO Дописать
+                    try:
+                        self.update_app()
+                    except GitCommandError as error:
+                        LOGGER.info(f'Невозможно обновиться {OS} -> {error}')
+
+    @staticmethod
+    def update_app():
+        LOGGER.info(f'Клонируем проект {OS}')
+        updater = os.path.join(path, 'updater')
+        os.mkdir(updater)
+
+        Repo.clone_from(
+            URL_REPO, updater, branch='control/updater', depth=1
+        )
+
+        if OS == 'Windows':
+            command = os.path.join(updater, UPDATE_WIN)
+        elif OS == 'Linux':
+            command = os.path.join(updater, UPDATE_LINUX)
+            os.system(f'chmod +x {command}')
+            showwarning(
+                'Обновление',
+                'Для обновления вам нужно перейти в папку "updater", которая '
+                'появилась у вас в корне программы и запустить файл '
+                f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
+            )
+            return
+        elif OS == 'MacOs':
+            command = os.path.join(updater, UPDATE_MAC)
+        else:
+            showerror(
+                'Неверное значение',
+                'У вас установлено в программе неверное значение OS\n\n'
+                'Обратитесь за помощью к боту VK'
+            )
+            return
+
+        os.system(command)
+        exit_ex()
 
     @staticmethod
     def update_label_count_group(widgets):
@@ -137,6 +175,8 @@ class FunctionsForWindows:
         try:
             values = ParsingVk.parse_by_groups(progressbar, lbl_progress, ids,
                                                last_parse)
+            if values is None:
+                return
         except ConnectionError as error:
             showerror(
                 'Нет подключения',

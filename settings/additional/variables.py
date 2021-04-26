@@ -1,6 +1,12 @@
 import os
 
-VERSION = '0.1.0'
+VERSION = '0.1.0'  # TODO Не забыть изменить
+OS = 'Linux'  # TODO Не забыть изменить
+
+UPDATE_MAC = 'mac.app'
+UPDATE_WIN = 'windows.exe'
+UPDATE_LINUX = 'updater.sh'
+
 APP_NAME = 'FlowParserVK'
 AUTHOR_PAGE = 'https://vk.com/id311966436'
 APP_PAGE = 'https://github.com/FlowHack/FlowParserVk'
