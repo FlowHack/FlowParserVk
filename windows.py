@@ -19,9 +19,9 @@ path_app = os.getcwd()
 VERSION_UPDATER = '0.1.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk.git'
 
-REPO_BRANCH = 'app/windows'
-REPO_NAME = 'windows'
-OS = 'Windows'
+# # REPO_BRANCH = 'app/windows'
+# # REPO_NAME = 'windows'
+# # OS = 'Windows'
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
@@ -136,11 +136,16 @@ class Updater(Tk):
         if os.path.exists('old_version'):
             shutil.rmtree('old_version', ignore_errors=True, onerror=None)
 
-        listdir = set(os.listdir(path_app))
+        listdir = os.listdir(path_app)
 
         os.mkdir('old_version')
         path_old = os.path.join(path_app, 'old_version')
-        path_to_bd = os.path.join(path_old, 'settings', 'settings.bd')
+        path_settings = os.path.join(path_old, 'settings')
+
+        if 'settings.db' in os.listdir(path_settings):
+            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
+        else:
+            path_to_db = None
 
         for item in listdir:
             if item == 'updater' or item == 'old_version':
@@ -148,11 +153,11 @@ class Updater(Tk):
 
             shutil.move(os.path.join(path_app, item), path_old)
 
-        return path_to_bd
+        return path_to_db
 
     @staticmethod
     def compile_new_app(new_app):
-        listdir = set(os.listdir(new_app))
+        listdir = os.listdir(new_app)
 
         for item in listdir:
             shutil.move(os.path.join(new_app, item), path_app)
@@ -164,7 +169,7 @@ class Updater(Tk):
         logger.info('Создание папки со старой программой')
         self.info_lbl.update()
 
-        path_to_bd = self.compile_old_app()
+        path_to_db = self.compile_old_app()
 
         self.progressbar['value'] = 25
         self.progressbar.update()
@@ -188,7 +193,7 @@ class Updater(Tk):
                 'либо рассказать об ошибке в боте ВК'
             )
 
-            exit_ex()
+            self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
 
         self.progressbar['value'] = 50
         self.progressbar.update()
@@ -196,7 +201,8 @@ class Updater(Tk):
         self.info_lbl.update()
 
         self.compile_new_app(new_app)
-        shutil.copy(path_to_bd, os.path.join(path_app, 'settings'))
+        if path_to_db is not None:
+            shutil.copy(path_to_db, os.path.join(path_app, 'settings'))
 
         self.progressbar['value'] = 100
         self.progressbar.update()

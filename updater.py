@@ -148,7 +148,12 @@ class Updater(Tk):
 
         os.mkdir('old_version')
         path_old = os.path.join(path_app, 'old_version')
-        path_to_bd = os.path.join(path_old, 'settings', 'settings.bd')
+        path_settings = os.path.join(path_old, 'settings')
+
+        if 'settings.db' in os.listdir(path_settings):
+            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
+        else:
+            path_to_db = None
 
         for item in listdir:
             if item == 'updater' or item == 'old_version':
@@ -156,7 +161,7 @@ class Updater(Tk):
 
             shutil.move(os.path.join(path_app, item), path_old)
 
-        return path_to_bd
+        return path_to_db
 
     @staticmethod
     def compile_new_app(new_app):
@@ -172,7 +177,7 @@ class Updater(Tk):
         logger.info('Создание папки со старой программой')
         self.info_lbl.update()
 
-        path_to_bd = self.compile_old_app()
+        path_to_db = self.compile_old_app()
 
         self.progressbar['value'] = 25
         self.progressbar.update()
@@ -204,7 +209,8 @@ class Updater(Tk):
         self.info_lbl.update()
 
         self.compile_new_app(new_app)
-        shutil.copy(path_to_bd, os.path.join(path_app, 'settings'))
+        if path_to_db is not None:
+            shutil.copy(path_to_db, os.path.join(path_app, 'settings'))
 
         self.progressbar['value'] = 100
         self.progressbar.update()
