@@ -19,8 +19,8 @@ source "$PWD/venv/bin/activate"
 
 echo "Установка зависимостей"
 sleep 2
-pip3 install wheel
-pip3 install requirements.txt
+pip install wheel
+pip install -r requirements.txt
 
 echo "Запуск программы"
 python3 linux.py
