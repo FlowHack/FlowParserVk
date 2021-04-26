@@ -150,16 +150,16 @@ class Updater(Tk):
         path_old = os.path.join(path_app, 'old_version')
         path_settings = os.path.join(path_old, 'settings')
 
-        if 'settings.db' in os.listdir(path_settings):
-            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
-        else:
-            path_to_db = None
-
         for item in listdir:
             if item == 'updater' or item == 'old_version':
                 continue
 
             shutil.move(os.path.join(path_app, item), path_old)
+
+        if 'settings.db' in os.listdir(path_settings):
+            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
+        else:
+            path_to_db = None
 
         return path_to_db
 

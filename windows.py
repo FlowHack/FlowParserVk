@@ -19,9 +19,9 @@ path_app = os.getcwd()
 VERSION_UPDATER = '0.1.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk.git'
 
-# # REPO_BRANCH = 'app/windows'
-# # REPO_NAME = 'windows'
-# # OS = 'Windows'
+REPO_BRANCH = 'app/windows'
+REPO_NAME = 'windows'
+OS = 'Windows'
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
@@ -142,16 +142,16 @@ class Updater(Tk):
         path_old = os.path.join(path_app, 'old_version')
         path_settings = os.path.join(path_old, 'settings')
 
-        if 'settings.db' in os.listdir(path_settings):
-            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
-        else:
-            path_to_db = None
-
         for item in listdir:
             if item == 'updater' or item == 'old_version':
                 continue
 
             shutil.move(os.path.join(path_app, item), path_old)
+
+        if 'settings.db' in os.listdir(path_settings):
+            path_to_db = os.path.join(path_old, 'settings', 'settings.db')
+        else:
+            path_to_db = None
 
         return path_to_db
 
