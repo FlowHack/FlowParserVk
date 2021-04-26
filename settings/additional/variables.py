@@ -1,7 +1,7 @@
 import os
 
 VERSION = '0.1.0'  # TODO Не забыть изменить
-OS = 'Linux'  # TODO Не забыть изменить
+OS = 'Linux'  # TODO Не забыть изменить  Windows, Linux, MacOs
 
 UPDATE_MAC = 'mac.app'
 UPDATE_WIN = 'windows.exe'
