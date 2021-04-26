@@ -136,7 +136,7 @@ class Updater(Tk):
         if os.path.exists('old_version'):
             shutil.rmtree('old_version', ignore_errors=True, onerror=None)
 
-        listdir = os.listdir(path_app)
+        listdir = set(os.listdir(path_app))
 
         os.mkdir('old_version')
         path_old = os.path.join(path_app, 'old_version')
@@ -152,10 +152,10 @@ class Updater(Tk):
 
     @staticmethod
     def compile_new_app(new_app):
-        listdir = os.listdir(new_app)
+        listdir = set(os.listdir(new_app))
 
         for item in listdir:
-            shutil.move(item, path_app)
+            shutil.move(os.path.join(new_app, item), path_app)
 
         shutil.rmtree(new_app, ignore_errors=True, onerror=None)
 

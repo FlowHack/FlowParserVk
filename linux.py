@@ -155,7 +155,7 @@ class Updater(Tk):
         listdir = os.listdir(new_app)
 
         for item in listdir:
-            shutil.move(item, path_app)
+            shutil.move(os.path.join(new_app, item), path_app)
 
         shutil.rmtree(new_app, ignore_errors=True, onerror=None)
 
