@@ -2,8 +2,8 @@ import os
 
 VERSION = '0.1.0'  # TODO Не забыть изменить
 
-UPDATE_MAC = 'mac.app'
-UPDATE_WIN = 'windows.exe'
+UPDATE_MAC = 'updater.app'
+UPDATE_WIN = 'updater.exe'
 UPDATE_LINUX = 'updater.sh'
 
 REPO_URL_VERSION = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/version.zip'
