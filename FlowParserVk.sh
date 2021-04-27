@@ -26,5 +26,5 @@ else
 	pip3 install -r requirements.txt
 
 	echo "!!!!!Запуск программы!!!!!"
-	python3 FlowParserVK.py
+	python3 FlowParserVk.py
 fi

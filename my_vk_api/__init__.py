@@ -1,4 +1,4 @@
-from FlowParserVK import ConfigureVkApi
+from FlowParserVk import ConfigureVkApi
 
 from .requests.get import GetRequestsToVkApi
 from .requests.vk_scripts import *
