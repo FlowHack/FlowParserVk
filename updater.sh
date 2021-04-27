@@ -15,3 +15,4 @@ python3 linux.py
 
 cd ..
 chmod +x FlowParserVk.py
+rm -r FlowParserVk-control-updater
