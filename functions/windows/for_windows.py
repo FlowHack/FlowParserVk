@@ -33,7 +33,7 @@ class FunctionsForWindows:
 
     def check_update(self, os_name, call=False):
         with tempfile.TemporaryDirectory() as temp:
-            version = temp + '/' + 'version.txt'
+            version = os.path.join(temp, 'version.txt')
             need_update = False
 
             try:
@@ -55,7 +55,7 @@ class FunctionsForWindows:
 
                 return
 
-            with open(version, encoding='utf-8') as file:
+            with open(version, 'r', encoding='utf-8') as file:
                 file = file.readline().strip().split('&')
 
             version = [item for item in file[0].split('.')]

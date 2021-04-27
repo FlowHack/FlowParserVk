@@ -1,6 +1,6 @@
 from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
-from os import listdir, mkdir
+import os
 
 from settings.additional.variables import APP_NAME, path_to_dir_settings
 
@@ -11,8 +11,8 @@ def __get_logger__(name: str, file: str) -> object:
     :param name: имя файла логгера
     :return: объект логгера
     """
-    if 'log' not in listdir(path_to_dir_settings):
-        mkdir(path_to_dir_settings + '/log')
+    if 'log' not in os.listdir(path_to_dir_settings):
+        os.mkdir(os.path.join(path_to_dir_settings, 'log'))
 
     file_logger = getLogger(name)
     file_logger.setLevel(INFO)
