@@ -46,4 +46,3 @@ NAME_PARSING = {
     'by_groups': 'По группам',
     'by_criteria': 'По критериям'
 }
-URL_REPO = 'https://github.com/FlowHack/FlowParserVk.git'

@@ -38,7 +38,6 @@ __all__ = [
     'TIME_FREE_VERSION',
     'FORMAT_DATE',
     'NAME_PARSING',
-    'URL_REPO',
     'APP_PAGE',
     'UPDATE_WIN',
     'UPDATE_LINUX',

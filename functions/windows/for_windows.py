@@ -12,7 +12,7 @@ from my_vk_api import GetRequestsToVkApi
 from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
-                      URL_REPO, VERSION, styles, path, UPDATE_LINUX,
+                      VERSION, styles, path, UPDATE_LINUX,
                       UPDATE_MAC, UPDATE_WIN, REPO_URL_UPDATER,
                       path_to_updater, path_to_version,
                       REPO_URL_VERSION)
@@ -22,6 +22,7 @@ import os
 import tempfile
 import requests
 import zipfile
+import shutil
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -62,6 +63,8 @@ class FunctionsForWindows:
 
         with open(version, 'r', encoding='utf-8') as file:
             file = file.readline().strip().split('&')
+
+        shutil.rmtree(path_to_version, ignore_errors=True, onerror=None)
 
         version = [item for item in file[0].split('.')]
         version_old = [item for item in VERSION.split('.')]
