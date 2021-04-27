@@ -132,14 +132,15 @@ class Updater(Tk):
 
     @staticmethod
     def compile_old_app():
-        path_old = os.path.join(path_app, 'old_version')
+        os.chdir(path_app)
 
-        if os.path.exists(path_old):
-            shutil.rmtree(path_old, ignore_errors=True, onerror=None)
+        if os.path.exists('old_version'):
+            shutil.rmtree('old_version', ignore_errors=True, onerror=None)
 
         listdir = os.listdir(path_app)
 
-        os.mkdir(path_old)
+        os.mkdir('old_version')
+        path_old = os.path.join(path_app, 'old_version')
         path_settings = os.path.join(path_old, 'settings')
 
         for item in listdir:
@@ -195,7 +196,7 @@ class Updater(Tk):
                 'Невозможно выполнить обновление',
                 '\n\nМы не смогли выполнить обновление. '
                 'Вы можете скачать новую версию самостоятельно через бота VK, '
-                'либо рассказать об ошибке в боте ВК'
+                f'либо рассказать об ошибке в боте ВК\n\n{error}'
             )
 
             self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
@@ -223,7 +224,8 @@ class Updater(Tk):
 
     @staticmethod
     def get_version():
-        version = os.path.join(path, REPO_VERSION_BRANCH, 'version.txt')
+        path_version = os.path.join(path, REPO_VERSION_BRANCH)
+        version = os.path.join(path_version, 'version.txt')
 
         try:
             logger.info('Клонируем ветку version')
@@ -252,7 +254,7 @@ class Updater(Tk):
         with open(version, 'r', encoding='utf-8') as file:
             file = file.read().strip().split('&')
 
-        shutil.rmtree()
+        shutil.rmtree(path_version, ignore_errors=True, onerror=None)
 
         return file[0]
 
@@ -263,6 +265,7 @@ if __name__ == '__main__':
     except SystemExit:
         pass
     except BaseException as error:
+        logger.error(f'Непредвиденная ошибка {error}')
         showerror(
             'Невозможно выполнить обновление',
             '\n\nМы не смогли выполнить обновление. '
