@@ -10,6 +10,7 @@ REPO_URL_VERSION = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/
 REPO_URL_UPDATER = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/updater.zip'
 REPO_BRANCH_VERSION = 'FlowParserVk-control-version'
 REPO_BRANCH_UPDATER = 'FlowParserVk-control-updater'
+REPO_BRANCH_MASTER = 'FlowParserVk-master'
 
 APP_NAME = 'FlowParserVK'
 AUTHOR_PAGE = 'https://vk.com/id311966436'

@@ -50,6 +50,7 @@ __all__ = [
     'REPO_BRANCH_UPDATER',
     'path_to_updater',
     'path_to_version',
+    'REPO_BRANCH_MASTER',
     #  additional_dicts
     'LIST_COUNTRIES',
     'ERROR_MSG',
