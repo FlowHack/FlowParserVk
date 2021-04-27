@@ -1,4 +1,5 @@
-import os
+import os, tempfile, zipfile, requests
+from requests.exceptions import ConnectionError
 import shutil
 from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
@@ -8,8 +9,6 @@ from tkinter import Tk, ttk
 from tkinter.messagebox import showerror, showinfo
 from tkinter.ttk import Style
 
-from git import Repo
-from git.exc import GitCommandError
 from PIL import ImageTk
 
 path = os.getcwd()
@@ -17,10 +16,11 @@ os.chdir('..')
 path_app = os.getcwd()
 
 VERSION_UPDATER = '0.1.0'
-URL_REPO = 'https://github.com/FlowHack/FlowParserVk.git'
+URL_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/master.zip'
+URL_VERSION_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/version.zip'
+REPO_BRANCH = 'FlowParserVk-master'
+REPO_VERSION_BRANCH = 'FlowParserVk-control-version'
 
-REPO_BRANCH = 'app/posix'
-REPO_NAME = 'posix'
 OS = 'Linux система'
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
@@ -177,12 +177,17 @@ class Updater(Tk):
         logger.info(f'Клонирование репозитория {REPO_BRANCH}')
         self.info_lbl.update()
 
-        new_app = os.path.join(path_app, 'new')
-        os.mkdir(new_app)
+        new_app = os.path.join(path_app, REPO_BRANCH)
 
         try:
-            Repo.clone_from(URL_REPO, new_app, branch=REPO_BRANCH, depth=1)
-        except GitCommandError as error:
+            response = requests.get(URL_REPO)
+
+            with tempfile.TemporaryFile() as file:
+                file.write(response.content)
+                with zipfile.ZipFile(file) as fzip:
+                    fzip.extractall(path_app)
+
+        except ConnectionError as error:
             logger.error(
                 f'Произошла ошибка при клонировании проекта {error}'
             )
@@ -194,6 +199,7 @@ class Updater(Tk):
             )
 
             self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
+            self.btn_start.update()
 
         self.progressbar['value'] = 50
         self.progressbar.update()
@@ -217,33 +223,36 @@ class Updater(Tk):
 
     @staticmethod
     def get_version():
-        with TemporaryDirectory() as temp:
-            version = os.path.join(temp, 'version.txt')
+        version = os.path.join(path, REPO_VERSION_BRANCH, 'version.txt')
 
-            try:
-                logger.info('Клонируем ветку version')
-                Repo.clone_from(
-                    URL_REPO, temp, branch='control/version', depth=1
-                )
-            except GitCommandError as error:
-                logger.error(
-                    f'Произошла ошибка при клонировании проекта {error}'
-                )
-                showerror(
-                    'Невозможно выполнить обновление',
-                    '\n\nМы не смогли выполнить обновление. '
-                    'Вы можете скачать новую версию '
-                    'самостоятельно, либо рассказать об ошибке в боте ВК'
-                )
+        try:
+            logger.info('Клонируем ветку version')
+            response = requests.get(URL_VERSION_REPO)
 
-                exit_ex()
+            with tempfile.TemporaryFile() as file:
+                file.write(response.content)
+                with zipfile.ZipFile(file) as fzip:
+                    fzip.extractall(path)
 
-            logger.info('Удачно склонирован')
+        except ConnectionError as error:
+            logger.error(
+                f'Произошла ошибка при клонировании проекта {error}'
+            )
+            showerror(
+                'Невозможно выполнить обновление',
+                '\n\nМы не смогли выполнить обновление. '
+                'Вы можете скачать новую версию '
+                'самостоятельно, либо рассказать об ошибке в боте ВК'
+            )
 
-            with open(version, encoding='utf-8') as file:
-                file = file.readline().strip().split('&')
+            exit_ex()
 
-            return file[0]
+        logger.info('Удачно склонирован')
+
+        with open(version, 'r', encoding='utf-8') as file:
+            file = file.read().strip().split('&')
+
+        return file[0]
 
 
 if __name__ == '__main__':
