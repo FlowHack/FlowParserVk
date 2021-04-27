@@ -15,7 +15,7 @@ from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       VERSION, styles, path, UPDATE_LINUX,
                       UPDATE_MAC, UPDATE_WIN, REPO_URL_UPDATER,
                       path_to_updater, path_to_version,
-                      REPO_URL_VERSION)
+                      REPO_URL_VERSION, REPO_BRANCH_UPDATER)
 from sys import exit as exit_ex
 
 import os
@@ -133,7 +133,8 @@ class FunctionsForWindows:
             os.system(f'chmod +x {command}')
             showwarning(
                 'Обновление',
-                'Для обновления вам нужно перейти в папку "updater", которая '
+                'Для обновления вам нужно перейти в папку '
+                f'"{REPO_BRANCH_UPDATER}", которая '
                 'появилась у вас в корне программы и запустить файл '
                 f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
             )
