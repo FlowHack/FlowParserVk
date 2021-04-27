@@ -1,16 +1,5 @@
 #!/bin/bash
 
-echo "!!!!!Обновление python3 до актуальной версии!!!!!"
-sudo apt reinstall python3 -y
-
-echo "!!!!!Установка python3-venv!!!!!"
-sleep 2
-sudo apt install python3-venv -y
-
-echo "!!!!!Установка python3-pip!!!!!"
-sleep 2
-sudo apt install python3-pip -y
-
 echo "!!!!!Создание виртуального окружения!!!!!"
 sleep 2
 python3 -m venv venv
