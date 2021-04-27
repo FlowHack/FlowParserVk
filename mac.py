@@ -20,6 +20,7 @@ URL_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/master.z
 URL_VERSION_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/version.zip'
 REPO_BRANCH = 'FlowParserVk-master'
 REPO_VERSION_BRANCH = 'FlowParserVk-control-version'
+REPO_UPDATER_BRANCH = 'FlowParserVk-control-updater'
 
 OS = 'MacOs'
 
@@ -143,7 +144,7 @@ class Updater(Tk):
         path_settings = os.path.join(path_old, 'settings')
 
         for item in listdir:
-            if item == 'updater' or item == 'old_version':
+            if item == REPO_UPDATER_BRANCH or item == 'old_version':
                 continue
 
             shutil.move(os.path.join(path_app, item), path_old)
@@ -251,6 +252,8 @@ class Updater(Tk):
 
         with open(version, 'r', encoding='utf-8') as file:
             file = file.read().strip().split('&')
+
+        shutil.rmtree()
 
         return file[0]
 
