@@ -23,6 +23,7 @@ import tempfile
 import requests
 import zipfile
 import shutil
+import subprocess
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -128,6 +129,8 @@ class FunctionsForWindows:
 
         if os_name == 'Windows':
             command = os.path.join(path_to_updater, UPDATE_WIN)
+            subprocess.Popen(command)
+            exit_ex()
         elif os_name == 'Linux':
             command = os.path.join(path_to_updater, UPDATE_LINUX)
             os.system(f'chmod +x {command}')
@@ -141,6 +144,8 @@ class FunctionsForWindows:
             return
         elif os_name == 'MacOs':
             command = os.path.join(path_to_updater, UPDATE_MAC)
+            subprocess.Popen(command)
+            exit_ex()
         else:
             showerror(
                 'Неверное значение',
@@ -148,9 +153,6 @@ class FunctionsForWindows:
                 'Обратитесь за помощью к боту VK'
             )
             return
-
-        os.system(command)
-        exit_ex()
 
     @staticmethod
     def update_label_count_group(widgets):
