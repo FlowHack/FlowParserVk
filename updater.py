@@ -1,15 +1,17 @@
-import os, tempfile, zipfile, requests
-from requests.exceptions import ConnectionError
+import os
 import shutil
+import tempfile
+import zipfile
 from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
 from sys import exit as exit_ex
-from tempfile import TemporaryDirectory
 from tkinter import Tk, ttk
 from tkinter.messagebox import showerror, showinfo
 from tkinter.ttk import Style
 
+import requests
 from PIL import ImageTk
+from requests.exceptions import ConnectionError
 
 path = os.getcwd()
 os.chdir('..')
