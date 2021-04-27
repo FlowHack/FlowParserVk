@@ -15,7 +15,8 @@ from PIL import Image, ImageTk
 from base_data import GetRequestsToDB, MainDB, UpdateRequestsToDB
 from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
                       ID_GROUP_VK, INFO_MSG, LOGGER, TIME_FREE_VERSION,
-                      VERSION_API, WARNING_MSG, path, path_to_dir_ico)
+                      VERSION_API, WARNING_MSG, path, path_to_dir_ico,
+                      REPO_BRANCH_VERSION, REPO_BRANCH_UPDATER)
 from windows import AdditionalWindows
 
 OS = 'Linux'  # TODO Не забыть изменить  Windows, Linux, MacOs
@@ -61,11 +62,11 @@ class BrainForApp:
 
         list_path = os.listdir(path)
 
-        if 'updater' in list_path:
-            rmtree('updater', ignore_errors=True, onerror=None)
+        if REPO_BRANCH_UPDATER in list_path:
+            rmtree(REPO_BRANCH_UPDATER, ignore_errors=True, onerror=None)
 
-        if 'tmp' in list_path:
-            rmtree('tmp', ignore_errors=True, onerror=None)
+        if REPO_BRANCH_VERSION in list_path:
+            rmtree(REPO_BRANCH_VERSION, ignore_errors=True, onerror=None)
 
         from windows import App
         App(auto_update, OS)

@@ -44,6 +44,12 @@ __all__ = [
     'UPDATE_LINUX',
     'UPDATE_MAC',
     'APP_COMMUNITY',
+    'REPO_BRANCH_VERSION',
+    'REPO_URL_VERSION',
+    'REPO_URL_UPDATER',
+    'REPO_BRANCH_UPDATER',
+    'path_to_updater',
+    'path_to_version',
     #  additional_dicts
     'LIST_COUNTRIES',
     'ERROR_MSG',

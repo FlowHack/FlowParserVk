@@ -5,7 +5,6 @@ from tkinter.messagebox import (askyesno, askyesnocancel, showerror, showinfo,
                                 showwarning)
 
 from _tkinter import TclError
-from git.exc import GitCommandError
 from requests.exceptions import ConnectionError
 
 from base_data import GetRequestsToDB, UpdateRequestsToDB
@@ -14,12 +13,15 @@ from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
                       URL_REPO, VERSION, styles, path, UPDATE_LINUX,
-                      UPDATE_MAC, UPDATE_WIN)
+                      UPDATE_MAC, UPDATE_WIN, REPO_URL_UPDATER,
+                      path_to_updater, path_to_version,
+                      REPO_URL_VERSION)
 from sys import exit as exit_ex
-import tempfile
 
-from git import Repo
 import os
+import tempfile
+import requests
+import zipfile
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -32,20 +34,77 @@ class FunctionsForWindows:
         self.additional_functions = AdditionalFunctionsForWindows()
 
     def check_update(self, os_name, call=False):
-        with tempfile.TemporaryDirectory() as temp:
-            version = os.path.join(temp, 'version.txt')
-            need_update = False
+        version = os.path.join(path_to_version, 'version.txt')
+        need_update = False
 
-            try:
-                LOGGER.info('Клонируем проект')
-                Repo.clone_from(
-                    URL_REPO, temp, branch='control/version', depth=1
+        try:
+            LOGGER.info('Клонируем version')
+            response = requests.get(REPO_URL_VERSION)
+
+            with tempfile.TemporaryFile() as file:
+                file.write(response.content)
+                with zipfile.ZipFile(file) as fzip:
+                    fzip.extractall(path)
+
+        except ConnectionError as error:
+            LOGGER.error(
+                f'Произошла ошибка при клонировании проекта {error}'
+            )
+            if call is True:
+                showerror(
+                    'Невозможно выполнить обновление',
+                    f'Ваша версия: {VERSION}\n\nМы не смогли выполнить '
+                    'обновление. Вы можете скачать новую версию '
+                    'самостоятельно, либо рассказать об ошибке в боте ВК'
                 )
-            except GitCommandError as error:
-                LOGGER.error(
-                    f'Произошла ошибка при клонировании проекта {error}'
+
+            return
+
+        with open(version, 'r', encoding='utf-8') as file:
+            file = file.readline().strip().split('&')
+
+        version = [item for item in file[0].split('.')]
+        version_old = [item for item in VERSION.split('.')]
+        info = file[1]
+
+        for i in range(3):
+            if int(version[i]) > int(version_old[i]):
+                need_update = True
+
+        if (call is True) and (need_update is False):
+            version = '.'.join(version_old)
+            showinfo(
+                'Обновление не требуется',
+                'Обновление не требуется\n\n'
+                f'Установлена актуальная версия: {version}'
+            )
+
+        if need_update is True:
+            version = '.'.join(version)
+            answer = askyesnocancel(
+                'Требуется обновление',
+                f'Выпущена новая версия: {version}\n\n{info}\n\n'
+                'Да-Будет установлено обновление\n'
+                'Нет-Обновление будет отложено\n'
+                'Отмена-Будет отменена автоматическая проверка обновлений'
+            )
+
+            if answer is False:
+                return
+
+            if answer is None:
+                LOGGER.info('Отмена автообновлений')
+                UpdateRequestsToDB().update_settings_app_table(
+                    auto_update=0
                 )
-                if call is True:
+
+            if answer is True:
+                try:
+                    self.update_app(os_name)
+                except ConnectionError as error:
+                    LOGGER.error(
+                        f'Невозможно обновиться {os_name} -> {error}'
+                    )
                     showerror(
                         'Невозможно выполнить обновление',
                         f'Ваша версия: {VERSION}\n\nМы не смогли выполнить '
@@ -53,68 +112,21 @@ class FunctionsForWindows:
                         'самостоятельно, либо рассказать об ошибке в боте ВК'
                     )
 
-                return
-
-            with open(version, 'r', encoding='utf-8') as file:
-                file = file.readline().strip().split('&')
-
-            version = [item for item in file[0].split('.')]
-            version_old = [item for item in VERSION.split('.')]
-            info = file[1]
-
-            for i in range(3):
-                if int(version[i]) > int(version_old[i]):
-                    need_update = True
-
-            if (call is True) and (need_update is False):
-                version = '.'.join(version_old)
-                showinfo(
-                    'Обновление не требуется',
-                    'Обновление не требуется\n\n'
-                    f'Установлена актуальная версия: {version}'
-                )
-
-            if need_update is True:
-                version = '.'.join(version)
-                answer = askyesnocancel(
-                    'Требуется обновление',
-                    f'Выпущена новая версия: {version}\n\n{info}\n\n'
-                    'Да-Будет установлено обновление\n'
-                    'Нет-Обновление будет отложено\n'
-                    'Отмена-Будет отменена автоматическая проверка обновлений'
-                )
-
-                if answer is False:
-                    return
-
-                if answer is None:
-                    LOGGER.info('Отмена автообновлений')
-                    UpdateRequestsToDB().update_settings_app_table(
-                        auto_update=0
-                    )
-
-                if answer is True:
-                    try:
-                        self.update_app(os_name)
-                    except GitCommandError as error:
-                        LOGGER.info(
-                            f'Невозможно обновиться {os_name} -> {error}'
-                        )
-
     @staticmethod
     def update_app(os_name):
         LOGGER.info(f'Клонируем проект {os_name}')
-        updater = os.path.join(path, 'updater')
-        os.mkdir(updater)
 
-        Repo.clone_from(
-            URL_REPO, updater, branch='control/updater', depth=1
-        )
+        response = requests.get(REPO_URL_UPDATER)
+
+        with tempfile.TemporaryFile() as file:
+            file.write(response.content)
+            with zipfile.ZipFile(file) as fzip:
+                fzip.extractall(path)
 
         if os_name == 'Windows':
-            command = os.path.join(updater, UPDATE_WIN)
+            command = os.path.join(path_to_updater, UPDATE_WIN)
         elif os_name == 'Linux':
-            command = os.path.join(updater, UPDATE_LINUX)
+            command = os.path.join(path_to_updater, UPDATE_LINUX)
             os.system(f'chmod +x {command}')
             showwarning(
                 'Обновление',
@@ -124,7 +136,7 @@ class FunctionsForWindows:
             )
             return
         elif os_name == 'MacOs':
-            command = os.path.join(updater, UPDATE_MAC)
+            command = os.path.join(path_to_updater, UPDATE_MAC)
         else:
             showerror(
                 'Неверное значение',

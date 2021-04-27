@@ -56,7 +56,7 @@ class App(Tk):
 
         if update == 1:
             LOGGER.info('Начинаем процесс проверки обновлений')
-            self.function_windows.check_update(self.OS)
+            self.function_windows.check_update(os_name=self.OS)
 
         self.mainloop()
 
@@ -984,6 +984,6 @@ class App(Tk):
         button_update.bind(
             '<Button-1>',
             lambda event: self.function_windows.check_update(
-                call=True, OS=self.OS
+                call=True, os_name=self.OS
             )
         )
