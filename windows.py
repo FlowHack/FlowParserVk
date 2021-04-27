@@ -132,15 +132,14 @@ class Updater(Tk):
 
     @staticmethod
     def compile_old_app():
-        os.chdir(path_app)
+        path_old = os.path.join(path_app, 'old_version')
 
-        if os.path.exists('old_version'):
-            shutil.rmtree('old_version', ignore_errors=True, onerror=None)
+        if os.path.exists(path_old):
+            shutil.rmtree(path_old, ignore_errors=True, onerror=None)
 
         listdir = os.listdir(path_app)
 
-        os.mkdir('old_version')
-        path_old = os.path.join(path_app, 'old_version')
+        os.mkdir(path_old)
         path_settings = os.path.join(path_old, 'settings')
 
         for item in listdir:
