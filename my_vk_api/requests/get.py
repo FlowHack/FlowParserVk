@@ -1,13 +1,9 @@
-from math import ceil
-from time import sleep
-from tkinter.messagebox import showwarning
-
 import requests
-import vk_api
 
-from FlowParserVK import ConfigureVkApi
-from settings import (HTTP_FOR_REQUESTS, LOGGER, PROGRESSBAR_MAX, VERSION_API,
-                      WARNING_MSG)
+from FlowParserVk import ConfigureVkApi
+from settings import HTTP_FOR_REQUESTS, LOGGER, VERSION_API
+
+LOGGER = LOGGER('vk_get_request', 'vk_api')
 
 
 class GetRequestsToVkApi:
@@ -41,6 +37,8 @@ class GetRequestsToVkApi:
         if self.vk_tool is None:
             raise ValueError('неверный токен')
 
-        response = self.vk_tool.get_all(method=api_method, max_count=1000, values=kwargs)
+        response = self.vk_tool.get_all(
+            method=api_method, max_count=1000, values=kwargs
+        )
 
         return response
