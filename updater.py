@@ -210,9 +210,6 @@ class Updater(Tk):
                 f'либо рассказать об ошибке в боте ВК\n\n{error}'
             )
 
-            self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
-            self.btn_start.update()
-
         self.progressbar['value'] = 50
         self.progressbar.update()
         self.info_lbl.configure(text='Подготовка файлов')
@@ -226,6 +223,9 @@ class Updater(Tk):
         self.progressbar.update()
         self.info_lbl.configure(text='Готово!')
         self.info_lbl.update()
+
+        self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
+        self.btn_start.update()
 
         showinfo(
             'Готово',
