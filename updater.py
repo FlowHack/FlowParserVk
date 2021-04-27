@@ -13,10 +13,6 @@ import requests
 from PIL import ImageTk
 from requests.exceptions import ConnectionError
 
-path = os.getcwd()
-os.chdir('..')
-path_app = os.getcwd()
-
 VERSION_UPDATER = '0.1.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/master.zip'
 URL_VERSION_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/version.zip'
@@ -25,10 +21,19 @@ REPO_VERSION_BRANCH = 'FlowParserVk-control-version'
 REPO_UPDATER_BRANCH = 'FlowParserVk-control-updater'
 
 OS = 'Linux система'
+path = os.getcwd()
+os.chdir('..')
+path_app = os.getcwd()
 
 # OS = 'Windows'
+# path_app = os.getcwd()
+# os.chdir(REPO_UPDATER_BRANCH)
+# path = os.getcwd()
 
 # OS = 'MacOs'
+# path = os.getcwd()
+# os.chdir('..')
+# path_app = os.getcwd()
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
