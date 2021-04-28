@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+from sys import platform
 from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
 from sys import exit as exit_ex
@@ -20,10 +21,26 @@ REPO_BRANCH = 'FlowParserVk-master'
 REPO_VERSION_BRANCH = 'FlowParserVk-control-version'
 REPO_UPDATER_BRANCH = 'FlowParserVk-control-updater'
 
-OS = 'Linux система'
+if platform in ['linux']:
+    OS = 'Linux система'
+elif platform in ['win32', 'cygwin']:
+    OS = 'Windows'
+elif platform in ['darwin', 'os2', 'os2emx']:
+    OS = 'MacOs'
+else:
+    showerror(
+        'Платформа',
+        f'Неподдерживаемая платформа: {platform}\n\nОбратитесь за помощью '
+        'к боту VK'
+    )
+
+    exit_ex()
+
 path = os.getcwd()
 os.chdir('..')
 path_app = os.getcwd()
+
+print(path, path_app)
 
 # OS = 'Windows'
 # path_app = os.getcwd()
