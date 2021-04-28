@@ -13,6 +13,7 @@ pip install -r requirements.txt
 echo "!!!!!Запуск программы!!!!!"
 python3 updater.py
 
+cd $PWD
 cd ..
 chmod +x FlowParserVk.py
 rm -r FlowParserVk-control-updater
