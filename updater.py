@@ -9,10 +9,15 @@ from sys import exit as exit_ex
 from tkinter import Tk, ttk
 from tkinter.messagebox import showerror, showinfo
 from tkinter.ttk import Style
+import subprocess
 
 import requests
 from PIL import ImageTk
 from requests.exceptions import ConnectionError
+
+path = os.getcwd()
+os.chdir('..')
+path_app = os.getcwd()
 
 VERSION_UPDATER = '0.1.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/master.zip'
@@ -22,10 +27,13 @@ REPO_VERSION_BRANCH = 'FlowParserVk-control-version'
 REPO_UPDATER_BRANCH = 'FlowParserVk-control-updater'
 
 if platform in ['linux']:
+    app_file = os.path.join(path_app, 'FlowParserVk.sh')
     OS = 'Linux система'
 elif platform in ['win32', 'cygwin']:
+    app_file = os.path.join(path_app, 'FlowParserVk.exe')
     OS = 'Windows'
 elif platform in ['darwin', 'os2', 'os2emx']:
+    app_file = os.path.join(path_app, 'FlowParserVk.app')
     OS = 'MacOs'
 else:
     showerror(
@@ -35,10 +43,6 @@ else:
     )
 
     exit_ex()
-
-path = os.getcwd()
-os.chdir('..')
-path_app = os.getcwd()
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
@@ -229,14 +233,26 @@ class Updater(Tk):
         self.info_lbl.configure(text='Готово!')
         self.info_lbl.update()
 
-        self.btn_start.configure(text='Закрыть', command=lambda: exit_ex())
-        self.btn_start.update()
+        if platform in ['linux']:
+            self.btn_start.configure(text='Закрыть')
+            self.btn_start.bind('<Button-1>', lambda event: exit_ex())
+            self.btn_start.update()
 
-        showinfo(
-            'Готово',
-            'Обновлние закончено!\n\nВ случае ошибок, просто возьмите '
-            'программу из папки "old_version"'
-        )
+            showinfo(
+                'Готово',
+                'Обновлние закончено!\n\nВ случае ошибок, просто возьмите '
+                'программу из папки "old_version"'
+            )
+        else:
+            showinfo(
+                'Готово',
+                'Обновлние закончено!\n\nВ случае ошибок, просто возьмите '
+                'программу из папки "old_version"'
+            )
+
+            subprocess.Popen(app_file, cwd=path_app)
+            exit_ex()
+
 
     @staticmethod
     def get_version():
