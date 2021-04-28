@@ -23,19 +23,10 @@ REPO_UPDATER_BRANCH = 'FlowParserVk-control-updater'
 
 if platform in ['linux']:
     OS = 'Linux система'
-    path = os.getcwd()
-    os.chdir('..')
-    path_app = os.getcwd()
 elif platform in ['win32', 'cygwin']:
     OS = 'Windows'
-    path_app = os.getcwd()
-    os.chdir(REPO_UPDATER_BRANCH)
-    path = os.getcwd()
 elif platform in ['darwin', 'os2', 'os2emx']:
     OS = 'MacOs'
-    path_app = os.getcwd()
-    os.chdir(REPO_UPDATER_BRANCH)
-    path = os.getcwd()
 else:
     showerror(
         'Платформа',
@@ -44,6 +35,10 @@ else:
     )
 
     exit_ex()
+
+path = os.getcwd()
+os.chdir('..')
+path_app = os.getcwd()
 
 lbl_head_font = ('Times New Roman', 14, 'italic bold')
 lbl_progress_font = ('Times New Roman', 11, 'italic bold')
