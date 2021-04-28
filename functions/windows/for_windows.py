@@ -129,7 +129,7 @@ class FunctionsForWindows:
 
         if os_name == 'Windows':
             command = os.path.join(path_to_updater, UPDATE_WIN)
-            subprocess.Popen(command)
+            subprocess.Popen(command, cwd=path_to_updater)
             exit_ex()
         elif os_name == 'Linux':
             os.system(f'chmod -R 775 {path_to_updater}')
@@ -141,10 +141,10 @@ class FunctionsForWindows:
                 'появилась у вас в корне программы и запустить файл '
                 f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
             )
-            return
+            exit_ex()
         elif os_name == 'MacOs':
             command = os.path.join(path_to_updater, UPDATE_MAC)
-            subprocess.Popen(command)
+            subprocess.Popen(command, cwd=path_to_updater)
             exit_ex()
         else:
             showerror(
