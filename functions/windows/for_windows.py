@@ -132,10 +132,16 @@ class FunctionsForWindows:
             subprocess.Popen(command)
             exit_ex()
         elif os_name == 'Linux':
-            command = os.path.join(path_to_updater, UPDATE_LINUX)
             os.system(f'chmod -R 775 {path_to_updater}')
-            subprocess.Popen(command, cwd=path_to_updater)
-            exit_ex()
+
+            showwarning(
+                'Обновление',
+                'Для обновления вам нужно перейти в папку '
+                f'"{REPO_BRANCH_UPDATER}", которая '
+                'появилась у вас в корне программы и запустить файл '
+                f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
+            )
+            return
         elif os_name == 'MacOs':
             command = os.path.join(path_to_updater, UPDATE_MAC)
             subprocess.Popen(command)
