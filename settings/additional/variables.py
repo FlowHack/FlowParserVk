@@ -1,6 +1,6 @@
 import os
 
-VERSION = '0.1.0'  # TODO Не забыть изменить
+VERSION = '0.1.1'  # TODO Не забыть изменить
 
 UPDATE_MAC = 'updater.app'
 UPDATE_WIN = 'updater.exe'

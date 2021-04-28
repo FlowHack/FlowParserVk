@@ -910,7 +910,7 @@ class App(Tk):
             self.main_book, padding=10, borderwidth=2, relief='groove'
         )
         right_frame.grid(
-            row=0, column=1, sticky='NWE'
+            row=0, column=1, sticky='N'
         )
 
         label_FPVK = ttk.Label(
@@ -936,11 +936,11 @@ class App(Tk):
         )
         label_description = ttk.Label(
             right_frame, text=LABEL_DESCRIPTION,
-            justify='center', font=fonts.H5_FONT, wraplength=650
+            justify='center', font=fonts.H5_FONT, wraplength=750
         )
         label_help_description = ttk.Label(
             right_frame, text=LABEL_HELP_DESCRIPTION,
-            justify='center', font=fonts.H6_FONT, wraplength=650
+            justify='center', font=fonts.H6_FONT, wraplength=750
         )
         btn_open_community_app = ttk.Button(
             right_frame, text='Группа FPVK', cursor='star',
@@ -957,9 +957,9 @@ class App(Tk):
         button_update.grid(row=5, column=0)
         label_FH.grid(row=6, column=0, pady=10)
         label_name_app.grid(row=0, column=0, pady=10, columnspan=2)
-        label_description.grid(row=1, column=0, sticky='SWE', columnspan=2)
+        label_description.grid(row=1, column=0, columnspan=2)
         label_help_description.grid(
-            row=2, column=0, sticky='SWE', pady=10, columnspan=2
+            row=2, column=0, pady=10, columnspan=2
         )
         btn_open_community_app.grid(row=3, column=0, pady=15, sticky='SWE')
         btn_open_bot_app.grid(row=3, column=1, pady=15, sticky='SWE')
