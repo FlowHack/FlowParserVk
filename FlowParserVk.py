@@ -1,4 +1,6 @@
 import os
+from sys import platform
+from sys import exit as exit_ex
 import time
 from shutil import rmtree
 from tkinter import Label, Tk
@@ -20,7 +22,20 @@ from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
                       REPO_BRANCH_MASTER)
 from windows import AdditionalWindows
 
-OS = 'Linux'  # TODO Не забыть изменить  Windows, Linux, MacOs
+if platform in ['linux']:
+    OS = 'Linux'
+elif platform in ['win32', 'cygwin']:
+    OS = 'Windows'
+elif platform in ['darwin', 'os2', 'os2emx']:
+    OS = 'MacOs'
+else:
+    showerror(
+        'Платформа',
+        f'Неподдерживаемая платформа: {platform}\n\nОбратитесь за помощью '
+        'к боту VK'
+    )
+
+    exit_ex()
 
 
 class BrainForApp:
