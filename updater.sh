@@ -11,7 +11,7 @@ pip install wheel
 pip install -r requirements.txt
 
 echo "!!!!!Запуск программы!!!!!"
-python3 linux.py
+python3 updater.py
 
 cd ..
 chmod +x FlowParserVk.py
