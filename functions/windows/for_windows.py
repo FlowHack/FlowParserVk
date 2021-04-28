@@ -133,6 +133,7 @@ class FunctionsForWindows:
             exit_ex()
         elif os_name == 'Linux':
             command = os.path.join(path_to_updater, UPDATE_LINUX)
+            os.system(f'chmod -R 775 {path_to_updater}')
             subprocess.Popen(command, cwd=path_to_updater)
             exit_ex()
         elif os_name == 'MacOs':
