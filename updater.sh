@@ -16,4 +16,5 @@ python3 updater.py
 cd $PWD
 cd ..
 chmod +x FlowParserVk.py
+chmod +x FlowParserVk.sh
 rm -r FlowParserVk-control-updater
