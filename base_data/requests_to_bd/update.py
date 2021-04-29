@@ -1,57 +1,96 @@
+from typing import Dict, List, Union
+
 from base_data import GetRequestsToDB, MainDB
 from settings import LOGGER
 
-LOGGER = LOGGER('bd_request', 'base_data')
+LOGGER = LOGGER('db_update', 'base_data')
 
 
 class UpdateRequestsToDB(MainDB):
-    def update_data_on_user_table(self,
-                                  access_token: str):
-        self.remote_control_bd.execute(
-            f'''
-            UPDATE UserData
-            SET access_token = "{access_token}"
-            '''
+    """
+    Класс отвечающий за UPDATE запросы к базе данных
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def update_table(self, tb_name: str,
+                     update_row: Dict[str, Union[str, int]],
+                     where: str = None) -> None:
+        """
+        функция выполняющая обноление данных таблицы
+        :param tb_name: имя таблицы
+        :param update_row: словарь {колонка: значение}
+        :param where: параметры выборки запии default: не используется
+        :return:
+        """
+        update_row_values = self.__get_update_row__(
+            tb_name, update_row, where=where
         )
+
+        request = 'UPDATE {tb_name} SET {set}'
+        if where is not None:
+            request += f' WHERE {where}'
+
+        SET = []
+
+        for key, value in update_row_values.items():
+            if type(value) == int:
+                SET += [f'{key}={value}']
+            else:
+                SET += [f'{key}="{value}"']
+
+        SET = ', '.join(SET)
+        request = request.format(tb_name=tb_name, set=SET)
+
+        LOGGER.info(f'Обновляю данные {request}')
+        self.remote_control_bd.execute(request)
         self.connect_bd.commit()
-        LOGGER.warning('Обновлены данные таблицы UserData')
 
-    def update_settings_app_table(self,
-                                  auto_update=None, person_agreement=None,
-                                  start_free_version=None):
-        if (auto_update is None) or (person_agreement is None) or \
-                (start_free_version is None):
-            values = GetRequestsToDB().get_settings_table_value(hide_result=False)
-            last_auto_update = values['auto_update']
-            last_person_agreement = values['first_start']
-            last_start_free_version = values['start_free_version']
+        LOGGER.warning(f'Обновлены данные таблицы {tb_name}')
 
-            auto_update = (last_auto_update, auto_update)[auto_update is not None]
-            person_agreement = (last_person_agreement,
-                                person_agreement)[person_agreement is not None]
-            start_free_version = (last_start_free_version,
-                                  start_free_version)[start_free_version is not None]
+    def insert_in_table(self, tb_name: str,
+                        data: List[Union[str, int]]) -> None:
+        """
+        Функция вставляющая запись в таблицу
+        :param tb_name: имя таблицы
+        :param data: список со значениями
+        :return:
+        """
+        LOGGER.warning(f'Начинаю добавлять даные в таблицу {tb_name}')
 
-        self.remote_control_bd.execute(
-            f'''
-            UPDATE AppSettings
-            SET auto_update = {auto_update},
-            first_start = {person_agreement},
-            start_free_version = {start_free_version}
-            '''
+        columns = self.columns[tb_name]
+
+        if tb_name == self.get_requests:
+            del (columns[columns.index('pk')])
+
+        question_marks = ', '.join(['?'] * len(columns))
+        columns = ', '.join(columns)
+
+        request = f'''
+        INSERT INTO {tb_name} ({columns}) 
+        VALUES ({question_marks})
+        '''
+
+        self.remote_control_bd.execute(request, data)
+        self.connect_bd.commit()
+
+        LOGGER.warning(f'Добавлены данные в таблицу {tb_name}')
+
+    def __get_update_row__(self, tb_name: str, update_row: dict,
+                           where: str) -> dict:
+        rows = self.columns[tb_name]
+
+        if len(rows) == len(update_row):
+            return update_row
+
+        get_requests_db = GetRequestsToDB()
+        values = get_requests_db.get_records(
+            tb_name=tb_name, where=where, one_record=True
         )
-        self.connect_bd.commit()
-        LOGGER.warning('Обновлены данные таблицы AppSettings')
 
-    def update_get_people_bd(self,
-                             type_request, count_people, response, time, last_parse):
-        LOGGER.warning('Начинаю добавлять даные в таблицу GetRequestsApi')
-        values = [type_request, count_people, response, time, last_parse]
-        self.remote_control_bd.execute(
-            f'''
-            INSERT INTO GetRequestsApi (type_request,count_people,response,
-            time_request,last_parse) VALUES(?,?,?,?,?)
-            ''', values
-        )
-        self.connect_bd.commit()
-        LOGGER.warning('Добавлены данные в таблицу GetRequestsApi')
+        for item in rows:
+            if item not in update_row:
+                update_row[item] = values[item]
+
+        return update_row

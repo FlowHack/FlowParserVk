@@ -6,18 +6,34 @@ LOGGER = LOGGER('main_bd', 'base_data')
 
 
 class MainDB:
+    """
+    Класс отвечающий за подключени базы данных, её настройку и создание
+    """
+
     def __init__(self):
-        """
-        Управление созданием базы
-        """
         self.connect_bd = connect(path_to_db)
         self.remote_control_bd = self.connect_bd.cursor()
         self.check_availability_db()
 
-    def check_availability_db(self):
+        self.columns = {
+            'AppSettings': [
+                'auto_update', 'first_start', 'start_free_version'
+            ],
+            'UserData': ['access_token'],
+            'GetRequestsApi': [
+                'pk', 'type_request', 'count_people', 'response',
+                'time_request', 'last_parse'
+            ]
+        }
+        self.settings = 'AppSettings'
+        self.userdata = 'UserData'
+        self.get_requests = 'GetRequestsApi'
+
+    def check_availability_db(self) -> None:
         """
-        Проверка наличия таблиц в базе
-        :return: None
+        Проверка наличия нужных таблиц в базе данных и создание их в случае их
+        отсутствия
+        :return:
         """
         should_be_table_in_db = {
             'UserData': self.create_user_db,
@@ -30,15 +46,14 @@ class MainDB:
                 'SELECT name FROM sqlite_master WHERE type = "table"'
             ).fetchall()
         )
-        for table in should_be_table_in_db.items():
-            if table[0] not in table_in_bd:
-                create_db_function = table[1]
-                create_db_function()
+        for table, func in should_be_table_in_db.items():
+            if table not in table_in_bd:
+                func()
 
-    def create_user_db(self):
+    def create_user_db(self) -> None:
         """
-        Создание таблицы данных пользователя
-        :return: None
+        Создание таблицы данных пользователя и её дефолтное заполнение
+        :return:
         """
         self.remote_control_bd.execute(
             '''
@@ -55,10 +70,10 @@ class MainDB:
         self.connect_bd.commit()
         LOGGER.info('Заполнили бд юзера дефолтными значениями')
 
-    def create_settings_db(self):
+    def create_settings_db(self) -> None:
         """
-        Создание таблицы настроек программы
-        :return: None
+        Функция создания базы данных настроек и её дефолтное заполнение
+        :return:
         """
         self.remote_control_bd.execute(
             '''
@@ -79,8 +94,8 @@ class MainDB:
 
     def create_get_people_db(self):
         """
-        Создаёт таблицу спарсенных данных, тип которых указан в поле type
-        :return: None
+        Функция создания базы данных запросов к апи
+        :return:
         """
         self.remote_control_bd.execute(
             '''

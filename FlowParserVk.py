@@ -1,13 +1,14 @@
 import os
-from sys import platform
-from sys import exit as exit_ex
 import time
+from math import ceil
 from shutil import rmtree
+from sys import exit as exit_ex
+from sys import platform
+from time import time as time_now
 from tkinter import Label, Tk
 from tkinter.messagebox import showerror, showinfo, showwarning
+from typing import Union
 from webbrowser import open_new_tab as web_open_new_tab
-from time import time as time_now
-from math import ceil
 
 import requests
 import vk_api
@@ -16,21 +17,19 @@ from PIL import Image, ImageTk
 
 from base_data import GetRequestsToDB, MainDB, UpdateRequestsToDB
 from settings import (DEFAULT_VALUE_FOR_BD, HTTP_FOR_REQUESTS, HTTP_GET_TOKEN,
-                      ID_GROUP_VK, INFO_MSG, LOGGER, TIME_FREE_VERSION,
-                      VERSION_API, WARNING_MSG, path, path_to_dir_ico,
-                      REPO_BRANCH_VERSION, REPO_BRANCH_UPDATER,
-                      REPO_BRANCH_MASTER)
+                      ID_GROUP_VK, INFO_MSG, LOGGER, REPO_BRANCH_MASTER,
+                      REPO_BRANCH_UPDATER, REPO_BRANCH_VERSION,
+                      TIME_FREE_VERSION, VERSION_API, WARNING_MSG, path,
+                      path_to_dir_ico)
 from windows import AdditionalWindows
 
 if platform in ['linux']:
     OS = 'Linux'
 elif platform in ['win32', 'cygwin']:
     OS = 'Windows'
-elif platform in ['darwin', 'os2', 'os2emx']:
-    OS = 'MacOs'
 else:
     showerror(
-        'Платформа',
+        'Платформа не поддерживается',
         f'Неподдерживаемая платформа: {platform}\n\nОбратитесь за помощью '
         'к боту VK'
     )
@@ -39,10 +38,14 @@ else:
 
 
 class BrainForApp:
+    """
+    Класс отвечающий за настройку и запуск приложения
+    """
 
     def __init__(self, window_preview):
         """
-        Создаёт превью и проверяет нужные настройки для программы
+        Создаёт превью и проверяет нужные настройки для программы, а также
+        запускает её
         :param window_preview: объект окна превью
         """
         self.logger = LOGGER('main', 'main')
@@ -53,7 +56,12 @@ class BrainForApp:
         time.sleep(2)
         MainDB()
 
-        settings = GetRequestsToDB().get_settings_table_value()
+        get_requests_db = GetRequestsToDB()
+        settings = get_requests_db.get_records(
+            tb_name=get_requests_db.settings, one_record=True,
+            select=['first_start', 'auto_update']
+        )
+
         first_start = settings['first_start']
         auto_update = settings['auto_update']
 
@@ -63,15 +71,17 @@ class BrainForApp:
             done = AdditionalWindows().person_and_agreement_data()
 
             if done is True:
-                UpdateRequestsToDB().update_settings_app_table(
-                    person_agreement=0
+                update_requests_db = UpdateRequestsToDB()
+                update_requests_db.update_table(
+                    tb_name=update_requests_db.settings,
+                    update_row={'first_start': 0}
                 )
 
         try:
             window_preview.destroy()
         except TclError as err:
             if str(err) == 'can\'t invoke "destroy" command: application ' \
-                             'has been destroyed':
+                           'has been destroyed':
                 pass
 
         self.logger.info('Запуск приложения')
@@ -119,19 +129,27 @@ class BrainForApp:
 
 
 class ConfigureVkApi:
-    def __init__(self, ignore_existing_token=False):
+    """
+    Класс отвечающий за нстройку инструментов для запросов к API Vk
+    """
+
+    def __init__(self, ignore_existing_token: bool = False):
         self.logger = LOGGER('config_vk_api', 'vk_api')
-        user_data_table_value = GetRequestsToDB().get_user_data_table_value()
+        get_requests_db = GetRequestsToDB()
+        user_data_table_value = get_requests_db.get_records(
+            tb_name=get_requests_db.userdata, one_record=True,
+            select=['access_token']
+        )
         token = user_data_table_value['access_token']
         self.__additional_windows = AdditionalWindows
 
         if ignore_existing_token is False:
-            if token is None:
+            if (token is None) or (token == DEFAULT_VALUE_FOR_BD):
                 token = self.get_token()
         else:
             token = self.get_token()
 
-        if token is not None:
+        if (token is not None) or (token != DEFAULT_VALUE_FOR_BD):
             is_donat = self.check_is_donat(token)
             if is_donat is False:
                 token = None
@@ -152,7 +170,11 @@ class ConfigureVkApi:
             self.logger.error('vk_tool не удалось получить')
             self.vk_tool = None
 
-    def get_token(self):
+    def get_token(self) -> Union[str, None]:
+        """
+        Функция получения токнеа пользователя
+        :return:
+        """
         showinfo('Получение токена!', INFO_MSG['VK_API']['get_token'])
         web_open_new_tab(HTTP_GET_TOKEN)
 
@@ -189,13 +211,21 @@ class ConfigureVkApi:
                 'повторите попытку'
             )
             return None
-
-        UpdateRequestsToDB().update_data_on_user_table(token)
+        update_requests_db = UpdateRequestsToDB()
+        update_requests_db.update_table(
+            tb_name=update_requests_db.userdata,
+            update_row={'access_token': token}
+        )
 
         return token
 
     @staticmethod
-    def check_is_donat(token):
+    def check_is_donat(token: str) -> bool:
+        """
+        Функция проверки оплаты подписки на программу пользователем
+        :param token: токен пользователя
+        :return:
+        """
         params = {
             'v': VERSION_API,
             'access_token': token,
@@ -225,9 +255,11 @@ class ConfigureVkApi:
         if int(response) == 1:
             return True
         else:
-            __start = GetRequestsToDB().get_settings_table_value()[
-                'start_free_version'
-            ]
+            get_requests_db = GetRequestsToDB()
+            __start = GetRequestsToDB().get_records(
+                select=['start_free_version'], one_record=True,
+                tb_name=get_requests_db.settings
+            )['start_free_version']
 
             if __start is None:
                 warning = WARNING_MSG['VK_API']['is_not_donat_free']
@@ -236,8 +268,10 @@ class ConfigureVkApi:
                     warning.format(min=TIME_FREE_VERSION // 60)
                 )
                 start_free_version = time_now()
-                UpdateRequestsToDB().update_settings_app_table(
-                    start_free_version=int(start_free_version)
+                update_request_db = UpdateRequestsToDB()
+                update_request_db.update_table(
+                    tb_name=update_request_db.settings,
+                    update_row={'start_free_version': int(start_free_version)}
                 )
                 return True
             else:
@@ -260,7 +294,12 @@ class ConfigureVkApi:
                     )
                     return True
 
-    def preparation_final_token(self, token):
+    def preparation_final_token(self, token: str) -> str:
+        """
+        Функция обработки ссылки и получения из неё токена
+        :param token: ссылка с токеном
+        :return:
+        """
         token = token.split('access_token=')
 
         if len(token) == 2:

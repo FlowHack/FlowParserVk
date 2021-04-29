@@ -1,9 +1,16 @@
 import json
+import os
+import shutil
+import subprocess
+import tempfile
+import zipfile
+from sys import exit as exit_ex
 from time import mktime, strptime
 from time import time as time_now
 from tkinter.messagebox import (askyesno, askyesnocancel, showerror, showinfo,
                                 showwarning)
 
+import requests
 from _tkinter import TclError
 from requests.exceptions import ConnectionError
 
@@ -11,19 +18,10 @@ from base_data import GetRequestsToDB, UpdateRequestsToDB
 from my_vk_api import GetRequestsToVkApi
 from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
-                      POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
-                      VERSION, styles, path, UPDATE_LINUX,
-                      UPDATE_MAC, UPDATE_WIN, REPO_URL_UPDATER,
-                      path_to_updater, path_to_version,
-                      REPO_URL_VERSION, REPO_BRANCH_UPDATER)
-from sys import exit as exit_ex
-
-import os
-import tempfile
-import requests
-import zipfile
-import shutil
-import subprocess
+                      POLITICAL, PROGRESSBAR_MAX, REPO_BRANCH_UPDATER,
+                      REPO_URL_UPDATER, REPO_URL_VERSION, SMOKING,
+                      STATUS_VK_PERSON, UPDATE_LINUX, UPDATE_WIN, VERSION,
+                      path, path_to_updater, path_to_version, styles)
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -32,10 +30,21 @@ LOGGER = LOGGER('func_win', 'windows')
 
 
 class FunctionsForWindows:
+    """
+    Класс отвечающий за основные функции для окон
+    """
+
     def __init__(self):
         self.additional_functions = AdditionalFunctionsForWindows()
 
-    def check_update(self, os_name, call=False):
+    def check_update(self, os_name: str, call: bool = False) -> None:
+        """
+        Проверка наличия обновлений
+        :param os_name: имя OS
+        :param call: булево принудительно ли отправлен запрос на проверку
+        обновлений default: False
+        :return:
+        """
         version = os.path.join(path_to_version, 'version.txt')
         need_update = False
 
@@ -98,8 +107,10 @@ class FunctionsForWindows:
 
             if answer is None:
                 LOGGER.info('Отмена автообновлений')
-                UpdateRequestsToDB().update_settings_app_table(
-                    auto_update=0
+                update_request_db = UpdateRequestsToDB()
+                update_request_db.update_table(
+                    tb_name=update_request_db.settings,
+                    update_row={'auto_update': 0}
                 )
 
             if answer is True:
@@ -117,7 +128,12 @@ class FunctionsForWindows:
                     )
 
     @staticmethod
-    def update_app(os_name):
+    def update_app(os_name: str) -> None:
+        """
+        Скачивание программы обновления и запуск обновлений
+        :param os_name: имя OS
+        :return:
+        """
         LOGGER.info(f'Клонируем проект {os_name}')
 
         response = requests.get(REPO_URL_UPDATER)
@@ -142,10 +158,6 @@ class FunctionsForWindows:
                 f'{UPDATE_LINUX}.\n\nИзвините за предоставленное неудобства.'
             )
             exit_ex()
-        elif os_name == 'MacOs':
-            command = os.path.join(path_to_updater, UPDATE_MAC)
-            subprocess.Popen(command, cwd=path_to_updater)
-            exit_ex()
         else:
             showerror(
                 'Неверное значение',
@@ -155,13 +167,18 @@ class FunctionsForWindows:
             return
 
     @staticmethod
-    def update_label_count_group(widgets):
+    def update_label_count_group(widgets: dict) -> None:
+        """
+        Функция обновления Label количества ссылок на группы
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         text, lbl = widgets['txt_groups'], widgets['lbl_count']
         text = text.get('1.0', 'end')
+        additional_functions = AdditionalFunctionsForWindows
 
         try:
-            count = AdditionalFunctionsForWindows.get_groups_from_text(text)[
-                'count']
+            count = additional_functions.get_groups_from_text(text)['count']
             lbl.configure(text='Количество: ' + str(count))
         except ValueError as error:
             showwarning(
@@ -170,7 +187,12 @@ class FunctionsForWindows:
             )
 
     @staticmethod
-    def parsing_groups(widgets):
+    def parsing_groups(widgets: dict) -> None:
+        """
+        Функция парсинга по группам
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         progressbar, text = widgets['progressbar'], widgets['txt_groups']
         lbl_progress = widgets['lbl_progress']
         easy_parse = int(widgets['var_easy_parse'].get())
@@ -180,11 +202,10 @@ class FunctionsForWindows:
             last_parse = 0
         else:
             last_parse = 1
-        time = time_now()
 
         try:
-            ids = AdditionalFunctionsForWindows.get_groups_from_text(text
-                                                                     )['ids']
+            additional_functions = AdditionalFunctionsForWindows
+            ids = additional_functions.get_groups_from_text(text)['ids']
         except ValueError as error:
             showwarning(
                 'Неверный id',
@@ -193,10 +214,9 @@ class FunctionsForWindows:
             return
 
         try:
-            values = ParsingVk.parse_by_groups(progressbar, lbl_progress, ids,
-                                               last_parse)
-            if values is None:
-                return
+            values = ParsingVk.parse_by_groups(
+                progressbar, lbl_progress, ids, last_parse
+            )
         except ConnectionError as error:
             showerror(
                 'Нет подключения',
@@ -210,20 +230,37 @@ class FunctionsForWindows:
         if count == 0:
             showinfo(
                 'Не найдено пользователей',
-                'Пользователи не найдены!\n\nВозможно, что лимит запросов '
-                'на сегодня исчерпан!'
+                'Пользователи не найдены!\n\nПроверьте правильность '
+                'введённых ссылок\nЕсли всё правильно, то попробуйте '
+                'позже.\n\nВ случае повторения ошибки, обратитесь за помощью '
+                'в групп Vk '
             )
             return
 
-        peoples = json.dumps(peoples, ensure_ascii=False)
-
-        UpdateRequestsToDB().update_get_people_bd(
-            type_request=NAME_PARSING['by_groups'], count_people=count,
-            time=time, response=peoples, last_parse=int(last_parse)
+        lbl_progress.configure(
+            foreground='red', text='Идёт запись в базу данных!'
         )
+        lbl_progress.update()
+
+        peoples = json.dumps(peoples, ensure_ascii=False)
+        type_request = NAME_PARSING['by_groups']
+
+        update_request_db = UpdateRequestsToDB()
+        update_request_db.insert_in_table(
+            tb_name=update_request_db.get_requests,
+            data=[type_request, count, peoples, time_now(), last_parse]
+        )
+
+        lbl_progress.configure(foreground='white', text='')
+        lbl_progress.update()
 
     @staticmethod
     def setting_region_city(widgets):
+        """
+        Функция для радиобаттона регион/город
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         var, cmb = widgets['var_city_region'], widgets['cmb_city_region']
 
         if var.get() == 0:
@@ -236,7 +273,12 @@ class FunctionsForWindows:
             cmb.set('Нажмите "Настройка"')
 
     @staticmethod
-    def setting_only(widgets):
+    def setting_only(widgets: dict) -> None:
+        """
+        Функция настройки радиобаттона онлайн ли пользователь
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         var, chk = widgets['var_only'], widgets['chk_need_last_seen']
         lbl, lbl_to = widgets['lbl_last_seen'], widgets['lbl_last_seen_to']
         spn_from, spn_to = widgets['spn_last_seen_from'], widgets[
@@ -260,7 +302,12 @@ class FunctionsForWindows:
             spn_to.grid()
             day.grid()
 
-    def setting_before_parsing(self, widgets):
+    def setting_before_parsing(self, widgets: dict) -> None:
+        """
+        Функция загрузки регионов/городов перед парсингом
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         var_need_country = widgets['var_need_country']
         if var_need_country.get() == 0:
             showwarning(
@@ -310,7 +357,12 @@ class FunctionsForWindows:
         lbl_progress.configure(text='', foreground='white')
         lbl_progress.update()
 
-    def parsing_by_groups(self, widgets):
+    def parsing_by_groups(self, widgets: dict) -> None:
+        """
+        Парсинг по критериям
+        :param widgets: словарь {ключ: виджет}
+        :return:
+        """
         pk = widgets['entry_pk'].get().strip()
         if bool(pk) is False:
             showwarning(
@@ -529,11 +581,13 @@ class FunctionsForWindows:
 
         lbl_progress.configure(text='Подождите...')
         lbl_progress.update()
-        record = GetRequestsToDB().get_one_get_requests_table(
-            pk=pk, columns='response'
+        get_requests_db = GetRequestsToDB()
+        record = get_requests_db.get_records(
+            select=['response'], tb_name=get_requests_db.get_requests,
+            where=f'pk={pk}', one_record=True
         )
 
-        record = json.loads(record[0])
+        record = json.loads(record['response'])
         iteration = 0
         length = len(record)
         step = PROGRESSBAR_MAX // length
@@ -612,9 +666,6 @@ class FunctionsForWindows:
 
                     if date_from >= bdate >= date_to:
                         continue
-
-                else:
-                    continue
 
             if need_relationship == 1:
                 if item.get('relation'):
@@ -729,7 +780,6 @@ class FunctionsForWindows:
         lbl_progress.update()
 
         count = len(result)
-        time_parse = time_now()
 
         if count == 0:
             lbl_progress.configure(
@@ -739,13 +789,21 @@ class FunctionsForWindows:
 
             showinfo(
                 'Не найдено пользователей',
-                'Пользователи не найдены!\n\nВозможно, что лимит запросов '
-                'на сегодня исчерпан!'
+                'Пользователи не найдены!\n\nВозможно, что по заданным '
+                'критериям просто никто не нашёлся'
             )
             return
 
+        lbl_progress.configure(text='Запись результатов', foreground='red')
+        lbl_progress.update()
+
         peoples = json.dumps(result)
-        UpdateRequestsToDB().update_get_people_bd(
-            type_request=NAME_PARSING['by_criteria'], count_people=count,
-            time=time_parse, response=peoples, last_parse=0
+        type_request = NAME_PARSING['by_criteria']
+
+        update_request_db = UpdateRequestsToDB()
+        update_request_db.insert_in_table(
+            tb_name=update_request_db.get_requests,
+            data=[type_request, count, peoples, time_now(), 0]
         )
+        lbl_progress.configure(text='', foreground='red')
+        lbl_progress.update()

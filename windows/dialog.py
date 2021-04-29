@@ -1,26 +1,27 @@
 import json
+import os
 from time import gmtime, strftime
 from tkinter import Toplevel, ttk
 from tkinter.filedialog import asksaveasfilename
 from tkinter.messagebox import askyesno
 
-from base_data import DeleteRequestsToDB, GetRequestsToDB
-from settings import (FORMAT_DATE, LOGGER, NAME_PARSING, fonts,
-                      set_position_window_on_center, styles, path_to_dir_ico)
-import os
 from PIL import ImageTk
+
+from base_data import DeleteRequestsToDB, GetRequestsToDB
+from settings import (FORMAT_DATE, LOGGER, NAME_PARSING, path_to_dir_ico,
+                      set_position_window_on_center, styles)
+
+LOGGER = LOGGER('dialog', 'windows')
 
 
 class TreeViewWindow:
     def __init__(self, method='view', completion_name=None, entry_pk=None):
-        if method == 'view':
-            self.values = \
-                GetRequestsToDB().get_get_requests_people_table_value()
-        else:
-            self.entry_pk = entry_pk
-            self.values = GetRequestsToDB().get_get_requests_people_for_parse(
-                completion_name
-            )
+        self.method = method
+        self.completion_name = completion_name
+        self.entry_pk = entry_pk
+        self.select = ['pk', 'type_request', 'count_people', 'time_request']
+        self.get_requests_db = GetRequestsToDB()
+        self.values = []
 
         self.window = Toplevel()
         self.initialize_ui()
@@ -42,10 +43,13 @@ class TreeViewWindow:
 
         self.tree_view.column('#0', minwidth=200, width=200, stretch=0)
         self.tree_view.column('#1', minwidth=200, width=220, stretch=0)
-        self.tree_view.column('#2', minwidth=50, width=130, stretch=0, anchor='center')
-        self.tree_view.column('#3', minwidth=100, width=100, stretch=0, anchor='center')
+        self.tree_view.column('#2', minwidth=50, width=130, stretch=0,
+                              anchor='center')
+        self.tree_view.column('#3', minwidth=100, width=100, stretch=0,
+                              anchor='center')
 
-        self.tree_view.grid(row=0, column=0, columnspan=4, rowspan=3, sticky='NSEW')
+        self.tree_view.grid(row=0, column=0, columnspan=4, rowspan=3,
+                            sticky='NSEW')
 
         if method == 'view':
             btn_clear = ttk.Button(right_frame, text='Очистить')
@@ -58,11 +62,13 @@ class TreeViewWindow:
 
             btn_clear.bind('<Button-1>', lambda event: self.clear_values())
             btn_delete.bind('<Button-1>', lambda event: self.delete_value())
-            btn_download.bind('<Button-1>', lambda event: self.download_on_txt())
+            btn_download.bind('<Button-1>',
+                              lambda event: self.download_on_txt())
         else:
             btn_choose = ttk.Button(right_frame, text='Выбрать')
             btn_cancel = ttk.Button(
-                right_frame, text='Отмена', command=lambda: self.window.destroy()
+                right_frame, text='Отмена',
+                command=lambda: self.window.destroy()
             )
 
             btn_choose.grid(row=0, column=0, sticky='SWE')
@@ -85,6 +91,7 @@ class TreeViewWindow:
         left_frame.rowconfigure(0, weight=1)
         left_frame.columnconfigure(0, weight=1)
 
+        self.__get_records__()
         self.completion_tree_view()
 
     def initialize_ui(self):
@@ -128,21 +135,25 @@ class TreeViewWindow:
         return result
 
     def completion_tree_view(self):
-        if self.values is None:
+        if len(self.values) == 0:
             return
+        if type(self.values) == dict:
+            self.values = [self.values]
 
         index = 0
         for item in self.values:
-            time = gmtime(int(item[4]))
+            time = gmtime(int(item['time_request']))
             data = strftime(FORMAT_DATE, time)
             self.tree_view.insert(
                 '', index=index, text=data,
-                values=(item[1], item[2], item[0])
+                values=(item['type_request'], item['count_people'], item['pk'])
             )
             index += 1
 
     def clear_values(self):
-        ask = askyesno('Очистка записей', 'Вы уверены, что хотите удалить все записи?')
+        ask = askyesno(
+            'Очистка записей', 'Вы уверены, что хотите удалить все записи?'
+        )
         if ask is True:
             LOGGER.warning('Запрос на удаление таблицы GetRequestsApi')
             DeleteRequestsToDB().delete_all_records('GetRequestsApi')
@@ -150,23 +161,27 @@ class TreeViewWindow:
         for row in self.tree_view.get_children():
             self.tree_view.delete(row)
 
-        self.values = GetRequestsToDB().get_get_requests_people_table_value()
-        self.completion_tree_view()
+        self.window.destroy()
 
     def delete_value(self):
         try:
             values = self.get_choose_value()
             pk = values['pk']
 
-            LOGGER.warning('Запрос на удаление элемента в таблице GetRequestsApi')
-            DeleteRequestsToDB().delete_record_in_people_request_bd(pk)
+            LOGGER.warning(
+                'Запрос на удаление элемента в таблице GetRequestsApi')
+            delete_request_db = DeleteRequestsToDB()
+            delete_request_db.delete_record_in_bd(
+                tb_name=delete_request_db.get_requests,
+                where=f'pk={pk}'
+            )
         except IndexError as error:
             if str(error) == 'не выбран элемент':
                 return
         for row in self.tree_view.get_children():
             self.tree_view.delete(row)
 
-        self.values = GetRequestsToDB().get_get_requests_people_table_value()
+        self.__get_records__()
         self.completion_tree_view()
 
     def download_on_txt(self):
@@ -177,7 +192,10 @@ class TreeViewWindow:
             return
 
         pk = values['pk']
-        values = GetRequestsToDB().get_one_get_requests_table(pk)
+        values = self.get_requests_db.get_requests(
+            tb_name=self.get_requests_db.get_requests,
+            select=self.select, where=f'pk={pk}'
+        )
         method = values['method']
         result = values['result']
         result = json.loads(result)
@@ -197,3 +215,31 @@ class TreeViewWindow:
 
         with open(directory, 'w') as file:
             file.write(result)
+
+    def __get_records__(self):
+        if self.method == 'view':
+            self.values = [self.get_requests_db.get_records(
+                    select=self.select, order='pk DESC', one_record=True,
+                    tb_name=self.get_requests_db.get_requests,
+                )]
+            values = self.get_requests_db.get_records(
+                    select=self.select, order='pk DESC',
+                    tb_name=self.get_requests_db.get_requests,
+                )
+            self.values += values if type(values) == list else [values]
+        else:
+            self.entry_pk = self.entry_pk
+            self.values = [self.get_requests_db.get_records(
+                select=self.select, order='pk DESC', one_record=True,
+                tb_name=self.get_requests_db.get_requests,
+                where=f' (type_request = "{self.completion_name}") '
+                      'and (last_parse = 1)'
+            )]
+            values = self.get_requests_db.get_records(
+                    select=self.select,
+                    tb_name=self.get_requests_db.get_requests,
+                    order=' pk DESC',
+                    where=f' (type_request = "{self.completion_name}") '
+                          'and (last_parse = 1)'
+                )
+            self.values += values if type(values) == list else [values]

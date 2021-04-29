@@ -12,7 +12,12 @@ DEFAULT_STYLE = 'awdark'
 NOTABLE_LABEL_FONT = '#00c7ff'
 
 
-def set_global_style(parent):
+def set_global_style(parent: object) -> None:
+    """
+    Функция утановки стиля для окна
+    :param parent: объект окна
+    :return:
+    """
     default_style = DEFAULT_STYLE
 
     try:
@@ -26,7 +31,11 @@ def set_global_style(parent):
     style.theme_use(default_style)
 
 
-def style_for_ok_and_close_btn():
+def style_for_ok_and_close_btn() -> None:
+    """
+    Функция создания стилей для кнопок Ок и Отмена
+    :return:
+    """
     style = Style()
     style.map("OK.TButton",
               foreground=[
@@ -45,7 +54,11 @@ def style_for_ok_and_close_btn():
     )
 
 
-def style_for_warning_entry():
+def style_for_warning_entry() -> None:
+    """
+    Функция создания стиля для пустого Entry
+    :return:
+    """
     style = Style()
     try:
         style.element_create('plain.field', 'from', 'clam')

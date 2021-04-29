@@ -464,7 +464,7 @@ class App(Tk):
             foreground=styles.NOTABLE_LABEL_FONT
         )
         spn_last_seen_from = ttk.Spinbox(
-            only_last_seen_frame, from_=1, to=LAST_SEEN_MAX,
+            only_last_seen_frame, from_=0, to=LAST_SEEN_MAX,
             font=fonts.SPINBOX_FONT,
             textvariable=var_last_seen_from, width=5
         )

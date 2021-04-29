@@ -41,7 +41,6 @@ __all__ = [
     'APP_PAGE',
     'UPDATE_WIN',
     'UPDATE_LINUX',
-    'UPDATE_MAC',
     'APP_COMMUNITY',
     'REPO_BRANCH_VERSION',
     'REPO_URL_VERSION',

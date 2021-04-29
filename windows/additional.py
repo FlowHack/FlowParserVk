@@ -1,11 +1,12 @@
+import os
 from sys import exit as exit_ex
 from time import time
 from tkinter import Text, Tk, Toplevel, messagebox, ttk
 
-from settings import (DEFAULT_VALUE_FOR_BD, LOGGER, WARNING_MSG, fonts,
-                      set_position_window_on_center, styles, path_to_dir_ico)
 from PIL import ImageTk
-import os
+
+from settings import (DEFAULT_VALUE_FOR_BD, LOGGER, WARNING_MSG, fonts,
+                      path_to_dir_ico, set_position_window_on_center, styles)
 
 
 class PersonAndAgreementData:

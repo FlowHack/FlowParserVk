@@ -1,4 +1,4 @@
-from time import sleep
+from typing import Dict, List, Union
 
 import requests
 
@@ -8,8 +8,24 @@ from settings import HTTP_FOR_REQUESTS, PROGRESSBAR_MAX, VERSION_API
 
 
 class ParsingVk:
+    """
+    Функция отвечающая за парсинг данных
+    """
+
     @staticmethod
-    def parse_by_groups(progressbar, lbl_progress, ids: list, last_parse: int):
+    def parse_by_groups(progressbar: object, lbl_progress: object,
+                        ids: List[Union[str, int]],
+                        last_parse: int) -> Union[
+        None, Dict[str, Union[List[dict], int]]
+    ]:
+        """
+        Функция парсящая пользователей по группам
+        :param progressbar: виджет програссбар
+        :param lbl_progress: виджет Label для вывода прогресса
+        :param ids: список id групп
+        :param last_parse: возможен ли будет дальнейший парсинг по этой выборке
+        :return: Dict{'result': результат, 'count': количество пользоваиелей}
+        """
         ids = list(ids)
         length = len(ids)
         vk_params = {'group_id': ''}
@@ -26,8 +42,9 @@ class ParsingVk:
             if token is None:
                 return None
 
-            lbl_progress.configure(text=f'Прогресс: {i}/{length}. Не прекращайте '
-                                        f'работу, это займёт пару минут...')
+            lbl_progress.configure(
+                text=f'Прогресс: {i}/{length}. Не прекращайте '
+                     f'работу, это займёт пару минут...')
             lbl_progress.update()
 
             offset = 0
@@ -36,8 +53,6 @@ class ParsingVk:
             vk_params['group_id'] = group_id
 
             while True:
-                if last_parse is True:
-                    pass
                 params = {
                     'v': VERSION_API,
                     'access_token': token,
@@ -48,6 +63,12 @@ class ParsingVk:
 
                 response = requests.get(url, params=params).json()
 
+                if response.get('execute_errors') or response.get('error'):
+                    if i == length - 1:
+                        break
+                    else:
+                        continue
+
                 response = response['response']
                 offset = int(response['offset'])
                 count_id = int(response['count_id'])
@@ -57,19 +78,18 @@ class ParsingVk:
 
                 lbl_progress.configure(
                     text=
-                    f'Прогресс: {i+1}/{length}. '
-                    f'Запрос: {i_response-1}/{count_id//11000}. '
+                    f'Прогресс: {i + 1}/{length}. '
+                    f'Запрос: {i_response - 1}/{count_id // 11000}. '
                     f'Не прекращайте работу, это займёт пару минут...'
                 )
                 lbl_progress.update()
-                step = PROGRESSBAR_MAX/(count_id/11000)
+                step = PROGRESSBAR_MAX / (count_id / 11000)
                 progressbar['value'] += step
                 progressbar.update()
                 if offset >= count_id:
                     break
 
                 offset += 1000
-                sleep(0.3)
 
             progressbar['value'] = 0
             progressbar.update()

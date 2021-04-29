@@ -1,18 +1,29 @@
+from typing import Dict, List, Union
+
 from my_vk_api import GetRequestsToVkApi
 
 
 class AdditionalFunctionsForWindows:
+    """
+    Класс отвечающий за дополнительные функции для главного окна
+    """
+
     def __init__(self):
-        self.cities = {
+        self.cities: Dict[str, Union[int, dict]] = {
             'country_id': None,
             'cities': {}
         }
-        self.regions = {
+        self.regions: Dict[str, Union[int, dict]] = {
             'country_id': None,
             'regions': {}
         }
 
-    def get_cities(self, country_id):
+    def get_cities(self, country_id: int) -> Dict[str, Union[int, dict]]:
+        """
+        Получение городов в стране
+        :param country_id: id Страны
+        :return: Dict
+        """
         if self.cities['country_id'] is not None:
             if country_id == self.cities['country_id']:
                 return self.cities['cities']
@@ -33,7 +44,12 @@ class AdditionalFunctionsForWindows:
 
         return self.cities['cities']
 
-    def get_regions(self, country_id):
+    def get_regions(self, country_id: int) -> Dict[str, Union[int, dict]]:
+        """
+        Получение регионов в стране
+        :param country_id: id Страны
+        :return: Dict
+        """
         if self.regions['country_id'] is not None:
             if country_id == self.cities['country_id']:
                 return self.regions['regions']
@@ -54,7 +70,14 @@ class AdditionalFunctionsForWindows:
         return self.regions['regions']
 
     @staticmethod
-    def get_groups_from_text(texts):
+    def get_groups_from_text(texts: str) -> Dict[
+        str, Union[int, List[Union[int, str]]]
+    ]:
+        """
+        Функция обработки ссылок на группы и превращения их в id
+        :param texts: текст с ссылками через Enter
+        :return:
+        """
         need_var = ['https://vk.com/', 'https://vk.com', '/vk.com/', 'vk.com/']
         ids = []
         for item in texts.split():
