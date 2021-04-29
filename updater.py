@@ -19,7 +19,7 @@ path = os.getcwd()
 os.chdir('..')
 path_app = os.getcwd()
 
-VERSION_UPDATER = '0.1.0'
+VERSION_UPDATER = '0.2.0'
 URL_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/master.zip'
 URL_VERSION_REPO = 'https://github.com/FlowHack/FlowParserVk/archive/refs/heads/control/version.zip'
 REPO_BRANCH = 'FlowParserVk-master'
@@ -32,12 +32,9 @@ if platform in ['linux']:
 elif platform in ['win32', 'cygwin']:
     app_file = os.path.join(path_app, 'FlowParserVk.exe')
     OS = 'Windows'
-elif platform in ['darwin', 'os2', 'os2emx']:
-    app_file = os.path.join(path_app, 'FlowParserVk.app')
-    OS = 'MacOs'
 else:
     showerror(
-        'Платформа',
+        'Платформа не поддерживается',
         f'Неподдерживаемая платформа: {platform}\n\nОбратитесь за помощью '
         'к боту VK'
     )
@@ -66,6 +63,10 @@ logger.addHandler(handler)
 
 
 class Updater(Tk):
+    """
+    Класс отвечающий за обновление программы
+    """
+
     def __init__(self):
         super().__init__()
         self.initialize_ui()
@@ -129,7 +130,11 @@ class Updater(Tk):
 
         self.mainloop()
 
-    def initialize_ui(self):
+    def initialize_ui(self) -> None:
+        """
+        Функция инициализации окна
+        :return:
+        """
         FPVK = ImageTk.PhotoImage(file=os.path.join(path, 'FPVK.ico'))
         w = 450
         h = 220
@@ -143,7 +148,13 @@ class Updater(Tk):
         self.set_window_on_center(w, h)
         self.resizable(0, 0)
 
-    def set_window_on_center(self, width, height):
+    def set_window_on_center(self, width: int, height: int) -> None:
+        """
+        Функция утсановки размеров окна
+        :param width:
+        :param height:
+        :return:
+        """
         sw = self.winfo_screenwidth()
         sh = self.winfo_screenheight()
         x = (sw - width) / 2
@@ -151,7 +162,12 @@ class Updater(Tk):
         self.geometry('%dx%d+%d+%d' % (width, height, x, y))
 
     @staticmethod
-    def compile_old_app():
+    def compile_old_app() -> str:
+        """
+        Функция переноса старой программы в папку old_version и получения
+        пути до базы даных
+        :return:
+        """
         os.chdir(path_app)
 
         if os.path.exists('old_version'):
@@ -177,7 +193,12 @@ class Updater(Tk):
         return path_to_db
 
     @staticmethod
-    def compile_new_app(new_app):
+    def compile_new_app(new_app: str) -> None:
+        """
+        Программа переноса новой программы в основную папку
+        :param new_app:
+        :return:
+        """
         listdir = os.listdir(new_app)
 
         for item in listdir:
@@ -185,7 +206,11 @@ class Updater(Tk):
 
         shutil.rmtree(new_app, ignore_errors=True, onerror=None)
 
-    def updater(self):
+    def updater(self) -> None:
+        """
+        Функция обновления программы
+        :return:
+        """
         self.info_lbl.configure(text='Подготовка файлов')
         logger.info('Создание папки со старой программой')
         self.info_lbl.update()
@@ -253,9 +278,12 @@ class Updater(Tk):
             subprocess.Popen(app_file, cwd=path_app)
             exit_ex()
 
-
     @staticmethod
-    def get_version():
+    def get_version() -> str:
+        """
+        Функция получения версии программы
+        :return:
+        """
         path_version = os.path.join(path, REPO_VERSION_BRANCH)
         version = os.path.join(path_version, 'version.txt')
 
