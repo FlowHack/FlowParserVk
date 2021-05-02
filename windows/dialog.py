@@ -258,6 +258,8 @@ class TreeViewWindow:
                 result = new_result
             else:
                 result = [str(item) for item in result]
+        else:
+            result = [str(item) for item in result]
 
         result = '\n'.join(result)
         directory = asksaveasfilename()
