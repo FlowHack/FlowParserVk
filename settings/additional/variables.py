@@ -1,6 +1,6 @@
 import os
 
-VERSION = '0.3.12'  # TODO Не забыть изменить
+VERSION = '0.3.13'  # TODO Не забыть изменить
 
 UPDATE_WIN = 'updater.exe'
 UPDATE_LINUX = 'updater.sh'
