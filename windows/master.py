@@ -19,9 +19,16 @@ LOGGER = LOGGER('master', 'windows')
 
 
 class App(Tk):
-    def __init__(self, update, OS_NAME: str):
+    """
+    Класс отвечающий за запуск главного окна и его создание
+    """
+
+    def __init__(self, update: int, OS_NAME: str):
         """
         Создание главного окна, вкладок и управление функциями
+        :param update: нужно ли проверить обновление
+        :param OS_NAME: имя операционной системы
+        :return
         """
         super().__init__()
         self.OS = OS_NAME
@@ -63,7 +70,7 @@ class App(Tk):
     def initialize_ui(self):
         """
         Функция настройки окна пограммы
-        :return: ничего
+        :return:
         """
         self.title(APP_NAME)
         self.tk.call('wm', 'iconphoto', self._w, self.app_ico['FPVK'])
@@ -86,11 +93,12 @@ class App(Tk):
         self.build_parsing_book_by_groups()
         self.update()
 
-    def get_app_ico(self):
+    @staticmethod
+    def get_app_ico():
         """
         Функция получения всех иконок в случае ошибки запустится проверка
         иконок
-        :return: Словарь имя: переменная готовой иконки
+        :return: Словарь {имя: переменная готовой иконки}
         """
         x48_FPVK = ImageTk.PhotoImage(Image.open(
             f'{path_to_dir_ico}/48x48_FPVK.png'
@@ -129,6 +137,11 @@ class App(Tk):
         }
 
     def build_parsing_book_groups(self):
+        """
+        Функция отвечающая за наполнение подвкладки "Парсинг по группам"
+        вкладки "Парсинг"
+        :return:
+        """
         left_frame = ttk.Frame(
             self.parsing_book_groups, relief='solid',
             borderwidth=1, padding=1
@@ -245,6 +258,10 @@ class App(Tk):
         )
 
     def build_parsing_book_by_groups(self):
+        """
+        Наполнение подвкладки "По критериям" вкладки "Парсинг"
+        :return:
+        """
         ################-------------PARSING_BOOK-------------################
         left_frame = ttk.Frame(
             self.parsing_book_by_groups, relief='solid', borderwidth=1,
@@ -782,8 +799,9 @@ class App(Tk):
         spn_followers_to.grid(row=0, column=9, sticky='SW', padx=2)
         #  row 2
         relationship_frame.grid(row=2, column=0, sticky='NSWE', pady=7)
-        chk_relationship_has_photo_frame.grid(row=0, column=0, sticky='SW',
-                                              padx=10)
+        chk_relationship_has_photo_frame.grid(
+            row=0, column=0, sticky='SW', padx=5
+        )
         lbl_relationship.grid(row=0, column=1, sticky='SW')
         var_relationship.grid(row=0, column=2, sticky='SWE', padx=10)
         #  row 3

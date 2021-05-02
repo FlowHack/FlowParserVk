@@ -1,6 +1,6 @@
-from typing import List, Union
+from typing import List, Union, Dict
 
-from settings import LOGGER
+from settings import LOGGER, REQUIRES_DATA
 
 from ..base_data import MainDB
 
@@ -61,6 +61,9 @@ class GetRequestsToDB(MainDB):
         else:
             for i in range(len(records)):
                 record = records[i]
+                if record is None:
+                    continue
+
                 response.append({})
                 for k in range(len(select)):
                     name = select[k]
@@ -68,6 +71,58 @@ class GetRequestsToDB(MainDB):
 
         LOGGER.warning(f'Успешно получены данные из {tb_name}')
         return response[0] if len(response) == 1 else response
+
+    def get_records_get_requests(self, pk: int,
+                                 method: bool = False,
+                                 last_parse: bool = False,
+                                 ) -> Union[str, Dict[str, str]]:
+        """
+        Получение результатов парсинга
+        :param pk: pk запроса
+        :param method: нужно ли вернуть тип запроса default: False
+        :param last_parse: нужно ли вернуть last_parse default: False
+        :return: str результат
+        """
+        select = ['response']
+        select += ['type_request'] if method is True else []
+        select += ['last_parse'] if last_parse is True else []
+
+        record = self.get_records(
+            select=select, tb_name=self.get_requests,
+            where=f'pk={pk}', one_record=True
+        )
+
+        _method_ = record['type_request'] if method is True else method
+        _last_parse_ = \
+            record['last_parse'] if last_parse is True else last_parse
+
+        if record['response'] == REQUIRES_DATA:
+            record = '['
+
+            _record_ = [self.get_records(
+                select=['response'], where=f'pk_attachment={pk}',
+                tb_name=self.additional_get_requests, one_record=True
+            )]
+            _record_ += self.get_records(
+                select=['response'], where=f'pk_attachment={pk}',
+                tb_name=self.additional_get_requests
+            )
+
+            record += ', '.join([item['response'] for item in _record_])
+            record += ']'
+        else:
+            record = record['response']
+
+        if (method is False) and (last_parse is False):
+            result = record
+        else:
+            result = {'response': record}
+            if method is True:
+                result['method'] = _method_
+            if last_parse is True:
+                result['last_parse'] = int(_last_parse_)
+
+        return result
 
     def __get_select__(self, tb_name, select):
         return (select, self.columns[tb_name])[select is None]

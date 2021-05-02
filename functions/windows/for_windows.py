@@ -6,7 +6,6 @@ import tempfile
 import zipfile
 from sys import exit as exit_ex
 from time import mktime, strptime
-from time import time as time_now
 from tkinter.messagebox import (askyesno, askyesnocancel, showerror, showinfo,
                                 showwarning)
 
@@ -21,7 +20,7 @@ from settings import (ALCOHOL, FOLLOWERS_MAX, LAST_SEEN_MAX, LIFE_MAIN,
                       POLITICAL, PROGRESSBAR_MAX, REPO_BRANCH_UPDATER,
                       REPO_URL_UPDATER, REPO_URL_VERSION, SMOKING,
                       STATUS_VK_PERSON, UPDATE_LINUX, UPDATE_WIN, VERSION,
-                      path, path_to_updater, path_to_version, styles)
+                      path, path_to_updater, path_to_version, styles, time_now)
 
 from ..vk_api import ParsingVk
 from .additional import AdditionalFunctionsForWindows
@@ -77,12 +76,15 @@ class FunctionsForWindows:
         shutil.rmtree(path_to_version, ignore_errors=True, onerror=None)
 
         version = [item for item in file[0].split('.')]
+        v_int = [int(item) for item in version]
         version_old = [item for item in VERSION.split('.')]
+        v_old_int = [int(item) for item in version_old]
         info = file[1]
 
-        for i in range(3):
-            if int(version[i]) > int(version_old[i]):
-                need_update = True
+        condition_1 = v_int[0] > v_old_int[0]
+        condition_2 = v_int[0] >= v_old_int[0] and v_int[1] > v_old_int[1]
+        condition_3 = v_int[0] >= v_old_int[0] and v_int[1] >= v_old_int[1] and v_int[2] > v_old_int[2]
+        need_update = (False, True)[condition_1 or condition_2 or condition_3]
 
         if (call is True) and (need_update is False):
             version = '.'.join(version_old)
@@ -242,13 +244,10 @@ class FunctionsForWindows:
         )
         lbl_progress.update()
 
-        peoples = json.dumps(peoples, ensure_ascii=False)
         type_request = NAME_PARSING['by_groups']
-
-        update_request_db = UpdateRequestsToDB()
-        update_request_db.insert_in_table(
-            tb_name=update_request_db.get_requests,
-            data=[type_request, count, peoples, time_now(), last_parse]
+        UpdateRequestsToDB().insert_many_values_into_get_requests(
+            type_request=type_request, count=count, response=peoples,
+            time=time_now(), last_parse=last_parse
         )
 
         lbl_progress.configure(foreground='white', text='')
@@ -582,12 +581,10 @@ class FunctionsForWindows:
         lbl_progress.configure(text='Подождите...')
         lbl_progress.update()
         get_requests_db = GetRequestsToDB()
-        record = get_requests_db.get_records(
-            select=['response'], tb_name=get_requests_db.get_requests,
-            where=f'pk={pk}', one_record=True
-        )
 
-        record = json.loads(record['response'])
+        record = get_requests_db.get_records_get_requests(pk)
+
+        record = json.loads(record)
         iteration = 0
         length = len(record)
         step = PROGRESSBAR_MAX // length
@@ -797,13 +794,12 @@ class FunctionsForWindows:
         lbl_progress.configure(text='Запись результатов', foreground='red')
         lbl_progress.update()
 
-        peoples = json.dumps(result)
         type_request = NAME_PARSING['by_criteria']
 
-        update_request_db = UpdateRequestsToDB()
-        update_request_db.insert_in_table(
-            tb_name=update_request_db.get_requests,
-            data=[type_request, count, peoples, time_now(), 0]
+        UpdateRequestsToDB().insert_many_values_into_get_requests(
+            type_request=type_request,
+            count=count, response=result, time=time_now(), last_parse=0
         )
+
         lbl_progress.configure(text='', foreground='red')
         lbl_progress.update()

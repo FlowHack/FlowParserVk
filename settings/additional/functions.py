@@ -25,3 +25,11 @@ def copy_in_clipboard(widget: object, value: Union[int, str]) -> None:
     """
     widget.clipboard_clear()
     widget.clipboard_append(value)
+
+
+def time_now() -> float:
+    from time import localtime, mktime
+    local_time = localtime()
+    time = mktime(local_time)
+
+    return time

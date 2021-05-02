@@ -1,8 +1,10 @@
 from sqlite3 import connect
+from typing import List, Union
+from .requests_to_bd.variables_create import *
 
-from settings import DEFAULT_VALUE_FOR_BD, LOGGER, path_to_db
+from settings import LOGGER, path_to_db
 
-LOGGER = LOGGER('main_bd', 'base_data')
+LOGGER = LOGGER('main_db', 'base_data')
 
 
 class MainDB:
@@ -11,23 +13,25 @@ class MainDB:
     """
 
     def __init__(self):
-        self.connect_bd = connect(path_to_db)
-        self.remote_control_bd = self.connect_bd.cursor()
-        self.check_availability_db()
-
-        self.columns = {
-            'AppSettings': [
-                'auto_update', 'first_start', 'start_free_version'
-            ],
-            'UserData': ['access_token'],
-            'GetRequestsApi': [
-                'pk', 'type_request', 'count_people', 'response',
-                'time_request', 'last_parse'
-            ]
-        }
         self.settings = 'AppSettings'
         self.userdata = 'UserData'
         self.get_requests = 'GetRequestsApi'
+        self.additional_get_requests = 'AdditionalGetRequestsApi'
+        self.columns = {
+            self.settings: [
+                'auto_update', 'first_start', 'start_free_version'
+            ],
+            self.userdata: ['access_token'],
+            self.get_requests: [
+                'pk', 'type_request', 'count_people', 'response',
+                'time_request', 'last_parse'
+            ],
+            self.additional_get_requests: ['pk_attachment', 'response']
+        }
+
+        self.connect_bd = connect(path_to_db)
+        self.remote_control_bd = self.connect_bd.cursor()
+        self.check_availability_db()
 
     def check_availability_db(self) -> None:
         """
@@ -36,78 +40,54 @@ class MainDB:
         :return:
         """
         should_be_table_in_db = {
-            'UserData': self.create_user_db,
-            'AppSettings': self.create_settings_db,
-            'GetRequestsApi': self.create_get_people_db
+            self.userdata: lambda: self.create_db(
+                tb_name=self.userdata, request=USER_DATA_DB,
+                data=USER_DATA_DEFAULT
+            ),
+            self.settings: lambda: self.create_db(
+                tb_name=self.settings, request=SETTINGS_DB,
+                data=SETTINGS_DEFAULT
 
+            ),
+            self.get_requests: lambda: self.create_db(
+                tb_name=self.get_requests, request=GET_REQUESTS_DB
+            ),
+            self.additional_get_requests: lambda: self.create_db(
+                tb_name=self.additional_get_requests,
+                request=ADDITIONAL_GET_REQUEST_DB
+            )
         }
-        table_in_bd = list(
+        table_in_bd = [
             record[0] for record in self.remote_control_bd.execute(
                 'SELECT name FROM sqlite_master WHERE type = "table"'
             ).fetchall()
-        )
+        ]
+
         for table, func in should_be_table_in_db.items():
             if table not in table_in_bd:
                 func()
 
-    def create_user_db(self) -> None:
+    def create_db(self, tb_name: str, request: str,
+                  data: List[Union[str, int]] = None) -> None:
         """
-        Создание таблицы данных пользователя и её дефолтное заполнение
+        Функция создания таблиц и заполнения их дефолтными значениями
+        :param tb_name: имя таблицы
+        :param request: запрос к sqlite на создание таблицы
+        :param data: список со значениями для заполнения default: None
         :return:
         """
-        self.remote_control_bd.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS UserData(
-            access_token TEXT NOT NULL
-            )
-            '''
-        )
+        LOGGER.warning(f'Начинаю создание таблицы {tb_name}')
+        self.remote_control_bd.execute(request.format(tb_name=tb_name))
         self.connect_bd.commit()
-        LOGGER.info('Создали базу данных юзера User_data')
-        self.remote_control_bd.execute(
-            f'INSERT INTO UserData VALUES ("{DEFAULT_VALUE_FOR_BD}")'
-        )
-        self.connect_bd.commit()
-        LOGGER.info('Заполнили бд юзера дефолтными значениями')
+        LOGGER.warning('Удачно создана')
 
-    def create_settings_db(self) -> None:
-        """
-        Функция создания базы данных настроек и её дефолтное заполнение
-        :return:
-        """
-        self.remote_control_bd.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS AppSettings(
-            auto_update INTEGER NOT NULL,
-            first_start INTEGER NOT NULL,
-            start_free_version INTEGER NOT NULL
-            )
-            '''
-        )
-        self.connect_bd.commit()
-        LOGGER.info('Создали базу данных настроек')
-        self.remote_control_bd.execute(
-            'INSERT INTO AppSettings VALUES (1,1,0)'
-        )
-        self.connect_bd.commit()
-        LOGGER.info('Заполнили бд настроек дефолтными значениями')
+        if data is None:
+            return
 
-    def create_get_people_db(self):
-        """
-        Функция создания базы данных запросов к апи
-        :return:
-        """
+        LOGGER.warning(f'Начинаю default заполнение {tb_name}')
+        data = ', '.join(data)
         self.remote_control_bd.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS GetRequestsApi(
-            pk INTEGER PRIMARY KEY NOT NULL,
-            type_request TEXT NOT NULL, 
-            count_people INTEGER NOT NULL,
-            response TEXT NOT NULL,
-            time_request INTEGER NOT NULL,
-            last_parse INTEGER NOT NULL
-            )
-            '''
+            f'INSERT INTO {tb_name} VALUES ({data})'
         )
         self.connect_bd.commit()
-        LOGGER.info('Создали базу данных записей get запросов')
+        LOGGER.warning('Удачно заполнена')

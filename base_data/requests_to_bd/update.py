@@ -1,9 +1,12 @@
 from typing import Dict, List, Union
 
 from base_data import GetRequestsToDB, MainDB
-from settings import LOGGER
+from settings import LOGGER, REQUIRES_DATA
+from time import sleep
+import json
 
 LOGGER = LOGGER('db_update', 'base_data')
+COUNT_MANY_INSERT = 50000
 
 
 class UpdateRequestsToDB(MainDB):
@@ -76,6 +79,63 @@ class UpdateRequestsToDB(MainDB):
         self.connect_bd.commit()
 
         LOGGER.warning(f'Добавлены данные в таблицу {tb_name}')
+
+    def insert_many_values_into_get_requests(self, type_request: str,
+                                             count: int, response: List[dict],
+                                             time: float,
+                                             last_parse: int) -> None:
+        """
+        Функция вставки данных в таблицу GET запросов к Vk в том случае.
+        Создана потому что Windows плохо работает если нужно большое
+        количество данных вставить в БД
+        :param type_request: тип парсинга
+        :param count: количество людей
+        :param response: результат выполнения парсинга
+        :param time: время парсинга
+        :param last_parse: возможен ли дальнейший парсинг по данным
+        :return:
+        """
+        if count <= COUNT_MANY_INSERT:
+            # Если норм количество людей в записи
+            peoples = json.dumps(response, ensure_ascii=False)
+            self.insert_in_table(
+                tb_name=self.get_requests,
+                data=[type_request, count, peoples, time, last_parse]
+            )
+        else:
+            # Если слишком много людей в записи
+            get_request_db = GetRequestsToDB()
+            self.insert_in_table(  # Вставка заглушки в основную тб
+                tb_name=self.get_requests,
+                data=[
+                    type_request, count, REQUIRES_DATA, time, last_parse
+                ]
+            )
+            pk = get_request_db.get_records(
+                tb_name=self.get_requests,
+                select=['pk'],
+                one_record=True, order='pk DESC'
+            )
+            attachment_pk = int(pk['pk'])
+            slice_from = 0
+            slice_to = COUNT_MANY_INSERT + 1
+
+            while True:
+                sleep(0.2)
+                peoples = response[slice_from:slice_to]
+                peoples = json.dumps(peoples, ensure_ascii=False)[1:-1]
+                self.insert_in_table(
+                    tb_name=self.additional_get_requests,
+                    data=[attachment_pk, peoples]
+                )
+
+                if slice_to == count + 1:
+                    break
+                slice_from = slice_to
+                if slice_to + COUNT_MANY_INSERT + 1 > count + 1:
+                    slice_to = count + 1
+                else:
+                    slice_to += COUNT_MANY_INSERT + 1
 
     def __get_update_row__(self, tb_name: str, update_row: dict,
                            where: str) -> dict:

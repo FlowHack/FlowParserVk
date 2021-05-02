@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
 
 import requests
+from time import sleep
 
 from my_vk_api import (EASY_PARSE_BY_GROUP_CODE, PARSE_BY_GROUP_CODE,
                        ConfigureVkApi)
@@ -34,8 +35,10 @@ class ParsingVk:
 
         if last_parse == 1:
             code = PARSE_BY_GROUP_CODE
+            request_count = 11000
         else:
             code = EASY_PARSE_BY_GROUP_CODE
+            request_count = 24000
 
         for i in range(length):
             token = ConfigureVkApi().token
@@ -61,6 +64,7 @@ class ParsingVk:
                     )
                 }
 
+                sleep(0.3)
                 response = requests.get(url, params=params).json()
 
                 if response.get('execute_errors') or response.get('error'):
@@ -79,11 +83,11 @@ class ParsingVk:
                 lbl_progress.configure(
                     text=
                     f'Прогресс: {i + 1}/{length}. '
-                    f'Запрос: {i_response - 1}/{count_id // 11000}. '
+                    f'Запрос: {i_response - 1}/{count_id // request_count}. '
                     f'Не прекращайте работу, это займёт пару минут...'
                 )
                 lbl_progress.update()
-                step = PROGRESSBAR_MAX / (count_id / 11000)
+                step = PROGRESSBAR_MAX / (count_id / request_count)
                 progressbar['value'] += step
                 progressbar.update()
                 if offset >= count_id:

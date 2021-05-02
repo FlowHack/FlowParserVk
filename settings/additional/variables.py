@@ -1,6 +1,6 @@
 import os
 
-VERSION = '0.2.23'  # TODO Не забыть изменить
+VERSION = '0.3.11'  # TODO Не забыть изменить
 
 UPDATE_WIN = 'updater.exe'
 UPDATE_LINUX = 'updater.sh'
@@ -17,11 +17,7 @@ APP_PAGE = 'https://github.com/FlowHack/FlowParserVk'
 APP_COMMUNITY = 'https://vk.com/club203683544'
 VK_BOT_APP = 'https://vk.com/im?media=&sel=-203683544'
 ID_GROUP_VK = '-203683544'
-BANK_DETAILS = {
-    'sberbank': '5469560018109591',
-    'ymoney': '410017514569348',
-    'qiwi_visa': '4890494702214891'
-}
+
 
 path = os.getcwd()
 path_to_version = os.path.join(path, REPO_BRANCH_VERSION)
@@ -34,6 +30,7 @@ path_to_dir_style = os.path.join(__path_to_dir_style__, 'awthemes-10.2.0')
 path_to_db = os.path.join(path_to_dir_settings, 'settings.db')
 
 VERSION_API = '5.130'
+REQUIRES_DATA = 'requires_data'
 HTTP_FOR_REQUESTS = 'https://api.vk.com/method/{method}'
 HTTP_GET_TOKEN = 'https://oauth.vk.com/authorize?client_id=7743684&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=327680&response_type=token&v=5.52'
 

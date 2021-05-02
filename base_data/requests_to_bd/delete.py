@@ -22,7 +22,6 @@ class DeleteRequestsToDB(MainDB):
         LOGGER.warning(f'Начинаю удаление таблицы {name_table}')
         self.remote_control_bd.execute(f'DROP TABLE IF EXISTS {name_table}')
         self.connect_bd.commit()
-        self.remote_control_bd.close()
 
         MainDB()
         LOGGER.info('Успешно удалена')

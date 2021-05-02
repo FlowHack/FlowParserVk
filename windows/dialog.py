@@ -15,7 +15,18 @@ LOGGER = LOGGER('dialog', 'windows')
 
 
 class TreeViewWindow:
-    def __init__(self, method='view', completion_name=None, entry_pk=None):
+    """
+    Класс отвечающий за окно просмотра запросов
+    """
+
+    def __init__(self, method: str = 'view', completion_name: str = None,
+                 entry_pk: object = None):
+        """
+        Запуск окна просмотра запросов
+        :param method: метод просмотра (view-обычный просмотр всех запросов)
+        :param completion_name: имя запроса default: None
+        :param entry_pk: виджет Entry для записи выбранного pk default: None
+        """
         self.method = method
         self.completion_name = completion_name
         self.entry_pk = entry_pk
@@ -95,6 +106,10 @@ class TreeViewWindow:
         self.completion_tree_view()
 
     def initialize_ui(self):
+        """
+        Инициализация окна
+        :return:
+        """
         FPVK = ImageTk.PhotoImage(
             file=os.path.join(path_to_dir_ico, 'FPVK.ico')
         )
@@ -107,6 +122,10 @@ class TreeViewWindow:
         self.window.tk.call('wm', 'iconphoto', self.window._w, FPVK)
 
     def choose_value_for_parsing(self):
+        """
+        Функция отвечающая за обработку двойного клика в случае выбора записи
+        :return:
+        """
         try:
             pk = self.get_choose_value()['pk']
         except IndexError:
@@ -117,10 +136,18 @@ class TreeViewWindow:
         self.window.destroy()
 
     def cancel(self):
+        """
+        Кнопка отмены выбора pk
+        :return:
+        """
         self.entry_pk.delete(0, 'end')
         self.window.destroy()
 
     def get_choose_value(self):
+        """
+        Получить объект выбранной записи
+        :return:
+        """
         if not self.tree_view.selection():
             raise IndexError('не выбран элемент')
 
@@ -135,6 +162,10 @@ class TreeViewWindow:
         return result
 
     def completion_tree_view(self):
+        """
+        Функция заполняет TreeView данным из BaseData
+        :return:
+        """
         if len(self.values) == 0:
             return
         if type(self.values) == dict:
@@ -151,29 +182,45 @@ class TreeViewWindow:
             index += 1
 
     def clear_values(self):
+        """
+        Очищает все записи в BD
+        :return:
+        """
         ask = askyesno(
             'Очистка записей', 'Вы уверены, что хотите удалить все записи?'
         )
         if ask is True:
             LOGGER.warning('Запрос на удаление таблицы GetRequestsApi')
-            DeleteRequestsToDB().delete_all_records('GetRequestsApi')
-
-        for row in self.tree_view.get_children():
-            self.tree_view.delete(row)
+            delete_request_db = DeleteRequestsToDB()
+            delete_request_db.delete_all_records(
+                delete_request_db.get_requests
+            )
+            delete_request_db.delete_all_records(
+                delete_request_db.additional_get_requests
+            )
 
         self.window.destroy()
 
     def delete_value(self):
+        """
+        Удаляет выбранную запись
+        :return:
+        """
         try:
             values = self.get_choose_value()
             pk = values['pk']
 
             LOGGER.warning(
-                'Запрос на удаление элемента в таблице GetRequestsApi')
+                'Запрос на удаление элемента в таблице GetRequestsApi'
+            )
             delete_request_db = DeleteRequestsToDB()
             delete_request_db.delete_record_in_bd(
                 tb_name=delete_request_db.get_requests,
                 where=f'pk={pk}'
+            )
+            delete_request_db.delete_record_in_bd(
+                tb_name=delete_request_db.additional_get_requests,
+                where=f'pk_attachment={pk}'
             )
         except IndexError as error:
             if str(error) == 'не выбран элемент':
@@ -185,6 +232,10 @@ class TreeViewWindow:
         self.completion_tree_view()
 
     def download_on_txt(self):
+        """
+        Выгрузка ID в txt формате
+        :return:
+        """
         new_result = []
         try:
             values = self.get_choose_value()
@@ -192,12 +243,11 @@ class TreeViewWindow:
             return
 
         pk = values['pk']
-        values = self.get_requests_db.get_requests(
-            tb_name=self.get_requests_db.get_requests,
-            select=self.select, where=f'pk={pk}'
+        values = self.get_requests_db.get_records_get_requests(
+            pk=pk, method=True, last_parse=True
         )
         method = values['method']
-        result = values['result']
+        result = values['response']
         result = json.loads(result)
 
         if method == NAME_PARSING['by_groups']:
@@ -205,41 +255,46 @@ class TreeViewWindow:
             if last_parse == 1:
                 for item in result:
                     new_result.append(str(item['id']))
-
                 result = new_result
+            else:
+                result = [str(item) for item in result]
 
-        result = '\n'.join(list(map(str, result)))
+        result = '\n'.join(result)
         directory = asksaveasfilename()
         if directory[-4:] != '.txt':
             directory += '.txt'
 
-        with open(directory, 'w') as file:
+        with open(directory, 'w', encoding='utf-8') as file:
             file.write(result)
 
     def __get_records__(self):
         if self.method == 'view':
-            self.values = [self.get_requests_db.get_records(
-                    select=self.select, order='pk DESC', one_record=True,
-                    tb_name=self.get_requests_db.get_requests,
-                )]
             values = self.get_requests_db.get_records(
-                    select=self.select, order='pk DESC',
-                    tb_name=self.get_requests_db.get_requests,
-                )
+                select=self.select, order='pk DESC', one_record=True,
+                tb_name=self.get_requests_db.get_requests,
+            )
+            self.values = [] if len(values) == 0 else [values]
+
+            values = self.get_requests_db.get_records(
+                select=self.select, order='pk DESC',
+                tb_name=self.get_requests_db.get_requests,
+            )
             self.values += values if type(values) == list else [values]
         else:
             self.entry_pk = self.entry_pk
-            self.values = [self.get_requests_db.get_records(
+            values = self.get_requests_db.get_records(
                 select=self.select, order='pk DESC', one_record=True,
                 tb_name=self.get_requests_db.get_requests,
                 where=f' (type_request = "{self.completion_name}") '
                       'and (last_parse = 1)'
-            )]
+            )
+            self.values = [] if len(values) == 0 else [values]
+
             values = self.get_requests_db.get_records(
-                    select=self.select,
-                    tb_name=self.get_requests_db.get_requests,
-                    order=' pk DESC',
-                    where=f' (type_request = "{self.completion_name}") '
-                          'and (last_parse = 1)'
-                )
+                select=self.select,
+                tb_name=self.get_requests_db.get_requests,
+                order=' pk DESC',
+                where=f' (type_request = "{self.completion_name}") '
+                      'and (last_parse = 1)'
+            )
             self.values += values if type(values) == list else [values]

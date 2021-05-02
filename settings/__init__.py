@@ -9,6 +9,7 @@ __all__ = [
     #  additional_functions
     'set_position_window_on_center',
     'copy_in_clipboard',
+    'time_now',
     #  additional_value_constraints
     'FOLLOWERS_MAX',
     'FRIENDS_MAX',
@@ -24,7 +25,7 @@ __all__ = [
     'APP_NAME',
     'AUTHOR_PAGE',
     'VK_BOT_APP',
-    'BANK_DETAILS',
+    'REQUIRES_DATA',
     'path',
     'path_to_dir_settings',
     'path_to_dir_dicts',
