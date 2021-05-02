@@ -103,10 +103,14 @@ class GetRequestsToDB(MainDB):
                 select=['response'], where=f'pk_attachment={pk}',
                 tb_name=self.additional_get_requests, one_record=True
             )]
-            _record_ += self.get_records(
+            value = self.get_records(
                 select=['response'], where=f'pk_attachment={pk}',
                 tb_name=self.additional_get_requests
             )
+            if type(value) == dict:
+                _record_ += [value]
+            else:
+                _record_ += value
 
             record += ', '.join([item['response'] for item in _record_])
             record += ']'
