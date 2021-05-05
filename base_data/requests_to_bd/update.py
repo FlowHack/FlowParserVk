@@ -1,9 +1,9 @@
+import json
+from time import sleep
 from typing import Dict, List, Union
 
 from base_data import GetRequestsToDB, MainDB
 from settings import LOGGER, REQUIRES_DATA
-from time import sleep
-import json
 
 LOGGER = LOGGER('db_update', 'base_data')
 COUNT_MANY_INSERT = 50000

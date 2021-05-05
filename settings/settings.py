@@ -2,7 +2,7 @@ import os
 from logging import INFO, Formatter, getLogger
 from logging.handlers import RotatingFileHandler
 
-from settings.additional.variables import APP_NAME, path_to_dir_settings, path
+from settings.additional.variables import APP_NAME, path, path_to_dir_settings
 
 
 def __get_logger__(name: str, file: str) -> object:

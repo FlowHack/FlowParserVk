@@ -69,3 +69,35 @@ while (call > 0){{
 
 return {{"offset": offset, "count_id": count_id, "result": result}};
 """
+
+PARSE_BY_SEARCH = """
+var result = [];
+var call = 25;
+var count_id = 0;
+var fields = "bdate, can_post, about, can_see_audio, can_write_private_message, city, followers_count, country, has_photo, last_seen, online, personal, relation, sex, status";
+var offset = {offset};
+var vk_params = {vk_params};
+vk_params.count = 1000;
+vk_params.offset = offset;
+
+var response = API.users.search(vk_params);
+count_id = response.count;
+result = response.items;
+
+if (offset >= count_id){{    
+    return {{"offset": offset, "count_id": count_id, "result": result}};
+}}
+
+while (call > 0){{
+    offset = offset + 1000;
+    vk_params.offset = offset;
+    response = API.users.search(vk_params);
+    result = result + response.items;
+    
+    if (offset >= count_id){{
+        call = 0;
+    }}
+}}
+
+return {{"result": result, "offset": offset, "count_id": count_id}};
+"""

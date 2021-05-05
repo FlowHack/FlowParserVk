@@ -45,7 +45,6 @@ class FunctionsForWindows:
         :return:
         """
         version = os.path.join(path_to_version, 'version.txt')
-        need_update = False
 
         try:
             LOGGER.info('Клонируем version')

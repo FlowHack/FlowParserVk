@@ -7,5 +7,6 @@ __all__ = [
     'ConfigureVkApi',
     'GetRequestsToVkApi',
     'PARSE_BY_GROUP_CODE',
-    'EASY_PARSE_BY_GROUP_CODE'
+    'EASY_PARSE_BY_GROUP_CODE',
+    'PARSE_BY_SEARCH'
 ]

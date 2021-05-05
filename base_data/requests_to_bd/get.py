@@ -1,4 +1,4 @@
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 from settings import LOGGER, REQUIRES_DATA
 

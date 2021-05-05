@@ -1,8 +1,9 @@
 from sqlite3 import connect
 from typing import List, Union
-from .requests_to_bd.variables_create import *
 
 from settings import LOGGER, path_to_db
+
+from .requests_to_bd.variables_create import *
 
 LOGGER = LOGGER('main_db', 'base_data')
 
