@@ -7,6 +7,7 @@ from my_vk_api import (EASY_PARSE_BY_GROUP_CODE, PARSE_BY_GROUP_CODE,
                        ConfigureVkApi)
 from settings import HTTP_FOR_REQUESTS, PROGRESSBAR_MAX, VERSION_API
 from json.decoder import JSONDecodeError
+from tkinter.messagebox import showerror
 
 
 class ParsingVk:
@@ -108,6 +109,16 @@ class ParsingVk:
                             continue
                     else:
                         json_error += 1
+                except MemoryError as error:
+                    showerror(
+                        'Нехватает памяти',
+                        'Нам не хватило вашей оперативной памяти для '
+                        'парсинга всех пользователей, поэтому будут записаны '
+                        'только те, кого удалось спарсить на данный '
+                        'момент.\n\nВ скором времени эта ошибка будет '
+                        'исправлена, извините за предоставленные неудобства. '
+                    )
+                    break
 
             progressbar['value'] = 0
             progressbar.update()

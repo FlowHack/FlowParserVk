@@ -121,7 +121,6 @@ class UpdateRequestsToDB(MainDB):
             slice_to = COUNT_MANY_INSERT + 1
 
             while True:
-                sleep(0.2)
                 peoples = response[slice_from:slice_to]
                 peoples = json.dumps(peoples, ensure_ascii=False)[1:-1]
                 self.insert_in_table(
