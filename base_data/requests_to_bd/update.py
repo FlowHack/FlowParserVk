@@ -1,5 +1,5 @@
+import gc
 import json
-from time import sleep
 from typing import Dict, List, Union
 
 from base_data import GetRequestsToDB, MainDB
@@ -51,6 +51,9 @@ class UpdateRequestsToDB(MainDB):
         self.connect_bd.commit()
 
         LOGGER.warning(f'Обновлены данные таблицы {tb_name}')
+        LOGGER.warning('Очистка данных')
+        del tb_name, update_row, where, request,
+        gc.collect()
 
     def insert_in_table(self, tb_name: str,
                         data: List[Union[str, int]]) -> None:
@@ -64,8 +67,10 @@ class UpdateRequestsToDB(MainDB):
 
         columns = self.columns[tb_name]
 
-        if tb_name == self.get_requests:
+        try:
             del (columns[columns.index('pk')])
+        except ValueError:
+            pass
 
         question_marks = ', '.join(['?'] * len(columns))
         columns = ', '.join(columns)
@@ -79,6 +84,9 @@ class UpdateRequestsToDB(MainDB):
         self.connect_bd.commit()
 
         LOGGER.warning(f'Добавлены данные в таблицу {tb_name}')
+        LOGGER.warning('Очистка данных')
+        del tb_name, data, question_marks, request, columns
+        gc.collect()
 
     def insert_many_values_into_get_requests(self, type_request: str,
                                              count: int, response: List[dict],
@@ -104,18 +112,19 @@ class UpdateRequestsToDB(MainDB):
             )
         else:
             # Если слишком много людей в записи
-            get_request_db = GetRequestsToDB()
             self.insert_in_table(  # Вставка заглушки в основную тб
                 tb_name=self.get_requests,
                 data=[
                     type_request, count, REQUIRES_DATA, time, last_parse
                 ]
             )
+            get_request_db = GetRequestsToDB()
             pk = get_request_db.get_records(
                 tb_name=self.get_requests,
                 select=['pk'],
                 one_record=True, order='pk DESC'
             )
+            get_request_db.connect_bd.close()
             attachment_pk = int(pk['pk'])
             slice_from = 0
             slice_to = COUNT_MANY_INSERT + 1
@@ -135,6 +144,10 @@ class UpdateRequestsToDB(MainDB):
                     slice_to = count + 1
                 else:
                     slice_to += COUNT_MANY_INSERT + 1
+
+        LOGGER.warning('Очистка данных')
+        del type_request, count, response, time, last_parse, peoples
+        gc.collect()
 
     def __get_update_row__(self, tb_name: str, update_row: dict,
                            where: str) -> dict:

@@ -1,5 +1,7 @@
+import gc
 import os
 import time
+import tracemalloc
 from math import ceil
 from shutil import rmtree
 from sys import exit as exit_ex
@@ -13,6 +15,7 @@ from webbrowser import open_new_tab as web_open_new_tab
 import requests
 import vk_api
 from _tkinter import TclError
+from apscheduler.schedulers.background import BackgroundScheduler
 from PIL import Image, ImageTk
 
 from base_data import GetRequestsToDB, MainDB, UpdateRequestsToDB
@@ -53,6 +56,7 @@ class BrainForApp:
         self.preview_image_set(png_preview_open, png_preview, window_preview)
         window_preview.update()
 
+        tracemalloc.start()
         time.sleep(2)
         MainDB()
 
@@ -77,15 +81,7 @@ class BrainForApp:
                     update_row={'first_start': 0}
                 )
 
-        try:
-            window_preview.destroy()
-        except TclError as err:
-            if str(err) == 'can\'t invoke "destroy" command: application ' \
-                           'has been destroyed':
-                pass
-
-        self.logger.info('Запуск приложения')
-
+        self.logger.warning('Очистка от лишних файлов в директории')
         list_path = os.listdir(path)
 
         if REPO_BRANCH_UPDATER in list_path:
@@ -97,6 +93,17 @@ class BrainForApp:
         if REPO_BRANCH_MASTER in list_path:
             rmtree(REPO_BRANCH_MASTER, ignore_errors=True, onerror=None)
 
+        try:
+            self.logger.warning('Закрытие окна первью')
+            window_preview.destroy()
+        except TclError:
+            pass
+
+        del settings, first_start, list_path, window_preview
+        gc.collect()
+        self.logger.info('Создание задачи scheduler')
+        scheduler.add_job(__scheduler__, 'interval', minutes=1)
+        self.logger.info('Запуск приложения')
         from windows import App
         App(auto_update, OS)
         self.logger.info('Закрытие приложения')
@@ -170,6 +177,8 @@ class ConfigureVkApi:
             self.logger.error('vk_tool не удалось получить')
             self.vk_tool = None
 
+        del get_requests_db, user_data_table_value
+
     def get_token(self) -> Union[str, None]:
         """
         Функция получения токнеа пользователя
@@ -217,6 +226,7 @@ class ConfigureVkApi:
             update_row={'access_token': token}
         )
 
+        del request
         return token
 
     @staticmethod
@@ -318,15 +328,65 @@ class ConfigureVkApi:
 
 
 if __name__ == '__main__':
+    def __scheduler__() -> None:
+        """
+        Функция отвечает за сброс мусора и ведение логгера с информацией об
+        этом
+        :return:
+        """
+        scheduler_logger = LOGGER('scheduler', 'main')
+        size_last, peak = tracemalloc.get_traced_memory()
+        size_last = size_last // 1024
+
+        scheduler_logger.warning('Запускаю очситку мусора')
+        gc.collect()
+
+        size_now, size_peak = tracemalloc.get_traced_memory()
+        size_now = size_now // 1024
+        size_peak = size_peak // 1024
+        scheduler_logger.warning(
+            f'Использовалось: {size_last}Mib, Теперь: {size_now}Mib, '
+            f'В пике: {size_peak}Mib'
+        )
+
+    error_logger = LOGGER('App', 'error')
     master = Tk()
     master.overrideredirect(True)
+
+    scheduler = BackgroundScheduler()
+    scheduler.start()
 
     try:
         app_brain = BrainForApp(master)
     except SystemExit:
+        error_logger.info('Закрытие программы')
         pass
+    except MemoryError as error:
+        try:
+            master.destroy()
+        except TclError:
+            pass
+        size_now, peak = tracemalloc.get_traced_memory()
+        size_now = size_now // 1024
+        peak = peak // 1024
+        showerror(
+            'Ошибка',
+            f'Недостаточно оперативной памяти!\n\nИспользуется: {size_now}Mib'
+            f', В пике: {peak}Mib\n\n{error}'
+        )
+        error_logger.error(
+            'Нехватка памяти: Используется - '
+            f'{size_now}Mib, В пике - {peak}Mib --> {error}'
+        )
     except BaseException as error:
+        try:
+            master.destroy()
+        except TclError:
+            pass
         showerror(
             'Ошибка',
             f'Произошла непредвиденная ошибка\n\n{error}'
+        )
+        error_logger.error(
+            f'{error}'
         )

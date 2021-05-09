@@ -27,6 +27,33 @@ def copy_in_clipboard(widget: object, value: Union[int, str]) -> None:
     widget.clipboard_append(value)
 
 
+def configure_progress_lbl(pg: object = None,
+                           lbl: object = None,
+                           pg_val: int = 0, lbl_text: str = '',
+                           lbl_color: str = 'white',
+                           lbl_back: str = None) -> None:
+    """
+    Функция отвечает за конфигурацию прогрессбара и Label с информацией
+    :param pg: Progressbar
+    :param lbl: Label
+    :param pg_val: значение progressbar
+    :param lbl_text: значение Label
+    :param lbl_color: цвет текста Label
+    :param lbl_back: цвет фона Label
+    :return:
+    """
+    if pg is not None:
+        pg['value'] = pg_val
+        pg.update()
+
+    if lbl is not None:
+        lbl.configure(text=lbl_text)
+        lbl.configure(foreground=lbl_color)
+        if lbl_back is not None:
+            lbl.configure(background=lbl_back)
+        lbl.update()
+
+
 def time_now() -> float:
     from time import localtime, mktime
     local_time = localtime()

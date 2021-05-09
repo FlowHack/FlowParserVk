@@ -1,3 +1,4 @@
+import gc
 import json
 import os
 from time import gmtime, strftime
@@ -8,8 +9,8 @@ from tkinter.messagebox import askyesno
 from PIL import ImageTk
 
 from base_data import DeleteRequestsToDB, GetRequestsToDB
-from settings import (FORMAT_DATE, LOGGER, NAME_PARSING, path_to_dir_ico,
-                      set_position_window_on_center, styles)
+from settings import (FORMAT_DATE, LOGGER, NAME_PARSING, REQUIRES_DATA,
+                      path_to_dir_ico, set_position_window_on_center, styles)
 
 LOGGER = LOGGER('dialog', 'windows')
 
@@ -133,6 +134,7 @@ class TreeViewWindow:
 
         self.entry_pk.delete(0, 'end')
         self.entry_pk.insert('end', str(pk))
+        del self.values
         self.window.destroy()
 
     def cancel(self):
@@ -141,6 +143,7 @@ class TreeViewWindow:
         :return:
         """
         self.entry_pk.delete(0, 'end')
+        del self.values
         self.window.destroy()
 
     def get_choose_value(self):
@@ -228,6 +231,8 @@ class TreeViewWindow:
         for row in self.tree_view.get_children():
             self.tree_view.delete(row)
 
+        del self.values
+        gc.collect()
         self.__get_records__()
         self.completion_tree_view()
 
@@ -236,31 +241,55 @@ class TreeViewWindow:
         Выгрузка ID в txt формате
         :return:
         """
-        new_result = []
         try:
             values = self.get_choose_value()
         except IndexError:
             return
 
         pk = values['pk']
-        values = self.get_requests_db.get_records_get_requests(
-            pk=pk, method=True, last_parse=True
+        __values__ = self.get_requests_db.get_records(
+            tb_name=self.get_requests_db.get_requests,
+            select=['response', 'type_request', 'last_parse'],
+            where=f'pk={pk}', one_record=True
         )
-        method = values['method']
-        result = values['response']
-        result = json.loads(result)
+        method = __values__['type_request']
+        last_parse = int(__values__['last_parse'])
+        result = []
+        need_pk = False
 
-        if method == NAME_PARSING['by_groups']:
-            last_parse = values['last_parse']
-            if last_parse == 1:
-                for item in result:
-                    new_result.append(str(item['id']))
-                result = new_result
-            else:
-                result = [str(item) for item in result]
+        if __values__['response'] != REQUIRES_DATA:
+            results = __values__['response']
+            results = json.loads(f'[{results}]')
         else:
-            result = [str(item) for item in result]
+            __values__ = self.get_requests_db.get_records(
+                tb_name=self.get_requests_db.additional_get_requests,
+                select=['pk'], where=f'pk_attachment={pk}', dictionary=False
+            )
+            results = [int(item[0]) for item in __values__]
+            need_pk = True
 
+        for pk in results:
+            if need_pk is False:
+                item = pk
+            else:
+                __item__ = self.get_requests_db.get_records(
+                    tb_name=self.get_requests_db.additional_get_requests,
+                    select=['response'], where=f'pk={pk}', one_record=True
+                )
+                item = __item__['response']
+                item = json.loads(f'[{item}]')
+
+            if method == NAME_PARSING['by_groups']:
+                if last_parse == 1:
+                    result += [str(i['id']) for i in item]
+                else:
+                    result += [str(i) for i in item]
+            else:
+                result += [str(i) for i in item]
+
+            del pk, __item__, item
+
+        del results
         result = '\n'.join(result)
         directory = asksaveasfilename()
         if directory[-4:] != '.txt':
@@ -269,34 +298,22 @@ class TreeViewWindow:
         with open(directory, 'w', encoding='utf-8') as file:
             file.write(result)
 
+        del result
+        gc.collect()
+
     def __get_records__(self):
         if self.method == 'view':
-            values = self.get_requests_db.get_records(
-                select=self.select, order='pk DESC', one_record=True,
-                tb_name=self.get_requests_db.get_requests,
-            )
-            self.values = [] if len(values) == 0 else [values]
-
             values = self.get_requests_db.get_records(
                 select=self.select, order='pk DESC',
                 tb_name=self.get_requests_db.get_requests,
             )
-            self.values += values if type(values) == list else [values]
+            self.values = [] if len(values) == 0 else values
         else:
             self.entry_pk = self.entry_pk
             values = self.get_requests_db.get_records(
-                select=self.select, order='pk DESC', one_record=True,
+                select=self.select, order='pk DESC',
                 tb_name=self.get_requests_db.get_requests,
                 where=f' (type_request = "{self.completion_name}") '
                       'and (last_parse = 1)'
             )
-            self.values = [] if len(values) == 0 else [values]
-
-            values = self.get_requests_db.get_records(
-                select=self.select,
-                tb_name=self.get_requests_db.get_requests,
-                order=' pk DESC',
-                where=f' (type_request = "{self.completion_name}") '
-                      'and (last_parse = 1)'
-            )
-            self.values += values if type(values) == list else [values]
+            self.values = [] if len(values) == 0 else values

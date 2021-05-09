@@ -83,7 +83,7 @@ class AdditionalFunctionsForWindows:
         for item in texts.split():
             if item is not None:
                 if item[-1] == '/':
-                    del(item[-1])
+                    del (item[-1])
                 if (item[:15] in need_var) or (item[:14] in need_var) or \
                         (item[:8] in need_var) or (item[:7] in need_var):
                     group_id = item.split('vk.com/')[1]
@@ -96,7 +96,7 @@ class AdditionalFunctionsForWindows:
                 else:
                     raise ValueError('неверный id')
 
-        ids = set(ids)
+        ids = list(set(ids))
         count = len(ids)
 
         return {'ids': ids, 'count': count}

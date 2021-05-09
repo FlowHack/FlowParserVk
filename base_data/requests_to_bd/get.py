@@ -1,6 +1,7 @@
-from typing import Dict, List, Union
+import gc
+from typing import List, Union
 
-from settings import LOGGER, REQUIRES_DATA
+from settings import LOGGER
 
 from ..base_data import MainDB
 
@@ -50,10 +51,15 @@ class GetRequestsToDB(MainDB):
 
         LOGGER.info(f'Получаю данные {request}')
         self.remote_control_bd.execute(request)
-        records = (
-            [self.remote_control_bd.fetchone()],
-            self.remote_control_bd.fetchall()
-        )[one_record is False]
+        if one_record is True:
+            records = [self.remote_control_bd.fetchone()]
+        else:
+            record = [list(self.remote_control_bd.fetchone())]
+            __record__ = self.remote_control_bd.fetchall()
+            if len(__record__) > 0:
+                records = record + __record__
+            else:
+                records = record
 
         LOGGER.info('Обрабатываю')
         if dictionary is False:
@@ -61,72 +67,20 @@ class GetRequestsToDB(MainDB):
         else:
             for i in range(len(records)):
                 record = records[i]
-                if record is None:
+                if len(record) == 0 or len(record) < len(select):
                     continue
-
                 response.append({})
                 for k in range(len(select)):
                     name = select[k]
                     response[i][name] = record[k]
+                del record
 
         LOGGER.warning(f'Успешно получены данные из {tb_name}')
+        LOGGER.warning('Очистка данных')
+        del tb_name, select, one_record, where, limit, dictionary, request, \
+            records
+        gc.collect()
         return response[0] if len(response) == 1 else response
-
-    def get_records_get_requests(self, pk: int,
-                                 method: bool = False,
-                                 last_parse: bool = False,
-                                 ) -> Union[str, Dict[str, str]]:
-        """
-        Получение результатов парсинга
-        :param pk: pk запроса
-        :param method: нужно ли вернуть тип запроса default: False
-        :param last_parse: нужно ли вернуть last_parse default: False
-        :return: str результат
-        """
-        select = ['response']
-        select += ['type_request'] if method is True else []
-        select += ['last_parse'] if last_parse is True else []
-
-        record = self.get_records(
-            select=select, tb_name=self.get_requests,
-            where=f'pk={pk}', one_record=True
-        )
-
-        _method_ = record['type_request'] if method is True else method
-        _last_parse_ = \
-            record['last_parse'] if last_parse is True else last_parse
-
-        if record['response'] == REQUIRES_DATA:
-            record = '['
-
-            _record_ = [self.get_records(
-                select=['response'], where=f'pk_attachment={pk}',
-                tb_name=self.additional_get_requests, one_record=True
-            )]
-            value = self.get_records(
-                select=['response'], where=f'pk_attachment={pk}',
-                tb_name=self.additional_get_requests
-            )
-            if type(value) == dict:
-                _record_ += [value]
-            else:
-                _record_ += value
-
-            record += ', '.join([item['response'] for item in _record_])
-            record += ']'
-        else:
-            record = record['response']
-
-        if (method is False) and (last_parse is False):
-            result = record
-        else:
-            result = {'response': record}
-            if method is True:
-                result['method'] = _method_
-            if last_parse is True:
-                result['last_parse'] = int(_last_parse_)
-
-        return result
 
     def __get_select__(self, tb_name, select):
         return (select, self.columns[tb_name])[select is None]

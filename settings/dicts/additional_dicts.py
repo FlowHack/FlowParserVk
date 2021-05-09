@@ -46,6 +46,13 @@ try:
         LOGGER.info('Загружен словарь информационных сообщений')
 except FileNotFoundError as error:
     LOGGER.error('Не найден файл "info.json"')
+try:
+    with open(os.path.join(path_to_dir_dicts, 'asks.json'), 'r',
+              encoding='utf-8') as file:
+        ASKS = json.load(file)
+        LOGGER.info('Загружен словарь вопросов')
+except FileNotFoundError as error:
+    LOGGER.error('Не найден файл "asks.json"')
 
 #  Словарь статусов
 STATUS_VK_PERSON = {

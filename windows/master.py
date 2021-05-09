@@ -254,7 +254,7 @@ class App(Tk):
         )
         btn_parse.bind(
             '<Button-1>',
-            lambda event: FunctionsForWindows.parsing_groups(widgets)
+            lambda event: FunctionsForWindows().parsing_groups(widgets)
         )
 
     def build_parsing_book_by_groups(self):

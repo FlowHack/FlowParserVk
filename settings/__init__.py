@@ -10,6 +10,7 @@ __all__ = [
     'set_position_window_on_center',
     'copy_in_clipboard',
     'time_now',
+    'configure_progress_lbl',
     #  additional_value_constraints
     'FOLLOWERS_MAX',
     'FRIENDS_MAX',
@@ -61,6 +62,7 @@ __all__ = [
     'LIFE_MAIN',
     'SMOKING',
     'ALCOHOL',
+    'ASKS',
     #  settings
     'LABEL_DESCRIPTION',
     'LABEL_HELP_DESCRIPTION',

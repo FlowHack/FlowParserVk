@@ -27,7 +27,7 @@ class MainDB:
                 'pk', 'type_request', 'count_people', 'response',
                 'time_request', 'last_parse'
             ],
-            self.additional_get_requests: ['pk_attachment', 'response']
+            self.additional_get_requests: ['pk', 'pk_attachment', 'response']
         }
 
         self.connect_bd = connect(path_to_db)
