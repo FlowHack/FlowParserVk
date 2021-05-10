@@ -292,6 +292,12 @@ class TreeViewWindow:
         del results
         result = '\n'.join(result)
         directory = asksaveasfilename()
+
+        if directory in ['', ' ']:
+            del result
+            gc.collect()
+            return
+
         if directory[-4:] != '.txt':
             directory += '.txt'
 
