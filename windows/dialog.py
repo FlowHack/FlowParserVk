@@ -287,7 +287,7 @@ class TreeViewWindow:
             else:
                 result += [str(i) for i in item]
 
-            del pk, __item__, item
+            del pk, item
 
         del results
         result = '\n'.join(result)

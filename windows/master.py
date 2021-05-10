@@ -192,7 +192,7 @@ class App(Tk):
         lbl_warning = ttk.Label(
             left_frame, foreground='#e10000', font=fonts.H6_FONT,
             text='Вводите исключительно ссылки на группы. И вводите через '
-                 '"Enter" '
+                 '"Enter"\nСкопировать Ctrl + C. Вставить Ctrl + V. Не иначе!'
         )
 
         #####################---------RIGHT_FRAME---------#####################
