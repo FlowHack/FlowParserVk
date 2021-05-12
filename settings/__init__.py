@@ -68,6 +68,7 @@ __all__ = [
     'LABEL_HELP_DESCRIPTION',
     'LICENSE_AGREEMENT',
     'LOGGER',
+    'LABEL_PLEASE_HELP_BOT',
     #  style
     'fonts',
     'styles',

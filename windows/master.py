@@ -12,7 +12,8 @@ from settings import (ALCOHOL, APP_COMMUNITY, APP_NAME, APP_PAGE, AUTHOR_PAGE,
                       LAST_SEEN_MAX, LIFE_MAIN, LIST_COUNTRIES, LOGGER,
                       NAME_PARSING, PEOPLE_MAIN, POLITICAL, PROGRESSBAR_MAX,
                       SMOKING, STATUS_VK_PERSON, VERSION, VK_BOT_APP, fonts,
-                      path_to_dir_ico, set_position_window_on_center, styles)
+                      path_to_dir_ico, set_position_window_on_center, styles,
+                      LABEL_PLEASE_HELP_BOT)
 from windows import TreeViewWindow
 
 LOGGER = LOGGER('master', 'windows')
@@ -960,6 +961,11 @@ class App(Tk):
             right_frame, text=LABEL_HELP_DESCRIPTION,
             justify='center', font=fonts.H6_FONT, wraplength=750
         )
+        label_help = ttk.Label(
+            right_frame, text=LABEL_PLEASE_HELP_BOT,
+            justify='center', font=fonts.H6_FONT, wraplength=750,
+            foreground='red'
+        )
         btn_open_community_app = ttk.Button(
             right_frame, text='Группа FPVK', cursor='star',
             command=lambda: web_open(APP_COMMUNITY)
@@ -979,8 +985,9 @@ class App(Tk):
         label_help_description.grid(
             row=2, column=0, pady=10, columnspan=2
         )
-        btn_open_community_app.grid(row=3, column=0, pady=15, sticky='SWE')
-        btn_open_bot_app.grid(row=3, column=1, pady=15, sticky='SWE')
+        label_help.grid(row=3, column=0, columnspan=2, pady=15)
+        btn_open_community_app.grid(row=4, column=0, pady=15, sticky='SWE')
+        btn_open_bot_app.grid(row=4, column=1, pady=15, sticky='SWE')
 
         self.main_book.columnconfigure(0, weight=1)
         self.main_book.columnconfigure(1, weight=3)

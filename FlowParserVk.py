@@ -102,6 +102,8 @@ class BrainForApp:
         del settings, first_start, list_path, window_preview
         gc.collect()
         self.logger.info('Создание задачи scheduler')
+        scheduler = BackgroundScheduler()
+        scheduler.start()
         scheduler.add_job(__scheduler__, 'interval', minutes=1)
         self.logger.info('Запуск приложения')
         from windows import App
@@ -349,12 +351,10 @@ if __name__ == '__main__':
             f'В пике: {size_peak}Mib'
         )
 
-    error_logger = LOGGER('App', 'error')
     master = Tk()
     master.overrideredirect(True)
 
-    scheduler = BackgroundScheduler()
-    scheduler.start()
+    error_logger = LOGGER('App', 'error')
 
     try:
         app_brain = BrainForApp(master)
