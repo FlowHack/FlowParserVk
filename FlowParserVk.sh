@@ -12,6 +12,11 @@ else
 	sleep 2
 	sudo apt install python3-venv -y
 
+	echo "!!!!!Установка python3-tk=3.8.5-1~20.04.1!!!!!"
+	sleep 2
+	sudo apt install python3-tk=3.8.5-1~20.04.1
+
+
 	echo "!!!!!Установка python3-pip!!!!!"
 	sleep 2
 	sudo apt install python3-pip -y
