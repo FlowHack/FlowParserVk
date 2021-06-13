@@ -1,5 +1,7 @@
 from typing import Union
 
+import clipboard
+
 
 def set_position_window_on_center(parent, width: int, height: int) -> None:
     """
@@ -25,6 +27,22 @@ def copy_in_clipboard(widget: object, value: Union[int, str]) -> None:
     """
     widget.clipboard_clear()
     widget.clipboard_append(value)
+
+
+def paste_into_widget(widget: object, text=False) -> None:
+    """
+    Функция управляющая наполнением из буфера обмена
+    :param widget: виджет в который вставить объект
+    :param text: Текстовое ли поле
+    :return:
+    """
+    txt = clipboard.paste()
+
+    if text is True:
+        widget.insert(1.0, txt)
+        return
+
+    widget.insert(0, txt)
 
 
 def configure_progress_lbl(pg: object = None,

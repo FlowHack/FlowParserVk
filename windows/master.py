@@ -9,11 +9,11 @@ from functions import FunctionsForWindows
 from my_vk_api import ConfigureVkApi
 from settings import (ALCOHOL, APP_COMMUNITY, APP_NAME, APP_PAGE, AUTHOR_PAGE,
                       FOLLOWERS_MAX, LABEL_DESCRIPTION, LABEL_HELP_DESCRIPTION,
-                      LAST_SEEN_MAX, LIFE_MAIN, LIST_COUNTRIES, LOGGER,
-                      NAME_PARSING, PEOPLE_MAIN, POLITICAL, PROGRESSBAR_MAX,
-                      SMOKING, STATUS_VK_PERSON, VERSION, VK_BOT_APP, fonts,
-                      path_to_dir_ico, set_position_window_on_center, styles,
-                      LABEL_PLEASE_HELP_BOT)
+                      LABEL_PLEASE_HELP_BOT, LAST_SEEN_MAX, LIFE_MAIN,
+                      LIST_COUNTRIES, LOGGER, NAME_PARSING, PEOPLE_MAIN,
+                      POLITICAL, PROGRESSBAR_MAX, SMOKING, STATUS_VK_PERSON,
+                      VERSION, VK_BOT_APP, fonts, paste_into_widget,
+                      path_to_dir_ico, set_position_window_on_center, styles)
 from windows import TreeViewWindow
 
 LOGGER = LOGGER('master', 'windows')
@@ -204,6 +204,9 @@ class App(Tk):
         btn_up_count = ttk.Button(
             right_frame, text='Обновить кол-во', cursor='exchange'
         )
+        btn_paste = ttk.Button(
+            right_frame, text='Вставить из буфера'
+        )
         btn_show_all = ttk.Button(
             right_frame, text='Все записи'
         )
@@ -215,6 +218,7 @@ class App(Tk):
             'var_easy_parse': var_easy_parse,
             'txt_groups': txt_groups,
             'lbl_progress': lbl_progress,
+            'btn_paste': btn_paste,
             'progressbar': progressbar
         }
 
@@ -236,7 +240,9 @@ class App(Tk):
         #  row 1
         btn_up_count.grid(row=1, column=0, sticky='NWE')
         #  row 2
-        btn_show_all.grid(row=2, column=0, sticky='NWE', pady=5)
+        btn_paste.grid(row=2, column=0, sticky='NWE', pady=5)
+        #  row 3
+        btn_show_all.grid(row=3, column=0, sticky='NWE')
 
         left_frame.rowconfigure(2, weight=1)
         left_frame.columnconfigure(0, weight=1)
@@ -252,6 +258,10 @@ class App(Tk):
         btn_up_count.bind(
             '<Button-1>',
             lambda event: FunctionsForWindows.update_label_count_group(widgets)
+        )
+        btn_paste.bind(
+            '<Button-1>',
+            lambda event: paste_into_widget(widget=txt_groups, text=True)
         )
         btn_parse.bind(
             '<Button-1>',

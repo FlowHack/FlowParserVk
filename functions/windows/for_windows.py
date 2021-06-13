@@ -1,3 +1,4 @@
+import datetime
 import gc
 import json
 import os
@@ -5,15 +6,14 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
-from _tkinter import TclError
 from json.decoder import JSONDecodeError
 from sys import exit as exit_ex
-import datetime
 from tkinter.messagebox import (askyesno, askyesnocancel, showerror, showinfo,
                                 showwarning)
 from typing import List, Union
 
 import requests
+from _tkinter import TclError
 from requests.exceptions import ConnectionError
 
 from base_data import COUNT_MANY_INSERT, GetRequestsToDB, UpdateRequestsToDB
@@ -28,6 +28,7 @@ from settings import (ALCOHOL, ASKS, ERROR_MSG, FOLLOWERS_MAX,
                       VERSION, VERSION_API, WARNING_MSG,
                       configure_progress_lbl, path, path_to_updater,
                       path_to_version, styles, time_now)
+
 from .additional import AdditionalFunctionsForWindows
 
 LOGGER = LOGGER('func_win', 'windows')

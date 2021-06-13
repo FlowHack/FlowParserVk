@@ -11,6 +11,7 @@ __all__ = [
     'copy_in_clipboard',
     'time_now',
     'configure_progress_lbl',
+    'paste_into_widget',
     #  additional_value_constraints
     'FOLLOWERS_MAX',
     'FRIENDS_MAX',

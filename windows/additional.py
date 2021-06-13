@@ -4,10 +4,10 @@ from time import time
 from tkinter import Text, Tk, Toplevel, messagebox, ttk
 
 from PIL import ImageTk
-import clipboard
 
-from settings import (DEFAULT_VALUE_FOR_BD, LOGGER, WARNING_MSG, fonts,
-                      path_to_dir_ico, set_position_window_on_center, styles, LICENSE_AGREEMENT)
+from settings import (DEFAULT_VALUE_FOR_BD, LICENSE_AGREEMENT, LOGGER,
+                      WARNING_MSG, fonts, paste_into_widget, path_to_dir_ico,
+                      set_position_window_on_center, styles)
 
 
 class PersonAndAgreementData:
@@ -168,7 +168,7 @@ class GetTokenWindow:
 
         btn_ok.bind('<Button-1>', lambda event: self.ok())
         btn_cancel.bind('<Button-1>', lambda event: self.cancel())
-        btn_paste.bind('<Button-1>', lambda event: self.paste())
+        btn_paste.bind('<Button-1>', lambda event: paste_into_widget(self.entry_token))
 
     def initialize_ui(self):
         """
@@ -190,10 +190,6 @@ class GetTokenWindow:
         self.token_window.tk.call(
             'wm', 'iconphoto', self.token_window._w, FPVK
         )
-
-    def paste(self):
-        url = clipboard.paste()
-        self.entry_token.insert(0, url)
 
     def cancel(self):
         """
