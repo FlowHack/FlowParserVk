@@ -4,9 +4,10 @@ from time import time
 from tkinter import Text, Tk, Toplevel, messagebox, ttk
 
 from PIL import ImageTk
+import clipboard
 
 from settings import (DEFAULT_VALUE_FOR_BD, LOGGER, WARNING_MSG, fonts,
-                      path_to_dir_ico, set_position_window_on_center, styles)
+                      path_to_dir_ico, set_position_window_on_center, styles, LICENSE_AGREEMENT)
 
 
 class PersonAndAgreementData:
@@ -15,8 +16,6 @@ class PersonAndAgreementData:
     """
 
     def __init__(self):
-        from settings.settings import LICENSE_AGREEMENT
-
         self.start_function_time = time()
         self.agreement = False
         self.lose_agreement_count: int = 0
@@ -148,22 +147,28 @@ class GetTokenWindow:
         btn_ok = ttk.Button(
             bottom_frame, text='OK', style='OK.TButton',
         )
+        btn_paste = ttk.Button(
+            bottom_frame, text='Вставить ссылку',
+        )
         btn_cancel = ttk.Button(
             bottom_frame, text='Отмена', style='Close.TButton',
         )
 
         label_token.grid(row=0, column=0, sticky='SE', pady=10, padx=5)
         self.entry_token.grid(
-            row=0, column=1, sticky='SWE', columnspan=2, pady=10
+            row=0, column=1, sticky='SWE', columnspan=3, pady=10
         )
         btn_ok.grid(row=1, column=1, sticky='SWE', pady=10)
-        btn_cancel.grid(row=1, column=2, sticky='SWE', pady=10)
+        btn_paste.grid(row=1, column=2, sticky='SWE', pady=10)
+        btn_cancel.grid(row=1, column=3, sticky='SWE', pady=10)
 
         bottom_frame.columnconfigure(1, weight=1)
-        bottom_frame.columnconfigure(2, weight=2)
+        bottom_frame.columnconfigure(2, weight=1)
+        bottom_frame.columnconfigure(3, weight=1)
 
         btn_ok.bind('<Button-1>', lambda event: self.ok())
         btn_cancel.bind('<Button-1>', lambda event: self.cancel())
+        btn_paste.bind('<Button-1>', lambda event: self.paste())
 
     def initialize_ui(self):
         """
@@ -185,6 +190,10 @@ class GetTokenWindow:
         self.token_window.tk.call(
             'wm', 'iconphoto', self.token_window._w, FPVK
         )
+
+    def paste(self):
+        url = clipboard.paste()
+        self.entry_token.insert(0, url)
 
     def cancel(self):
         """

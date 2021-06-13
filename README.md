@@ -20,4 +20,4 @@ _Благодаря данной программе вы можете эффек
 
 ### Контакты
 - [Группа Vk](https://vk.com/flow_parser_vk)
-- [Бот Vk](https://vk.com/im?sel=-203683544) 
+- [Бот Vk](https://vk.com/im?sel=-203683544)

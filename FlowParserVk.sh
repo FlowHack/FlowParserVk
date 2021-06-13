@@ -7,6 +7,7 @@ if [ -d $file ]; then
 else
 	echo "!!!!!Обновление python3 до актуальной версии!!!!!"
 	sudo apt reinstall python3 -y
+	sudo apt install xclip
 
 	echo "!!!!!Установка python3-venv!!!!!"
 	sleep 2
